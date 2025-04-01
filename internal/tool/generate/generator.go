@@ -2621,7 +2621,11 @@ func sanitize(t types.Type) string {
 				types.String:
 				return x.Name()
 			}
+
+		case *types.Alias:
+			return sanitize(x.Underlying())
 		}
+
 		panic(fmt.Sprintf("generator: unable to generate named type suffic for type: %v\n", t))
 	}
 
@@ -2700,7 +2704,11 @@ func uniqueName(t types.Type) string {
 			types.String:
 			return x.Name()
 		}
+
+	case *types.Alias:
+		return uniqueName(x.Underlying())
 	}
+
 	// TODO(mwhittaker): What about Struct and Interface literals?
 	panic(fmt.Sprintf("unsupported type %v (%T)", t, t))
 }

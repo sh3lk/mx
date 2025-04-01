@@ -1,6 +1,6 @@
 module github.com/ServiceWeaver/weaver
 
-go 1.22.12
+go 1.23.7
 
 require (
 	github.com/BurntSushi/toml v1.3.2

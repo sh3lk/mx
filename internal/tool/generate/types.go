@@ -367,6 +367,9 @@ func (tset *typeSet) checkSerializable(t types.Type) []error {
 		case *types.Pointer:
 			tset.checked.Set(t, check(x.Elem(), "(*"+path+")", true))
 
+		case *types.Alias:
+			tset.checked.Set(t, check(x.Underlying(), path, true))
+
 		case *types.Map:
 			keySerializable := check(x.Key(), path+".key", true)
 			valSerializable := check(x.Elem(), path+".value", true)
