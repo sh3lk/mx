@@ -45,13 +45,14 @@ func init() {
 	}
 	testDir = filepath.Dir(filename)
 	weaverSrcDir = filepath.Join(testDir, "../../../")
+	goVersion := runtime.Version()[2:]
 	goModFile = fmt.Sprintf(`module "foo"
 
-go 1.21
+go %s
 
 require github.com/ServiceWeaver/weaver v0.0.0
 replace github.com/ServiceWeaver/weaver => %s
-`, weaverSrcDir)
+`, goVersion, weaverSrcDir)
 }
 
 // runGenerator runs "weaver generate" on the provided file contents---originally
