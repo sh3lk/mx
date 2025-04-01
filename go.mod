@@ -1,44 +1,44 @@
 module github.com/ServiceWeaver/weaver
 
-go 1.23.7
+go 1.24.1
 
 require (
-	github.com/BurntSushi/toml v1.3.2
-	github.com/DataDog/hyperloglog v0.0.0-20220804205443-1806d9b66146
+	github.com/BurntSushi/toml v1.5.0
+	github.com/DataDog/hyperloglog v0.0.0-20240529073211-ec1b7f6ebabb
 	github.com/alecthomas/chroma/v2 v2.2.0
-	github.com/fsnotify/fsnotify v1.6.0
+	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/goburrow/cache v0.1.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/google/cel-go v0.17.1
-	github.com/google/go-cmp v0.6.0
-	github.com/google/pprof v0.0.0-20230705174524-200ffdc848b8
-	github.com/google/uuid v1.3.1
+	github.com/google/cel-go v0.17.8
+	github.com/google/go-cmp v0.7.0
+	github.com/google/pprof v0.0.0-20250317173921-a4b03ec1a45e
+	github.com/google/uuid v1.6.0
 	github.com/hashicorp/golang-lru/v2 v2.0.1
 	github.com/lightstep/varopt v1.4.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
+	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/testcontainers/testcontainers-go v0.24.1
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.24.1
 	github.com/yuin/goldmark v1.4.15
 	github.com/yuin/goldmark-highlighting/v2 v2.0.0-20220924101305-151362477c87
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.45.0
 	go.opentelemetry.io/otel v1.19.0
-	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.16.0
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.19.0
 	go.opentelemetry.io/otel/sdk v1.19.0
 	go.opentelemetry.io/otel/trace v1.19.0
-	golang.org/x/crypto v0.23.0
-	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
+	golang.org/x/crypto v0.36.0
+	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
 	golang.org/x/image v0.18.0
-	golang.org/x/sync v0.7.0
-	golang.org/x/term v0.20.0
-	golang.org/x/text v0.16.0
-	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d
+	golang.org/x/sync v0.12.0
+	golang.org/x/term v0.30.0
+	golang.org/x/text v0.23.0
+	golang.org/x/tools v0.31.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230717213848-3f92550aa753
 	google.golang.org/protobuf v1.33.0
 	gorm.io/driver/postgres v1.5.3
 	gorm.io/gorm v1.25.5
-	modernc.org/sqlite v1.24.0
+	modernc.org/sqlite v1.37.0
 )
 
 require (
@@ -59,8 +59,8 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dustin/randbo v0.0.0-20140428231429-7f1b564ca724 // indirect
-	github.com/felixge/httpsnoop v1.0.3 // indirect
-	github.com/go-logr/logr v1.2.4 // indirect
+	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -71,16 +71,16 @@ require (
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/klauspost/compress v1.16.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
-	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/moby/patternmatcher v0.5.0 // indirect
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/moby/sys/user v0.3.0 // indirect
 	github.com/moby/term v0.5.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
+	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -89,23 +89,17 @@ require (
 	github.com/shirou/gopsutil/v3 v3.23.7 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/stoewer/go-strcase v1.2.0 // indirect
+	github.com/stoewer/go-strcase v1.3.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
 	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.opentelemetry.io/otel/metric v1.19.0 // indirect
-	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230711160842-782d3b101e98 // indirect
-	google.golang.org/grpc v1.58.3 // indirect
-	lukechampine.com/uint128 v1.2.0 // indirect
-	modernc.org/cc/v3 v3.40.0 // indirect
-	modernc.org/ccgo/v3 v3.16.13 // indirect
-	modernc.org/libc v1.22.5 // indirect
-	modernc.org/mathutil v1.5.0 // indirect
-	modernc.org/memory v1.5.0 // indirect
-	modernc.org/opt v0.1.3 // indirect
-	modernc.org/strutil v1.1.3 // indirect
-	modernc.org/token v1.0.1 // indirect
+	golang.org/x/mod v0.24.0 // indirect
+	golang.org/x/net v0.37.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
+	google.golang.org/grpc v1.59.0-dev // indirect
+	modernc.org/libc v1.62.1 // indirect
+	modernc.org/mathutil v1.7.1 // indirect
+	modernc.org/memory v1.9.1 // indirect
 )
