@@ -19,13 +19,13 @@
 // func _hashFoo(r fooKey) uint64
 // func _orderedCodeFoo(r fooKey) codegen.OrderedCode
 
-// Service Weaver route keys.
+// MX route keys.
 package foo
 
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type foo interface {
@@ -33,8 +33,8 @@ type foo interface {
 }
 
 type impl struct {
-	weaver.Implements[foo]
-	weaver.WithRouter[fooRouter]
+	mx.Implements[foo]
+	mx.WithRouter[fooRouter]
 }
 
 func (l *impl) M(context.Context, int) error {

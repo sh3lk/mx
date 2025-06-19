@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/weavertest"
 	"github.com/google/go-cmp/cmp"
+	"github.com/sh3lk/mx/mxtest"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mysql"
 )
@@ -66,9 +66,9 @@ func TestFeed(t *testing.T) {
 	addr := newMySQL(t, ctx)
 
 	// Run the test against the instance.
-	runner := weavertest.Local
+	runner := mxtest.Local
 	runner.Config = fmt.Sprintf(`
-		["github.com/ServiceWeaver/weaver/examples/chat/SQLStore"]
+		["github.com/sh3lk/mx/examples/chat/SQLStore"]
 		db_driver = "mysql"
 		db_uri = %q
 	`, addr)
@@ -132,9 +132,9 @@ func TestImage(t *testing.T) {
 	addr := newMySQL(t, ctx)
 
 	// Run the test against the instance.
-	runner := weavertest.Local
+	runner := mxtest.Local
 	runner.Config = fmt.Sprintf(`
-		["github.com/ServiceWeaver/weaver/examples/chat/SQLStore"]
+		["github.com/sh3lk/mx/examples/chat/SQLStore"]
 		db_driver = "mysql"
 		db_uri = %q
 	`, addr)

@@ -19,14 +19,14 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 // User contains data pertaining to a user.
 type User struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	AccountID string `gorm:"column:accountid;primary_key"`
 	Username  string `gorm:"unique;not null"`
 	Passhash  []byte `gorm:"not null"`

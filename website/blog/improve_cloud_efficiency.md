@@ -1,4 +1,4 @@
-# Improve Cloud Efficiency with Service Weaver
+# Improve Cloud Efficiency with MX
 
 
 <div class="blog-author">Shane Ouchi</div>
@@ -19,7 +19,7 @@
     text-align: left;
     margin-top: 0.5em;
     color: #e06666'><b><i>
-📝 Service Weaver provides a simplified, safe and scalable way to improve
+📝 MX provides a simplified, safe and scalable way to improve
 backend cloud application efficiency for organizations looking to reduce their
 cloud spend.</i></b></p>
 </div>
@@ -35,12 +35,12 @@ applications. Organizations can evaluate three key areas of inefficiencies:
 3. Compute waste that over-allocates compute resources needed to run globally
 available applications.
 
-Service Weaver provides an effective development solution that can holistically
+MX provides an effective development solution that can holistically
 improve these efficiency challenges across the board.
 
 ## Simplify development overhead
 
-> Service Weaver can simplify development overhead with a flexible, easy-to-use
+> MX can simplify development overhead with a flexible, easy-to-use
 > framework that enables development teams to focus on providing differentiating value.
 
 Organizations continue to focus on making teams more effective at balancing
@@ -57,7 +57,7 @@ continue deepening investments in developer tools (e.g. [Backstage][backstage],
 [Argo][argo], [Git][git]) and homegrown platforms to make operator teams more
 productive in the cloud.
 
-Service Weaver can complement the developer productivity ecosystem with a flexible
+MX can complement the developer productivity ecosystem with a flexible
 framework that enables teams to minimize upfront architectural decisions (*Figure 1*),
 conduct comprehensive integration / E2E tests locally (*Figure 2*), and deploy
 scalable apps on containerized runtimes (e.g. [GKE][gke], [EKS][eks], [Cloud Run][cloudrun]). Teams have
@@ -77,18 +77,18 @@ changes that impact underlying application architecture.
 <br>
 
 ![cognitive_load](../assets/images/cognitive_load.png)
-**Figure 1**: *Service Weaver removes the upfront cognitive load of planning
+**Figure 1**: *MX removes the upfront cognitive load of planning
 monolith or microservice architecture.*
 
 <br>
 
 ![testing_toil](../assets/images/testing_toil.png)
-**Figure 2**: *Service Weaver reduces test toil associated with setting up and
+**Figure 2**: *MX reduces test toil associated with setting up and
 managing remote testing infrastructure with comprehensive local testing capabilities.*
 
 ## Minimize IT burden
 
-> Service Weaver can help minimize IT burden with a way to bootstrap safe backend
+> MX can help minimize IT burden with a way to bootstrap safe backend
 > mesh applications.
 
 Organizations continue to deepen adoption of public cloud platforms (e.g. [GCP][gcp])
@@ -104,7 +104,7 @@ tools and policies to make connecting and routing traffic between services more
 reliable and secure. This has resulted in a higher IT burden across platform,
 operator and development teams.
 
-Service Weaver can minimize IT burden for teams who are looking for an easy-to-use
+MX can minimize IT burden for teams who are looking for an easy-to-use
 way to bootstrap a safer app on public cloud platforms. Once apps are bootstrapped,
 applications will have default capabilities to:
 
@@ -116,14 +116,14 @@ Teams can also choose to export data to open-source observability providers such
 as [Prometheus][prometheus] and [Grafana][grafana].
 
 ![integrated](../assets/images/integrated.png)
-**Figure 3**: *Service Weaver provides a reliable, secure way to deploy
+**Figure 3**: *MX provides a reliable, secure way to deploy
 applications with fault isolated components, mTLS inter-component communication,
 and GCP observability by default.*
 
 
 ## Reduce computing waste
 
-> Service Weaver can help organizations reduce compute waste of a globally-available
+> MX can help organizations reduce compute waste of a globally-available
 > application with better networking and traffic management primitives.
 
 Currently, an estimated [32% of compute resources are wasted][5] with 64% of organizations
@@ -152,9 +152,9 @@ app-specific configuration.
 More importantly, they want to interact with these capabilities from a highly
 simplified interface.
 
-Service Weaver provides an easy-to-use framework with built-in primitives to
+MX provides an easy-to-use framework with built-in primitives to
 address scaling inefficiencies with up to 9x reduction in compute waste
-out-of-the-box (*Figure 5*). Service Weaver also provides advanced capabilities
+out-of-the-box (*Figure 5*). MX also provides advanced capabilities
 e.g. inter-component communication (*Figure 4*) to further evaluate and fine-tune
 efficiencies according to your scalability or performance needs to enable operators
 to experiment and minimize compute waste with minimal effort.
@@ -162,7 +162,7 @@ to experiment and minimize compute waste with minimal effort.
 We plan to go further in-depth on this topic in an upcoming post.
 
 ![integrated](../assets/images/faster_grpc.png)
-**Figure 4**: *Service Weaver has an advanced inter-component communication
+**Figure 4**: *MX has an advanced inter-component communication
 protocol that is up to **3X** faster than [gRPC][grpc].*
 
 <br>
@@ -172,7 +172,7 @@ protocol that is up to **3X** faster than [gRPC][grpc].*
 </p>
 
 **Figure 5**: *Benchmarking an 11-microservice [Online Boutique][16] app with a
-rewritten 11-component Service Weaver modulith on [GKE][gke] resulted in an overall **9X**
+rewritten 11-component MX modulith on [GKE][gke] resulted in an overall **9X**
 reduction in CPUs when loading ~10K queries per second.  See our [paper][17] for mode
 details on our benchmarking.*
 
@@ -184,10 +184,10 @@ details on our benchmarking.*
 * To evaluate your application in a staging or production environment, you can
 take the [multiprocess executor][7] and [deploy it to Cloud Run][8], [GKE][9] or [Kubernetes][10].
 
-## Learn more about Service Weaver
+## Learn more about MX
 
-There are several resources that can help you learn more about how Service Weaver works.
-* How Service Weaver [works][11]
+There are several resources that can help you learn more about how MX works.
+* How MX [works][11]
 * How to implement [deployers][12]
 * Check out the [docs][13], [codelab][14] and [FAQs][15]
 
@@ -196,16 +196,16 @@ There are several resources that can help you learn more about how Service Weave
 [3]: https://go.dev/blog/survey2023-h2-results
 [4]: https://www.youtube.com/watch?v=5qOwYSCb1Gg
 [5]: https://info.flexera.com/CM-REPORT-State-of-the-Cloud
-[6]: https://serviceweaver.dev/docs.html#step-by-step-tutorial
-[7]: https://serviceweaver.dev/docs.html#step-by-step-tutorial-multiprocess-execution
-[8]: https://serviceweaver.dev/docs.html#cloud-run
-[9]: https://serviceweaver.dev/docs.html#gke
-[10]: https://serviceweaver.dev/blog/kubernetes.html
-[11]: https://serviceweaver.dev/blog/quick_intro.html
-[12]: https://serviceweaver.dev/blog/deployers.html
-[13]: https://serviceweaver.dev/docs.html#what-is-service-weaver
-[14]: https://serviceweaver.dev/docs.html#codelab
-[15]: https://serviceweaver.dev/docs.html#faq
+[6]: https://mx.dev/docs.html#step-by-step-tutorial
+[7]: https://mx.dev/docs.html#step-by-step-tutorial-multiprocess-execution
+[8]: https://mx.dev/docs.html#cloud-run
+[9]: https://mx.dev/docs.html#gke
+[10]: https://mx.dev/blog/kubernetes.html
+[11]: https://mx.dev/blog/quick_intro.html
+[12]: https://mx.dev/blog/deployers.html
+[13]: https://mx.dev/docs.html#what-is-service-mx
+[14]: https://mx.dev/docs.html#codelab
+[15]: https://mx.dev/docs.html#faq
 [16]: https://github.com/GoogleCloudPlatform/microservices-demo
 [17]: https://dl.acm.org/doi/10.1145/3593856.3595909
 [argo]: https://argo-cd.readthedocs.io/en/stable/

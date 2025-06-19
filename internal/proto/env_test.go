@@ -17,14 +17,14 @@ package proto
 import (
 	"testing"
 
-	"github.com/ServiceWeaver/weaver/runtime/protos"
 	"github.com/google/go-cmp/cmp"
+	"github.com/sh3lk/mx/runtime/protos"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
 var (
-	msg_1 = &protos.WeaveletArgs{
+	msg_1 = &protos.MXNArgs{
 		App:          "foo",
 		DeploymentId: "5678",
 		Id:           "id",
@@ -35,10 +35,10 @@ var (
 				Id:   1,
 				Name: "def1",
 				Labels: map[string]string{
-					"serviceweaver/component": "comp1",
-					"l1":                      "v1",
-					"l2":                      "v2",
-					"l3":                      "v3",
+					"mx/component": "comp1",
+					"l1":           "v1",
+					"l2":           "v2",
+					"l3":           "v3",
 				},
 				Bounds: []float64{1.0, 4.0, 10.0},
 			},

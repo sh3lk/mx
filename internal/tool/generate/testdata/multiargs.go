@@ -20,8 +20,8 @@
 // s.stub.Run(ctx, 0, enc.Data(), shardKey)
 // enc.String(a0)
 // enc.Int(a1)
-// func (x *Bar) WeaverMarshal(enc *codegen.Encoder)
-// func (x *Bar) WeaverUnmarshal(dec *codegen.Decoder)
+// func (x *Bar) MXMarshal(enc *codegen.Encoder)
+// func (x *Bar) MXUnmarshal(dec *codegen.Decoder)
 // EncodeBinaryMarshaler
 // impl{}
 
@@ -36,19 +36,19 @@ import (
 	"context"
 	"time"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type Bar struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 }
 
 type Other struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	T time.Time
 }
 
-type impl struct{ weaver.Implements[Foo] }
+type impl struct{ mx.Implements[Foo] }
 
 type Foo interface {
 	A(context.Context, string, int, Bar, Other) error

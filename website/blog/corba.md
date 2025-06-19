@@ -5,10 +5,10 @@
 
 ## Introduction
 
-Service Weaver is a programming framework for writing distributed applications
-in Go. A Service Weaver application is implemented as a set of actor-like
+MX is a programming framework for writing distributed applications
+in Go. A MX application is implemented as a set of actor-like
 entities called [components][]. A component implements a set of methods, and
-components interact by calling these methods. When a Service Weaver application
+components interact by calling these methods. When a MX application
 is deployed, some components are co-located in the same process, and others are
 run in separate processes, potentially on separate machines. As a result, some
 method calls are performed locally, and some are performed remotely.
@@ -19,7 +19,7 @@ have come and gone. It is [widely believed][why_corba_failed] that these
 frameworks failed because they attempted to make remote method calls **look**
 and **act** like local method calls. There are [whole papers][a_note_on_dc]
 explaining that frameworks trying to unify local and remote objects are "doomed
-to failure". Does this mean that Service Weaver is doomed to fail just like
+to failure". Does this mean that MX is doomed to fail just like
 CORBA?
 
 No.
@@ -28,10 +28,10 @@ The hypothesis that CORBA failed because method calls looked like local calls
 but behaved like remote calls is incorrect. CORBA actually failed for different
 reasons, which we explain below. Many successful systems have made remote calls
 look local (e.g., [TensorFlow][tensorflow], [Microsoft Orleans][orleans]). We
-hope for Service Weaver to join this list of successful systems as it gets
+hope for MX to join this list of successful systems as it gets
 adopted.
 
-In this blog post, we explain that remote method calls in Service Weaver do
+In this blog post, we explain that remote method calls in MX do
 **look** like local calls, but they don't **act** like them. We'll also explain
 why CORBA failed for unrelated reasons.
 
@@ -97,11 +97,11 @@ FROM parts
 WHERE color == 'blue'
 ```
 
-With Service Weaver, remote method calls are syntactically identical to local
+With MX, remote method calls are syntactically identical to local
 method calls. They do **look** the same, and that's okay.
 
 ```go
-// A remote method call in Service Weaver.
+// A remote method call in MX.
 sum, err := adder.Add(ctx, 1, 2)
 ```
 
@@ -136,7 +136,7 @@ the NFS client tries to mask the failure by retrying the operation indefinitely
 until it succeeds. This means that if any NFS server fails, all clients
 freeze until it is repaired.
 
-While Service Weaver remote method calls *look* like local method calls, they do
+While MX remote method calls *look* like local method calls, they do
 not *act* like them.
 
 - Remote methods may return an error on network and participant failures.  The
@@ -145,14 +145,14 @@ not *act* like them.
   developer is responsible for setting deadlines on these contexts to detect and
   react to method calls that are experiencing high latency.
 - The developer is responsible for ensuring that all arguments and returns of a
-  remote method call are serializable, which is enforced by the [Service Weaver
+  remote method call are serializable, which is enforced by the [MX
   code generator][generator].
 
 Yes, these are a burden on the programmer, but that is precisely the point of
 [*A Note on Distributed Computing*][a_note_on_dc]; it is a mistake to try to
 isolate the programmer from the fundamental issues of remote calls. We are also
 working on extending our [unit test framework][testing] to automatically inject
-latency and failures to further ensure that Service Weaver applications are
+latency and failures to further ensure that MX applications are
 resilient to the failures and delays they will encounter in a real deployment.
 
 ## Why Did CORBA Fail?
@@ -179,7 +179,7 @@ implemented with incredible success.
 [etcd_put]: https://github.com/etcd-io/etcd/blob/217d183e5a2b2b7e826825f8218b8c4f53590a8f/client/v3/kv.go#L153-L159
 [fallacies]: https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing
 [gRPC]: https://grpc.io/
-[generator]: ../docs.html#weaver-generate
+[generator]: ../docs.html#mx-generate
 [michi]: http://www.triodia.com/
 [orleans]: https://learn.microsoft.com/en-us/dotnet/orleans/overview
 [pathways]: https://arxiv.org/pdf/2203.12533.pdf

@@ -13,10 +13,10 @@
 // limitations under the License.
 
 // EXPECTED
-// serviceweaver_enc_ptr_t
-// serviceweaver_dec_ptr_t
-// func (x *t) WeaverMarshal(enc *codegen.Encoder)
-// func (x *t) WeaverUnmarshal(dec *codegen.Decoder)
+// mx_enc_ptr_t
+// mx_dec_ptr_t
+// func (x *t) MXMarshal(enc *codegen.Encoder)
+// func (x *t) MXUnmarshal(dec *codegen.Decoder)
 
 // Verify that AutoMarshal structs can be received by value and by pointer.
 package foo
@@ -24,11 +24,11 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type t struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 }
 
 type foo interface {
@@ -36,7 +36,7 @@ type foo interface {
 	ByPointer(context.Context, *t) (*t, error)
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (impl) ByValue(context.Context, t) (t, error)     { return t{}, nil }
 func (impl) ByPointer(context.Context, *t) (*t, error) { return &t{}, nil }

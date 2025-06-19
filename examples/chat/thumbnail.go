@@ -21,8 +21,8 @@ import (
 	"image/png"
 	"math"
 
+	"github.com/sh3lk/mx"
 	"golang.org/x/image/draw"
-	"github.com/ServiceWeaver/weaver"
 )
 
 type ImageScaler interface {
@@ -31,7 +31,7 @@ type ImageScaler interface {
 
 // scaler scales an image.
 type scaler struct {
-	weaver.Implements[ImageScaler]
+	mx.Implements[ImageScaler]
 }
 
 // Scale resizes img so it has at most the specified maximum width and height

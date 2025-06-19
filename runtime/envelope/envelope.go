@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package envelope implements a sidecar-like process that connects a weavelet
+// Package envelope implements a sidecar-like process that connects a mxn
 // to its environment.
 package envelope
 
@@ -26,31 +26,31 @@ import (
 	"os"
 	"sync"
 
-	"github.com/ServiceWeaver/weaver/internal/control"
-	"github.com/ServiceWeaver/weaver/internal/net/call"
-	"github.com/ServiceWeaver/weaver/runtime"
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
-	"github.com/ServiceWeaver/weaver/runtime/deployers"
-	"github.com/ServiceWeaver/weaver/runtime/metrics"
-	"github.com/ServiceWeaver/weaver/runtime/protomsg"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
-	"github.com/ServiceWeaver/weaver/runtime/version"
+	"github.com/sh3lk/mx/internal/control"
+	"github.com/sh3lk/mx/internal/net/call"
+	"github.com/sh3lk/mx/runtime"
+	"github.com/sh3lk/mx/runtime/codegen"
+	"github.com/sh3lk/mx/runtime/deployers"
+	"github.com/sh3lk/mx/runtime/metrics"
+	"github.com/sh3lk/mx/runtime/protomsg"
+	"github.com/sh3lk/mx/runtime/protos"
+	"github.com/sh3lk/mx/runtime/version"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 
-	// We rely on the weaver.controller component registrattion entry.
-	_ "github.com/ServiceWeaver/weaver"
+	// We rely on the mx.controller component registrattion entry.
+	_ "github.com/sh3lk/mx"
 )
 
-// EnvelopeHandler handles messages from the weavelet. Values passed to the
+// EnvelopeHandler handles messages from the mxn. Values passed to the
 // handlers are only valid for the duration of the handler's execution.
 type EnvelopeHandler interface {
 	// ActivateComponent ensures that the provided component is running
 	// somewhere. A call to ActivateComponent also implicitly signals that a
-	// weavelet is interested in receiving routing info for the component.
+	// mxn is interested in receiving routing info for the component.
 	ActivateComponent(context.Context, *protos.ActivateComponentRequest) (*protos.ActivateComponentReply, error)
 
-	// GetListenerAddress returns the address the weavelet should listen on for
+	// GetListenerAddress returns the address the mxn should listen on for
 	// a particular listener.
 	GetListenerAddress(context.Context, *protos.GetListenerAddressRequest) (*protos.GetListenerAddressReply, error)
 
@@ -60,30 +60,30 @@ type EnvelopeHandler interface {
 	ExportListener(context.Context, *protos.ExportListenerRequest) (*protos.ExportListenerReply, error)
 
 	// GetSelfCertificate returns the certificate and the private key the
-	// weavelet should use for network connection establishment. The weavelet
+	// mxn should use for network connection establishment. The mxn
 	// will issue this request each time it establishes a connection with
-	// another weavelet.
-	// NOTE: This method is only called if mTLS was enabled for the weavelet,
-	// by passing it a WeaveletArgs with mtls=true.
+	// another mxn.
+	// NOTE: This method is only called if mTLS was enabled for the mxn,
+	// by passing it a MXNArgs with mtls=true.
 	GetSelfCertificate(context.Context, *protos.GetSelfCertificateRequest) (*protos.GetSelfCertificateReply, error)
 
 	// VerifyClientCertificate verifies the certificate chain presented by
-	// a network client attempting to connect to the weavelet. It returns an
+	// a network client attempting to connect to the mxn. It returns an
 	// error if the network connection should not be established with the
-	// client. Otherwise, it returns the list of weavelet components that the
+	// client. Otherwise, it returns the list of mxn components that the
 	// client is authorized to invoke methods on.
 	//
-	// NOTE: This method is only called if mTLS was enabled for the weavelet,
-	// by passing it a WeaveletArgs with mtls=true.
+	// NOTE: This method is only called if mTLS was enabled for the mxn,
+	// by passing it a MXNArgs with mtls=true.
 	VerifyClientCertificate(context.Context, *protos.VerifyClientCertificateRequest) (*protos.VerifyClientCertificateReply, error)
 
 	// VerifyServerCertificate verifies the certificate chain presented by
-	// the server the weavelet is attempting to connect to. It returns an
+	// the server the mxn is attempting to connect to. It returns an
 	// error iff the server identity doesn't match the identity of the specified
 	// component.
 	//
-	// NOTE: This method is only called if mTLS was enabled for the weavelet,
-	// by passing it a WeaveletArgs with mtls=true.
+	// NOTE: This method is only called if mTLS was enabled for the mxn,
+	// by passing it a MXNArgs with mtls=true.
 	VerifyServerCertificate(context.Context, *protos.VerifyServerCertificateRequest) (*protos.VerifyServerCertificateReply, error)
 
 	// LogBatches handles a batch of log entries.
@@ -96,23 +96,23 @@ type EnvelopeHandler interface {
 // Ensure that EnvelopeHandler implements all the DeployerControl methods.
 var _ control.DeployerControl = EnvelopeHandler(nil)
 
-// Envelope starts and manages a weavelet in a subprocess.
+// Envelope starts and manages a mxn in a subprocess.
 //
 // For more information, refer to runtime/protos/runtime.proto and
-// https://serviceweaver.dev/blog/deployers.html.
+// https://mx.dev/blog/deployers.html.
 type Envelope struct {
 	// Fields below are constant after construction.
-	ctx          context.Context
-	ctxCancel    context.CancelFunc
-	logger       *slog.Logger
-	tmpDir       string
-	tmpDirOwned  bool // Did Envelope create tmpDir?
-	myUds        string
-	weavelet     *protos.WeaveletArgs
-	weaveletAddr string
-	config       *protos.AppConfig
-	child        Child                   // weavelet process handle
-	controller   control.WeaveletControl // Stub that talks to the weavelet controller
+	ctx         context.Context
+	ctxCancel   context.CancelFunc
+	logger      *slog.Logger
+	tmpDir      string
+	tmpDirOwned bool // Did Envelope create tmpDir?
+	myUds       string
+	mxn         *protos.MXNArgs
+	mxnAddr     string
+	config      *protos.AppConfig
+	child       Child              // mxn process handle
+	controller  control.MXNControl // Stub that talks to the mxn controller
 
 	// State needed to process metric updates.
 	metricsMu sync.Mutex
@@ -130,17 +130,17 @@ type Options struct {
 	// Tracer is used for tracing internal calls. If nil, internal calls are not traced.
 	Tracer trace.Tracer
 
-	// Child is used to run the weavelet. If nil, a sub-process is created.
+	// Child is used to run the mxn. If nil, a sub-process is created.
 	Child Child
 }
 
-// NewEnvelope creates a new envelope, starting a weavelet subprocess (via child.Start) and
-// establishing a bidirectional connection with it. The weavelet process can be
+// NewEnvelope creates a new envelope, starting a mxn subprocess (via child.Start) and
+// establishing a bidirectional connection with it. The mxn process can be
 // stopped at any time by canceling the passed-in context.
 //
-// You can issue RPCs *to* the weavelet using the returned Envelope. To start
-// receiving messages *from* the weavelet, call [Serve].
-func NewEnvelope(ctx context.Context, wlet *protos.WeaveletArgs, config *protos.AppConfig, options Options) (*Envelope, error) {
+// You can issue RPCs *to* the mxn using the returned Envelope. To start
+// receiving messages *from* the mxn, call [Serve].
+func NewEnvelope(ctx context.Context, wlet *protos.MXNArgs, config *protos.AppConfig, options Options) (*Envelope, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer func() { cancel() }() // cancel may be changed below if we want to delay it
 
@@ -174,15 +174,15 @@ func NewEnvelope(ctx context.Context, wlet *protos.WeaveletArgs, config *protos.
 
 	wlet = protomsg.Clone(wlet)
 	wlet.ControlSocket = deployers.NewUnixSocketPath(tmpDir)
-	wlet.Redirects = []*protos.WeaveletArgs_Redirect{
-		// Point weavelet at my control.DeployerControl component
+	wlet.Redirects = []*protos.MXNArgs_Redirect{
+		// Point mxn at my control.DeployerControl component
 		{
 			Component: control.DeployerPath,
 			Target:    control.DeployerPath,
 			Address:   "unix://" + myUds,
 		},
 	}
-	controller, err := getWeaveletControlStub(ctx, wlet.ControlSocket, options)
+	controller, err := getMXNControlStub(ctx, wlet.ControlSocket, options)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func NewEnvelope(ctx context.Context, wlet *protos.WeaveletArgs, config *protos.
 		tmpDir:      tmpDir,
 		tmpDirOwned: tmpDirOwned,
 		myUds:       myUds,
-		weavelet:    wlet,
+		mxn:         wlet,
 		config:      config,
 		controller:  controller,
 	}
@@ -202,20 +202,20 @@ func NewEnvelope(ctx context.Context, wlet *protos.WeaveletArgs, config *protos.
 	if child == nil {
 		child = &ProcessChild{}
 	}
-	if err := child.Start(ctx, e.config, e.weavelet); err != nil {
+	if err := child.Start(ctx, e.config, e.mxn); err != nil {
 		return nil, fmt.Errorf("NewEnvelope: %w", err)
 	}
 
-	reply, err := controller.InitWeavelet(e.ctx, &protos.InitWeaveletRequest{
+	reply, err := controller.InitMXN(e.ctx, &protos.InitMXNRequest{
 		Sections: config.Sections,
 	})
 	if err != nil {
 		return nil, err
 	}
-	if err := verifyWeaveletInfo(reply); err != nil {
+	if err := verifyMXNInfo(reply); err != nil {
 		return nil, err
 	}
-	e.weaveletAddr = reply.DialAddr
+	e.mxnAddr = reply.DialAddr
 
 	e.child = child
 
@@ -224,10 +224,10 @@ func NewEnvelope(ctx context.Context, wlet *protos.WeaveletArgs, config *protos.
 	return e, nil
 }
 
-// WeaveletControl returns the controller component for the weavelet managed by this envelope.
-func (e *Envelope) WeaveletControl() control.WeaveletControl { return e.controller }
+// MXNControl returns the controller component for the mxn managed by this envelope.
+func (e *Envelope) MXNControl() control.MXNControl { return e.controller }
 
-// Serve accepts incoming messages from the weavelet. RPC requests are handled
+// Serve accepts incoming messages from the mxn. RPC requests are handled
 // serially in the order they are received. Serve blocks until the connection
 // terminates, returning the error that caused it to terminate. You can cancel
 // the connection by cancelling the context passed to [NewEnvelope]. This
@@ -254,7 +254,7 @@ func (e *Envelope) Serve(h EnvelopeHandler) error {
 		e.ctxCancel()
 	}
 
-	// Capture stdout and stderr from the weavelet.
+	// Capture stdout and stderr from the mxn.
 	if stdout := e.child.Stdout(); stdout != nil {
 		running.Go(func() error {
 			err := e.logLines("stdout", stdout, h)
@@ -289,7 +289,7 @@ func (e *Envelope) Serve(h EnvelopeHandler) error {
 
 	running.Wait()
 
-	// Wait for the weavelet command to finish. This needs to be done after
+	// Wait for the mxn command to finish. This needs to be done after
 	// we're done reading from stdout/stderr pipes, per comments on
 	// exec.Cmd.StdoutPipe and exec.Cmd.StderrPipe.
 	stop(e.child.Wait())
@@ -297,18 +297,18 @@ func (e *Envelope) Serve(h EnvelopeHandler) error {
 	return stopErr
 }
 
-// Pid returns the process id of the weavelet, if it is running in a separate process.
+// Pid returns the process id of the mxn, if it is running in a separate process.
 func (e *Envelope) Pid() (int, bool) {
 	return e.child.Pid()
 }
 
-// WeaveletAddress returns the address that other components should dial to communicate with the
-// weavelet.
-func (e *Envelope) WeaveletAddress() string {
-	return e.weaveletAddr
+// MXNAddress returns the address that other components should dial to communicate with the
+// mxn.
+func (e *Envelope) MXNAddress() string {
+	return e.mxnAddr
 }
 
-// GetHealth returns the health status of the weavelet.
+// GetHealth returns the health status of the mxn.
 func (e *Envelope) GetHealth() *protos.GetHealthReply {
 	reply, err := e.controller.GetHealth(context.TODO(), &protos.GetHealthRequest{})
 	if err != nil {
@@ -317,7 +317,7 @@ func (e *Envelope) GetHealth() *protos.GetHealthReply {
 	return reply
 }
 
-// GetProfile gets a profile from the weavelet.
+// GetProfile gets a profile from the mxn.
 func (e *Envelope) GetProfile(req *protos.GetProfileRequest) ([]byte, error) {
 	reply, err := e.controller.GetProfile(context.TODO(), req)
 	if err != nil {
@@ -326,7 +326,7 @@ func (e *Envelope) GetProfile(req *protos.GetProfileRequest) ([]byte, error) {
 	return reply.Data, nil
 }
 
-// GetMetrics returns a weavelet's metrics.
+// GetMetrics returns a mxn's metrics.
 func (e *Envelope) GetMetrics() ([]*metrics.MetricSnapshot, error) {
 	req := &protos.GetMetricsRequest{}
 	reply, err := e.controller.GetMetrics(context.TODO(), req)
@@ -339,7 +339,7 @@ func (e *Envelope) GetMetrics() ([]*metrics.MetricSnapshot, error) {
 	return e.metrics.Import(reply.Update)
 }
 
-// GetLoad gets a load report from the weavelet.
+// GetLoad gets a load report from the mxn.
 func (e *Envelope) GetLoad() (*protos.LoadReport, error) {
 	req := &protos.GetLoadRequest{}
 	reply, err := e.controller.GetLoad(context.TODO(), req)
@@ -349,7 +349,7 @@ func (e *Envelope) GetLoad() (*protos.LoadReport, error) {
 	return reply.Load, nil
 }
 
-// UpdateComponents updates the weavelet with the latest set of components it
+// UpdateComponents updates the mxn with the latest set of components it
 // should be running.
 func (e *Envelope) UpdateComponents(components []string) error {
 	req := &protos.UpdateComponentsRequest{
@@ -359,7 +359,7 @@ func (e *Envelope) UpdateComponents(components []string) error {
 	return err
 }
 
-// UpdateRoutingInfo updates the weavelet with a component's most recent
+// UpdateRoutingInfo updates the mxn with a component's most recent
 // routing info.
 func (e *Envelope) UpdateRoutingInfo(routing *protos.RoutingInfo) error {
 	req := &protos.UpdateRoutingInfoRequest{
@@ -372,10 +372,10 @@ func (e *Envelope) UpdateRoutingInfo(routing *protos.RoutingInfo) error {
 func (e *Envelope) logLines(component string, src io.Reader, h EnvelopeHandler) error {
 	// Fill partial log entry.
 	entry := &protos.LogEntry{
-		App:       e.weavelet.App,
-		Version:   e.weavelet.DeploymentId,
+		App:       e.mxn.App,
+		Version:   e.mxn.DeploymentId,
 		Component: component,
-		Node:      e.weavelet.Id,
+		Node:      e.mxn.Id,
 		Level:     component, // Either "stdout" or "stderr"
 		File:      "",
 		Line:      -1,
@@ -407,12 +407,12 @@ func dropNewline(line []byte) []byte {
 	return line
 }
 
-// getWeaveletControlStub returns a control.WeaveletControl that forwards calls to the controller
-// component in the weavelet at the specified socket.
-func getWeaveletControlStub(ctx context.Context, socket string, options Options) (control.WeaveletControl, error) {
-	controllerReg, ok := codegen.Find(control.WeaveletPath)
+// getMXNControlStub returns a control.MXNControl that forwards calls to the controller
+// component in the mxn at the specified socket.
+func getMXNControlStub(ctx context.Context, socket string, options Options) (control.MXNControl, error) {
+	controllerReg, ok := codegen.Find(control.MXNPath)
 	if !ok {
-		return nil, fmt.Errorf("controller component (%s) not found", control.WeaveletPath)
+		return nil, fmt.Errorf("controller component (%s) not found", control.MXNPath)
 	}
 	controlEndpoint := call.Unix(socket)
 	resolver := call.NewConstantResolver(controlEndpoint)
@@ -422,19 +422,19 @@ func getWeaveletControlStub(ctx context.Context, socket string, options Options)
 		return nil, err
 	}
 	// We skip waitUntilReady() and rely on automatic retries of methods
-	stub := call.NewStub(control.WeaveletPath, controllerReg, conn, options.Tracer, 0)
+	stub := call.NewStub(control.MXNPath, controllerReg, conn, options.Tracer, 0)
 	obj := controllerReg.ClientStubFn(stub, "envelope")
-	return obj.(control.WeaveletControl), nil
+	return obj.(control.MXNControl), nil
 }
 
-// verifyWeaveletInfo verifies the information sent by the weavelet.
-func verifyWeaveletInfo(wlet *protos.InitWeaveletReply) error {
+// verifyMXNInfo verifies the information sent by the mxn.
+func verifyMXNInfo(wlet *protos.InitMXNReply) error {
 	if wlet == nil {
 		return fmt.Errorf(
-			"the first message from the weavelet must contain weavelet info")
+			"the first message from the mxn must contain mxn info")
 	}
 	if wlet.DialAddr == "" {
-		return fmt.Errorf("empty dial address for the weavelet")
+		return fmt.Errorf("empty dial address for the mxn")
 	}
 	if err := checkVersion(wlet.Version); err != nil {
 		return err

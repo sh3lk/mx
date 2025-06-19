@@ -20,8 +20,8 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/ServiceWeaver/weaver/runtime/protos"
 	"github.com/google/go-cmp/cmp"
+	"github.com/sh3lk/mx/runtime/protos"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 

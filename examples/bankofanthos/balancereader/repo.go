@@ -15,7 +15,7 @@
 package balancereader
 
 import (
-	"github.com/ServiceWeaver/weaver/examples/bankofanthos/common"
+	"github.com/sh3lk/mx/examples/bankofanthos/common"
 )
 
 // transactionRepository is a repository for performing queries on the Transaction database.

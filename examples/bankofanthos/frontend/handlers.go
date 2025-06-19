@@ -28,10 +28,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/examples/bankofanthos/contacts"
-	"github.com/ServiceWeaver/weaver/examples/bankofanthos/model"
-	"github.com/ServiceWeaver/weaver/examples/bankofanthos/userservice"
 	"github.com/golang-jwt/jwt"
+	"github.com/sh3lk/mx/examples/bankofanthos/contacts"
+	"github.com/sh3lk/mx/examples/bankofanthos/model"
+	"github.com/sh3lk/mx/examples/bankofanthos/userservice"
 )
 
 const (

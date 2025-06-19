@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package tool contains utilities for creating Service Weaver tools similar to
-// weaver-multi, weaver-gke, and weaver-gke-local.
+// Package tool contains utilities for creating MX tools similar to
+// mx-multi, mx-gke, and mx-gke-local.
 package tool
 
 import (
@@ -119,7 +119,7 @@ func MainHelp(tool string, commands map[string]*Command) string {
 		fmt.Fprintf(&cmds, "  %-12s %s\n", name, cmd.Description)
 	}
 
-	return fmt.Sprintf(`Deploy and manage Service Weaver programs.
+	return fmt.Sprintf(`Deploy and manage MX programs.
 
 Usage:
   %s <command> ...

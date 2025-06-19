@@ -82,7 +82,7 @@ func (x *ComponentGroup) GetComponents() []string {
 	return nil
 }
 
-// AppConfig holds configuration for a Service Weaver application.
+// AppConfig holds configuration for a MX application.
 type AppConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -101,20 +101,20 @@ type AppConfig struct {
 	// Groups of components that must be co-located in the same OS process.
 	//
 	// This grouping allows the developer a level of control on where the Service
-	// Weaver runtime will place each component. For example, suppose that the
+	// MX runtime will place each component. For example, suppose that the
 	// application binary contains six components: A, B, C, D, E, and F.
 	// Furthermore, suppose that the developer specifies the following grouping in
 	// the config.
 	//
 	//	colocate = [[A, B], [C, D, E]]
 	//
-	// In that case, no matter what algorithm the Service Weaver runtime uses to
+	// In that case, no matter what algorithm the MX runtime uses to
 	// place the components, components A and B will always be grouped together,
 	// and components C, D, and E will always be grouped together. This means that
 	// a pair of replicas of the components can share in-memory state and
 	// communicate efficiently with each other (though not with other replicas).
 	//
-	// The placement algorithm the Service Weaver runtime uses varies across
+	// The placement algorithm the MX runtime uses varies across
 	// deployment environment. For example, a multiprocess deployer may choose to
 	// place each component into its own group, for maximum parallelism. A
 	// singleprocess deployer, on the other hand, may choose to group all of the
@@ -130,12 +130,12 @@ type AppConfig struct {
 	// which is identified using the name "main".
 	Colocate []*ComponentGroup `protobuf:"bytes,5,rep,name=colocate,proto3" json:"colocate,omitempty"`
 	// A knob that lets the user specifies how many nanoseconds it expects for
-	// the rollout to take. This is used internally by Service Weaver to figure
+	// the rollout to take. This is used internally by MX to figure
 	// out the rollout strategy.
 	//
-	// If not specified, Service Weaver will pick a default value.
+	// If not specified, MX will pick a default value.
 	RolloutNanos int64 `protobuf:"varint,6,opt,name=rollout_nanos,json=rolloutNanos,proto3" json:"rollout_nanos,omitempty"`
-	// All config sections (includes [serviceweaver], [<deployer>], and
+	// All config sections (includes [mx], [<deployer>], and
 	// [<component>] sections).
 	Sections map[string]string `protobuf:"bytes,7,rep,name=sections,proto3" json:"sections,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }

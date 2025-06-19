@@ -17,14 +17,14 @@ package contacts
 import (
 	"errors"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 // Contact represents an account's contact details.
 type Contact struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	Username   string `gorm:"not null"`
 	Label      string `gorm:"not null"`
 	AccountNum string `gorm:"not null"`

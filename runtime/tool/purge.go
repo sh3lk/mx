@@ -28,7 +28,7 @@ import (
 
 // PurgeSpec configures the command returned by PurgeCmd.
 type PurgeSpec struct {
-	Tool  string   // tool name (e.g., "weaver multi")
+	Tool  string   // tool name (e.g., "mx multi")
 	Kill  string   // regex of processes to kill, or empty
 	Paths []string // paths to delete
 
@@ -98,7 +98,7 @@ This currently includes the following processes:
 
 %s
 You will also delete the following paths used to store logs and data for
-%q Service Weaver applications. This data will be deleted
+%q MX applications. This data will be deleted
 immediately and irrevocably. Are you sure you want to proceed?"
 
 %s

@@ -25,7 +25,7 @@ import (
 	"golang.org/x/tools/go/types/typeutil"
 )
 
-const weaverPackagePath = "github.com/ServiceWeaver/weaver"
+const mxPackagePath = "github.com/sh3lk/mx"
 
 // typeSet holds type information needed by the code generator.
 type typeSet struct {
@@ -52,8 +52,8 @@ type typeSet struct {
 
 // importPkg is a package imported by the generated code.
 type importPkg struct {
-	path  string // e.g., "github.com/ServiceWeaver/weaver"
-	pkg   string // e.g., "weaver", "context", "time"
+	path  string // e.g., "github.com/sh3lk/mx"
+	pkg   string // e.g., "mx", "context", "time"
 	alias string // e.g., foo in `import foo "context"`
 	local bool   // are we in this package?
 }
@@ -72,7 +72,8 @@ type importPkg struct {
 func (i importPkg) name() string {
 	if i.local {
 		return ""
-	} else if i.alias != "" {
+	}
+	if i.alias != "" {
 		return i.alias
 	}
 	return i.pkg
@@ -308,8 +309,8 @@ func (tset *typeSet) checkSerializable(t types.Type) []error {
 			// serializable.
 			if tset.automarshalCandidates.At(t) == nil {
 				// TODO(mwhittaker): Print out a link to documentation on
-				// weaver.AutoMarshal.
-				addError(fmt.Errorf("named structs are not serializable by default. Consider using weaver.AutoMarshal."))
+				// mx.AutoMarshal.
+				addError(fmt.Errorf("named structs are not serializable by default. Consider using mx.AutoMarshal."))
 				tset.checked.Set(t, false)
 				break
 			}
@@ -480,7 +481,7 @@ func (tset *typeSet) sizeOfType(t types.Type) int {
 //   - For simplicity, we only consider a type measurable if the type and all
 //     its nested types are package local. For example, a struct { x
 //     otherpackage.T } is not measurable, even if otherpackage.T is
-//     measurable. We make an exception for weaver.AutoMarshal.
+//     measurable. We make an exception for mx.AutoMarshal.
 func (tset *typeSet) isMeasurable(t types.Type) bool {
 	rootPkg := tset.pkg.Types
 
@@ -492,7 +493,7 @@ func (tset *typeSet) isMeasurable(t types.Type) bool {
 	//     m([]t) = true if t is fixed size.
 	//     m(map[k]v) = true if k and v are fixed size.
 	//     m(struct{..., fi:ti, ...}) = true, if every ti is measurable.
-	//     m(weaver.AutoMarshal) = true
+	//     m(mx.AutoMarshal) = true
 	//     m(type t u) = m(u), if t is package local
 	//     m(_) = false
 	if result := tset.measurable.At(t); result != nil {
@@ -539,7 +540,7 @@ func (tset *typeSet) isMeasurable(t types.Type) bool {
 		tset.measurable.Set(t, measurable)
 
 	case *types.Named:
-		if isWeaverAutoMarshal(x) {
+		if isMXAutoMarshal(x) {
 			tset.measurable.Set(t, true)
 		} else if x.Obj().Pkg() != rootPkg {
 			tset.measurable.Set(t, false)
@@ -656,7 +657,7 @@ func isProtoMessage(t types.Type) bool {
 }
 
 // implementsAutoMarshal returns whether the provided type is a concrete
-// type that implements the weaver.AutoMarshal interface.
+// type that implements the mx.AutoMarshal interface.
 func (tset *typeSet) implementsAutoMarshal(t types.Type) bool {
 	if _, ok := t.Underlying().(*types.Interface); ok {
 		// A superinterface of AutoMarshal does "implement" the interface,
@@ -664,22 +665,22 @@ func (tset *typeSet) implementsAutoMarshal(t types.Type) bool {
 		return false
 	}
 
-	obj, _, _ := types.LookupFieldOrMethod(t, true, tset.pkg.Types, "WeaverMarshal")
+	obj, _, _ := types.LookupFieldOrMethod(t, true, tset.pkg.Types, "MXMarshal")
 	marshal, ok := obj.(*types.Func)
 	if !ok {
 		return false
 	}
-	obj, _, _ = types.LookupFieldOrMethod(t, true, tset.pkg.Types, "WeaverUnmarshal")
+	obj, _, _ = types.LookupFieldOrMethod(t, true, tset.pkg.Types, "MXUnmarshal")
 	unmarshal, ok := obj.(*types.Func)
 	if !ok {
 		return false
 	}
-	return isWeaverMarshal(t, marshal) && isWeaverUnmarshal(t, unmarshal)
+	return isMXMarshal(t, marshal) && isMXUnmarshal(t, unmarshal)
 }
 
-// isWeaverMarshal returns true if m is WeaverMarshal(*codegen.Encoder).
-func isWeaverMarshal(t types.Type, m *types.Func) bool {
-	if m.Name() != "WeaverMarshal" {
+// isMXMarshal returns true if m is MXMarshal(*codegen.Encoder).
+func isMXMarshal(t types.Type, m *types.Func) bool {
+	if m.Name() != "MXMarshal" {
 		return false
 	}
 	sig, ok := m.Type().(*types.Signature)
@@ -699,9 +700,8 @@ func isWeaverMarshal(t types.Type, m *types.Func) bool {
 	// TODO(mwhittaker): Relax this requirement if it becomes annoying.
 	if p, ok := recv.Type().(*types.Pointer); ok {
 		return types.Identical(p.Elem(), t)
-	} else {
-		return types.Identical(recv.Type(), t)
 	}
+	return types.Identical(recv.Type(), t)
 }
 
 // isEncoderPtr returns whether t is *codegen.Encoder.
@@ -714,13 +714,13 @@ func isEncoderPtr(t types.Type) bool {
 	if !ok {
 		return false
 	}
-	path := path.Join(weaverPackagePath, "runtime", "codegen")
+	path := path.Join(mxPackagePath, "runtime", "codegen")
 	return n.Obj().Pkg() != nil && n.Obj().Pkg().Path() == path && n.Obj().Name() == "Encoder"
 }
 
-// isWeaverUnmarshal returns true if m is WeaverUnmarshal(*codegen.Decoder).
-func isWeaverUnmarshal(t types.Type, m *types.Func) bool {
-	if m.Name() != "WeaverUnmarshal" {
+// isMXUnmarshal returns true if m is MXUnmarshal(*codegen.Decoder).
+func isMXUnmarshal(t types.Type, m *types.Func) bool {
+	if m.Name() != "MXUnmarshal" {
 		return false
 	}
 	sig, ok := m.Type().(*types.Signature)
@@ -740,9 +740,8 @@ func isWeaverUnmarshal(t types.Type, m *types.Func) bool {
 	// TODO(mwhittaker): Relax this requirement if it becomes annoying.
 	if p, ok := recv.Type().(*types.Pointer); ok {
 		return types.Identical(p.Elem(), t)
-	} else {
-		return types.Identical(recv.Type(), t)
 	}
+	return types.Identical(recv.Type(), t)
 }
 
 // isDecoderPtr returns whether t is *codegen.Decoder.
@@ -755,7 +754,7 @@ func isDecoderPtr(t types.Type) bool {
 	if !ok {
 		return false
 	}
-	path := path.Join(weaverPackagePath, "runtime", "codegen")
+	path := path.Join(mxPackagePath, "runtime", "codegen")
 	return n.Obj().Pkg() != nil && n.Obj().Pkg().Path() == path && n.Obj().Name() == "Decoder"
 }
 
@@ -821,9 +820,8 @@ func isMarshalBinary(t types.Type, m *types.Func) bool {
 	// TODO(mwhittaker): Relax this requirement if it becomes annoying.
 	if p, ok := recv.Type().(*types.Pointer); ok {
 		return types.Identical(p.Elem(), t)
-	} else {
-		return types.Identical(recv.Type(), t)
 	}
+	return types.Identical(recv.Type(), t)
 }
 
 // isUnmarshalBinary returns true if m is UnmarshalBinary([]byte) error
@@ -852,48 +850,47 @@ func isUnmarshalBinary(t types.Type, m *types.Func) bool {
 	// TODO(mwhittaker): Relax this requirement if it becomes annoying.
 	if p, ok := recv.Type().(*types.Pointer); ok {
 		return types.Identical(p.Elem(), t)
-	} else {
-		return types.Identical(recv.Type(), t)
 	}
+	return types.Identical(recv.Type(), t)
 }
 
-// isWeaverType returns true iff t is a named type from the weaver package with
+// isMXType returns true iff t is a named type from the mx package with
 // the specified name and n type arguments.
-func isWeaverType(t types.Type, name string, n int) bool {
+func isMXType(t types.Type, name string, n int) bool {
 	named, ok := t.(*types.Named)
 	return ok &&
 		named.Obj().Pkg() != nil &&
-		named.Obj().Pkg().Path() == weaverPackagePath &&
+		named.Obj().Pkg().Path() == mxPackagePath &&
 		named.Obj().Name() == name &&
 		named.TypeArgs().Len() == n
 }
 
-func isWeaverImplements(t types.Type) bool {
-	return isWeaverType(t, "Implements", 1)
+func isMXImplements(t types.Type) bool {
+	return isMXType(t, "Implements", 1)
 }
 
-func isWeaverRef(t types.Type) bool {
-	return isWeaverType(t, "Ref", 1)
+func isMXRef(t types.Type) bool {
+	return isMXType(t, "Ref", 1)
 }
 
-func isWeaverListener(t types.Type) bool {
-	return isWeaverType(t, "Listener", 0)
+func isMXListener(t types.Type) bool {
+	return isMXType(t, "Listener", 0)
 }
 
-func isWeaverMain(t types.Type) bool {
-	return isWeaverType(t, "Main", 0)
+func isMXMain(t types.Type) bool {
+	return isMXType(t, "Main", 0)
 }
 
-func isWeaverWithRouter(t types.Type) bool {
-	return isWeaverType(t, "WithRouter", 1)
+func isMXWithRouter(t types.Type) bool {
+	return isMXType(t, "WithRouter", 1)
 }
 
-func isWeaverAutoMarshal(t types.Type) bool {
-	return isWeaverType(t, "AutoMarshal", 0)
+func isMXAutoMarshal(t types.Type) bool {
+	return isMXType(t, "AutoMarshal", 0)
 }
 
-func isWeaverNotRetriable(t types.Type) bool {
-	return isWeaverType(t, "NotRetriable", 0)
+func isMXNotRetriable(t types.Type) bool {
+	return isMXType(t, "NotRetriable", 0)
 }
 
 func isString(t types.Type) bool {
@@ -937,7 +934,7 @@ func isPrimitiveRouter(t types.Type) bool {
 // isValidRouterType returns whether the provided type is a valid router type.
 // A router type can be one of the following: an integer (signed or unsigned),
 // a float, or a string. Alternatively, it can be a struct that may optioanly
-// embed the weaver.AutoMarshal struct and rest of the fields must be either
+// embed the mx.AutoMarshal struct and rest of the fields must be either
 // integers, floats, or strings.
 func isValidRouterType(t types.Type) bool {
 	t = t.Underlying()
@@ -950,7 +947,7 @@ func isValidRouterType(t types.Type) bool {
 	}
 	for i := 0; i < s.NumFields(); i++ {
 		ft := s.Field(i).Type()
-		if !isPrimitiveRouter(ft) && !isWeaverAutoMarshal(ft) {
+		if !isPrimitiveRouter(ft) && !isMXAutoMarshal(ft) {
 			return false
 		}
 	}

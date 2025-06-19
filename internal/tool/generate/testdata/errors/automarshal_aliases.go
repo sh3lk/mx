@@ -18,16 +18,16 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
-type A struct{ weaver.AutoMarshal }
+type A struct{ mx.AutoMarshal }
 type B A
 
 type Foo interface {
 	M(context.Context, B) error
 }
 
-type foo struct{ weaver.Implements[Foo] }
+type foo struct{ mx.Implements[Foo] }
 
 func (foo) M(context.Context, B) error { return nil }

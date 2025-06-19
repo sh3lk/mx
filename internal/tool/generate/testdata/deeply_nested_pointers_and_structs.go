@@ -14,17 +14,17 @@
 
 // EXPECTED
 // Preallocate
-// serviceweaver_size_ptr_ptr_ptr_A
-// serviceweaver_size_ptr_ptr_A
-// serviceweaver_size_ptr_A
-// serviceweaver_size_A
-// serviceweaver_size_ptr_ptr_ptr_B
-// serviceweaver_size_ptr_ptr_B
-// serviceweaver_size_ptr_B
-// serviceweaver_size_B
-// serviceweaver_size_ptr_ptr_ptr_int
-// serviceweaver_size_ptr_ptr_int
-// serviceweaver_size_ptr_int
+// mx_size_ptr_ptr_ptr_A
+// mx_size_ptr_ptr_A
+// mx_size_ptr_A
+// mx_size_A
+// mx_size_ptr_ptr_ptr_B
+// mx_size_ptr_ptr_B
+// mx_size_ptr_B
+// mx_size_B
+// mx_size_ptr_ptr_ptr_int
+// mx_size_ptr_ptr_int
+// mx_size_ptr_int
 
 // Deeply nested pointers and structs.
 package foo
@@ -32,16 +32,16 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type A struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	b ***B
 }
 
 type B struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	x ***int
 }
 
@@ -49,7 +49,7 @@ type foo interface {
 	M(context.Context, ***A) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) M(context.Context, ***A) error {
 	return nil

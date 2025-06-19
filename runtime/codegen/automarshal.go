@@ -20,11 +20,11 @@ import (
 	"sync"
 )
 
-// AutoMarshal is the interface implemented by structs with weaver.AutoMarshal
+// AutoMarshal is the interface implemented by structs with mx.AutoMarshal
 // declarations.
 type AutoMarshal interface {
-	WeaverMarshal(enc *Encoder)
-	WeaverUnmarshal(dec *Decoder)
+	MXMarshal(enc *Encoder)
+	MXUnmarshal(dec *Decoder)
 }
 
 // Table of registered serialized types.
@@ -38,7 +38,7 @@ var (
 // instantiate the appropriate concrete type when an interface is sent over the
 // wire (currently only used for AutoMarshal errors returned from remote method
 // calls). The registration is automatically done by generated code for custom
-// error structs that embed weaver.AutoMarshal.
+// error structs that embed mx.AutoMarshal.
 func RegisterSerializable[T AutoMarshal]() {
 	var value T
 	t := reflect.TypeOf(value)

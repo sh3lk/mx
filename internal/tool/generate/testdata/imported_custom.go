@@ -26,14 +26,14 @@ import (
 	"context"
 	xt "time"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type foo interface {
 	A(context.Context, xt.Duration) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) A(context.Context, xt.Duration) error {
 	return nil

@@ -16,9 +16,9 @@
 
 package foo
 
-import "github.com/ServiceWeaver/weaver"
+import "github.com/sh3lk/mx"
 
 type NotSerializable struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	x chan int
 }

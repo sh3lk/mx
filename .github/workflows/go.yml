@@ -88,8 +88,8 @@ jobs:
         run: go install honnef.co/go/tools/cmd/staticcheck@v0.5.0
         if: ${{ matrix.command == 'lint' }}
 
-      - name: Build the weaver binary
-        run: cd cmd/weaver; go build .
+      - name: Build the mx binary
+        run: cd cmd/mx; go build .
         if: ${{ matrix.command == 'test' || matrix.command == 'testrace' }}
 
       - name: ${{ matrix.command }}
@@ -138,8 +138,8 @@ jobs:
       - name: Check spurious changes
         run: |
           # TODO(mwhittaker): Check .pb.go files.
-          # Exclude the weaver binary, which is built by the generate tool.
-          rm ./cmd/weaver/weaver
+          # Exclude the mx binary, which is built by the generate tool.
+          rm ./cmd/mx/mx
           # Exclude .pb.go files, as the protoc version may differ.
           if [[ $(git ls-files --modified --others | grep -v '.*\.pb\.go') ]]; then
             for f in $(git ls-files --modified); do

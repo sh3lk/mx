@@ -13,22 +13,22 @@
 // limitations under the License.
 
 syntax = "proto3";
-option go_package = "github.com/ServiceWeaver/weaver/runtime/protos";
+option go_package = "github.com/sh3lk/mx/runtime/protos";
 
 package runtime;
 
-// WeaveletArgs is the information provided by an envelope to a weavelet when
-// the weavelet is created.
-message WeaveletArgs {
+// MXNArgs is the information provided by an envelope to a mxn when
+// the mxn is created.
+message MXNArgs {
   string app = 1;                    // app name
   string deployment_id = 2;          // globally unique deployment id
-  string id = 3;                     // globally unique weavelet id
+  string id = 3;                     // globally unique mxn id
   bool run_main = 7;                 // run the main function?
 
-  // Should weavelets establish mTLS connections with each other?
+  // Should mxns establish mTLS connections with each other?
   bool mtls = 8;
 
-  // Address on which the weavelet's internal network listener should listen on
+  // Address on which the mxn's internal network listener should listen on
   // (e.g., "localhost:12345", ":0"). If the address is empty, it defaults to
   // ":0", like net.Listen.
   //
@@ -38,11 +38,11 @@ message WeaveletArgs {
   // should be propagated from the deployer.
   string internal_address = 10;
 
-  // Unix domain socket path where weavelet should serve Control component
+  // Unix domain socket path where mxn should serve Control component
   // method calls.
   string control_socket = 13;
 
-  // A redirect entry instructs the weavelet to direct calls made to component
+  // A redirect entry instructs the mxn to direct calls made to component
   // to be instead sent to the component named target at the specified address.
   message Redirect {
     string component = 1;
@@ -54,19 +54,19 @@ message WeaveletArgs {
   reserved 4;
 }
 
-// InitWeaveletRequest holds the initialization info passed to the weavelet by the envelope.
-message InitWeaveletRequest {
+// InitMXNRequest holds the initialization info passed to the mxn by the envelope.
+message InitMXNRequest {
   map<string, string> sections = 1;  // See AppConfig.Sections.
 }
 
-// InitWeaveletReply is the information provided by a weavelet to an envelope during
-// the initial envelope-weavelet handshake.
-message InitWeaveletReply {
-  // Internal TCP address of the weavelet. This address will be passed to other
-  // weavelets as part of their RoutingInfo.
+// InitMXNReply is the information provided by a mxn to an envelope during
+// the initial envelope-mxn handshake.
+message InitMXNReply {
+  // Internal TCP address of the mxn. This address will be passed to other
+  // mxns as part of their RoutingInfo.
   string dial_addr = 1;
 
-  // The deployer API version of the weavelet.
+  // The deployer API version of the mxn.
   SemVer version = 3;
 }
 
@@ -81,7 +81,7 @@ message SemVer {
   int64 patch = 3;
 }
 
-// GetHealthRequest is a request from an envelope for a weavelet's health.
+// GetHealthRequest is a request from an envelope for a mxn's health.
 message GetHealthRequest {}
 
 // GetHealthReply is a reply to a GetHealthRequest.
@@ -90,7 +90,7 @@ message GetHealthReply {
   repeated string healthy_components = 2;
 }
 
-// HealthStatus specifies the health of a weavelet.
+// HealthStatus specifies the health of a mxn.
 enum HealthStatus {
   UNKNOWN = 0;
   HEALTHY = 1;
@@ -98,7 +98,7 @@ enum HealthStatus {
   TERMINATED = 3;
 }
 
-// GetMetricsRequest is a request from an envelope for a weavelet's metrics.
+// GetMetricsRequest is a request from an envelope for a mxn's metrics.
 // There can only be one outstanding GetMetricsRequest at a time.
 message GetMetricsRequest {}
 
@@ -161,7 +161,7 @@ message MetricSnapshot {
   repeated uint64 counts = 8;  // histogram counts
 }
 
-// GetLoadRequest is a request from an envelope for a weavelet's load report.
+// GetLoadRequest is a request from an envelope for a mxn's load report.
 message GetLoadRequest {}
 
 // GetLoadReply is a reply to a GetLoadRequest.
@@ -170,7 +170,7 @@ message GetLoadReply {
 }
 
 // LoadReport contains load information for all routed components hosted by a
-// particular weavelet.
+// particular mxn.
 message LoadReport {
   map<string, ComponentLoad> loads = 1;  // load for routed components
 
@@ -178,7 +178,7 @@ message LoadReport {
   // key space is divided into a number of slices, each of which is associated
   // with a particular double-valued load.
   //
-  // TODO(mwhittaker): In the short term, a weavelet will report one SliceLoad
+  // TODO(mwhittaker): In the short term, a mxn will report one SliceLoad
   // for every slice it is assigned. In the future, however, we may report load
   // in more advanced ways.
   message ComponentLoad {
@@ -206,7 +206,7 @@ message LoadReport {
     // the slice has size b - a. This has a couple of problems.
     //
     //     1. Even if a slice is large, only a few keys in the slice may be
-    //        used. For example, a weavelet with slice [0, 2^60) may only
+    //        used. For example, a mxn with slice [0, 2^60) may only
     //        receive requests for keys in the range [0, 100).
     //     2. a and b are not necessarily numeric. Imagine we are performing
     //        range sharding on strings and have the slice ["ccbae",
@@ -235,7 +235,7 @@ message LoadReport {
   }
 }
 
-// GetProfileRequest is a request from an envelope for a weavelet to collect and
+// GetProfileRequest is a request from an envelope for a mxn to collect and
 // return a profile. Some profile types only support a single profile request at a
 // time and an error will be returned if another profile request is active.
 message GetProfileRequest {
@@ -258,7 +258,7 @@ enum ProfileType {
   CPU = 2;
 }
 
-// UpdateRoutingInfoRequest is a request from an envelope to the weavelet to
+// UpdateRoutingInfoRequest is a request from an envelope to the mxn to
 // update its routing information for a particular component.
 message UpdateRoutingInfoRequest {
   RoutingInfo routing_info = 1;
@@ -267,7 +267,7 @@ message UpdateRoutingInfoRequest {
 // UpdateRoutingInfoReply is a reply to an UpdateRoutingInfoRequest.
 message UpdateRoutingInfoReply {}
 
-// RoutingInfo contains routing information for a component. A weavelet uses a
+// RoutingInfo contains routing information for a component. A mxn uses a
 // RoutingInfo to know where to send a remote method call.
 message RoutingInfo {
   string component = 1;
@@ -277,9 +277,9 @@ message RoutingInfo {
   // false for a given component.
   bool local = 2;
 
-  // The addresses of the weavelets hosting a replica of the component. Every
+  // The addresses of the mxns hosting a replica of the component. Every
   // address is of the form "<net>://<addr>" (e.g., "tcp://host:1234",
-  // "unix:///tmp/unix.sock"). For non-local components, a weavelet will execute
+  // "unix:///tmp/unix.sock"). For non-local components, a mxn will execute
   // method calls on one of these replicas.
   repeated string replicas = 3;
 
@@ -311,7 +311,7 @@ message Assignment {
   uint64 version = 2;
 }
 
-// UpdateComponentsRequest is a request from an envelope to the weavelet to
+// UpdateComponentsRequest is a request from an envelope to the mxn to
 // update the set of components it should be running. Currently, the set of
 // components must only ever increase over time.
 message UpdateComponentsRequest {
@@ -321,9 +321,9 @@ message UpdateComponentsRequest {
 // UpdateComponentsReply is a reply to an UpdateComponentsRequest.
 message UpdateComponentsReply {}
 
-// ActivateComponentRequest is a request from a weavelet to ensure that the
+// ActivateComponentRequest is a request from a mxn to ensure that the
 // provided component is running somewhere. An ActivateComponentRequest also
-// implicitly signals that a weavelet is interested in receiving routing info
+// implicitly signals that a mxn is interested in receiving routing info
 // for the component via UpdateRoutingInfoRequest.
 message ActivateComponentRequest {
   string component = 1;  // component name
@@ -333,18 +333,18 @@ message ActivateComponentRequest {
 // ActivateComponentReply is a reply to an ActivateComponentRequest.
 message ActivateComponentReply {}
 
-// GetListenerAddressRequest is a request from a weavelet for the address the
-// weavelet should listen on for a particular listener.
+// GetListenerAddressRequest is a request from a mxn for the address the
+// mxn should listen on for a particular listener.
 //
-// Imagine a weavelet calls GetListener with LocalAdress localhost:9000. Here
+// Imagine a mxn calls GetListener with LocalAdress localhost:9000. Here
 // are some examples of how different deployers may handle a
 // GetListenerAddressRequest.
 //
-//  - The singleprocess deployer may instruct the weavelet to listen directly
+//  - The singleprocess deployer may instruct the mxn to listen directly
 //    on localhost:9000.
-//  - The multiprocess deployer may instruct the weavelet to listen on
+//  - The multiprocess deployer may instruct the mxn to listen on
 //    localhost:0. It will separately start a proxy on localhost:9000.
-//  - The SSH deployer may instruct the weavelet to listen on
+//  - The SSH deployer may instruct the mxn to listen on
 //    $HOSTNAME:0. It will separately start a proxy on localhost:9000.
 message GetListenerAddressRequest {
   string name = 1;           // listener name
@@ -355,7 +355,7 @@ message GetListenerAddressReply {
   string address = 1;  // address to listen on
 }
 
-// ExportListenerRequest is a request from a weavelet to export the provided
+// ExportListenerRequest is a request from a mxn to export the provided
 // listener. Exporting a listener typically, but not always, involves running a
 // proxy that forwards traffic to the provided address.
 message ExportListenerRequest {
@@ -371,27 +371,27 @@ message ExportListenerReply {
 
   // If non-empty, a non-retriable error.
   //
-  // TODO(mwhittaker): This field exists as a hack to avoid a weavelet retrying
+  // TODO(mwhittaker): This field exists as a hack to avoid a mxn retrying
   // this error. In the future, we should have a more robust way to avoid
   // retrying certain errors.
   string error = 2;
 }
 
-// GetSelfCertificateRequest is a request from a weavelet for its certificate
+// GetSelfCertificateRequest is a request from a mxn for its certificate
 // and the corresponding private key.
 message GetSelfCertificateRequest {}
 
 // GetSelfCertificateReply is a reply to a GetSelfCertificateRequest.
 message GetSelfCertificateReply {
   // PEM-encoded blocks containing (1) the certificate identifying the
-  // weavelet and (2) the corresponding private key. Used for enforcing mTLS
+  // mxn and (2) the corresponding private key. Used for enforcing mTLS
   // security across components.
-  bytes cert = 1; // certificate identifying the weavelet
+  bytes cert = 1; // certificate identifying the mxn
   bytes key = 2;  // private key corresponding to cert
 }
 
-// VerifyClientCertificateRequest is a request from a weavelet to verify
-// the identity of a client that is attempting to connect to the weavelet.
+// VerifyClientCertificateRequest is a request from a mxn to verify
+// the identity of a client that is attempting to connect to the mxn.
 message VerifyClientCertificateRequest {
   // Client's certificate chain. Each certificate in the chain is represented as
   // a DER-encoded ASN.1 structure.
@@ -402,12 +402,12 @@ message VerifyClientCertificateRequest {
 // If the client certificate cannot be verified, an error should be returned
 // rather than an empty reply.
 message VerifyClientCertificateReply {
-  // The set of components hosted by the weavelet that the client is allowed to
+  // The set of components hosted by the mxn that the client is allowed to
   // invoke methods on.
   repeated string components = 1;
 }
 
-// VerifyServerCertificateRequest is a request from a weavelet to verify
+// VerifyServerCertificateRequest is a request from a mxn to verify
 // the identity of the server it is attempting to connect to.
 message VerifyServerCertificateRequest {
   // Server's certificate chain. Each certificate in the chain is represented as
@@ -427,7 +427,7 @@ message LogEntry {
   string app = 1;            // application name
   string version = 2;        // deployment id
   string component = 3;      // component name
-  string node = 4;           // weavelet id
+  string node = 4;           // mxn id
   sfixed64 time_micros = 5;  // time when logged (microseconds since epoch)
   string level = 6;          // log level (e.g., debug, info, error)
   string file = 7;           // source file
@@ -563,7 +563,7 @@ message Span {
   }
   Library library = 12;  // Instrumentation library that created the span
 
-  // Resource describes an entity (e.g., a Service Weaver component) this span
+  // Resource describes an entity (e.g., a MX component) this span
   // belongs to.
   message Resource {
     // URL that describes the shape and a composition of data for this span.

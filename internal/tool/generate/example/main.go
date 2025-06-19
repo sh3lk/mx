@@ -19,13 +19,13 @@ package main
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
-//go:generate ../../../../cmd/weaver/weaver generate
+//go:generate ../../../../cmd/mx/mx generate
 
 type message struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	a int
 	b string
 	c bool
@@ -35,7 +35,7 @@ type message struct {
 }
 
 type pair struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	a message
 	b message
 }
@@ -60,21 +60,21 @@ type B interface {
 }
 
 type a struct {
-	weaver.Implements[A]
-	b    weaver.Ref[B]   //lint:ignore U1000 Present for code generation.
-	lis1 weaver.Listener `weaver:"renamed_listener"` //lint:ignore U1000 Present for code generation.
-	lis2 weaver.Listener //lint:ignore U1000 Present for code generation.
-	weaver.WithConfig[config]
-	weaver.WithRouter[router]
+	mx.Implements[A]
+	b    mx.Ref[B]   //lint:ignore U1000 Present for code generation.
+	lis1 mx.Listener `mx:"renamed_listener"` //lint:ignore U1000 Present for code generation.
+	lis2 mx.Listener //lint:ignore U1000 Present for code generation.
+	mx.WithConfig[config]
+	mx.WithRouter[router]
 }
 
 type b struct {
-	weaver.Implements[B]
-	a    weaver.Ref[A]   //lint:ignore U1000 Present for code generation.
-	lis1 weaver.Listener `weaver:"renamed_listener"` //lint:ignore U1000 Present for code generation.
-	lis2 weaver.Listener //lint:ignore U1000 Present for code generation.
-	weaver.WithConfig[config]
-	weaver.WithRouter[router]
+	mx.Implements[B]
+	a    mx.Ref[A]   //lint:ignore U1000 Present for code generation.
+	lis1 mx.Listener `mx:"renamed_listener"` //lint:ignore U1000 Present for code generation.
+	lis2 mx.Listener //lint:ignore U1000 Present for code generation.
+	mx.WithConfig[config]
+	mx.WithRouter[router]
 }
 
 func (a) M1(context.Context, int, string, bool, [10]int, []string, map[bool]int, message) (pair, error) {
@@ -91,7 +91,7 @@ func (b) M2(context.Context, int, string, bool, [10]int, []string, map[bool]int,
 }
 
 type routingKey struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	a int
 	b string
 	c float32

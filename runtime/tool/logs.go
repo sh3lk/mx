@@ -25,13 +25,13 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/runtime/colors"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
+	"github.com/sh3lk/mx/runtime/colors"
+	"github.com/sh3lk/mx/runtime/logging"
 )
 
 // LogSpec configures the command returned by LogsCmd.
 type LogsSpec struct {
-	Tool    string                                        // tool name, e.g., "weaver gke"
+	Tool    string                                        // tool name, e.g., "mx gke"
 	Flags   *flag.FlagSet                                 // optional additional flags
 	Rewrite func(logging.Query) (logging.Query, error)    // optional query preprocessing
 	Source  func(context.Context) (logging.Source, error) // returns log source
@@ -83,8 +83,8 @@ Queries:
       * app            : the application name
       * version        : the abbreviated application version
       * full_version   : the unabbreviated application version
-      * component      : the abbreviated Service Weaver component name
-      * full_component : the unabbreviated Service Weaver component name
+      * component      : the abbreviated MX component name
+      * full_component : the unabbreviated MX component name
       * node           : the abbreviated node name
       * full_node      : the unabbreviated node name
       * time           : the time the log entry was logged
@@ -224,7 +224,7 @@ Query Reference:
 	return &Command{
 		Name:        "logs",
 		Flags:       spec.Flags,
-		Description: "Cat or follow Service Weaver logs",
+		Description: "Cat or follow MX logs",
 		Help:        b.String(),
 		Fn:          spec.logFn,
 	}
@@ -259,7 +259,7 @@ func (s *LogsSpec) logFn(ctx context.Context, args []string) error {
 
 	// Show or hide system logs.
 	if !s.system {
-		query += ` && !("serviceweaver/system" in attrs)`
+		query += ` && !("mx/system" in attrs)`
 	}
 
 	// Construct the reader.

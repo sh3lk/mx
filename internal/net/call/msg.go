@@ -66,7 +66,7 @@ const hdrLenLen = uint32(4) // size of the header length included in each messag
 //    header            [headerLen]byte -- encoded header information
 //    payload                           -- call argument serialization
 //
-// The header is encoded using Service Weaver's encoding format for a type that
+// The header is encoded using MX's encoding format for a type that
 // looks like:
 //
 // struct header {

@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type BadService interface {
@@ -28,7 +28,7 @@ type BadService interface {
 }
 
 type badServiceImpl struct {
-	weaver.Implements[BadService]
+	mx.Implements[BadService]
 }
 
 func (b *badServiceImpl) DoSomething(context.Context) error {

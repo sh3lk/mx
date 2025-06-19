@@ -22,9 +22,9 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/exp/maps"
 
-	"github.com/ServiceWeaver/weaver/metrics"
-	imetrics "github.com/ServiceWeaver/weaver/runtime/metrics"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
+	"github.com/sh3lk/mx/metrics"
+	imetrics "github.com/sh3lk/mx/runtime/metrics"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
 func ExampleCounterMap() {

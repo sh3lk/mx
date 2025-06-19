@@ -17,7 +17,7 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type NoContext interface{}
@@ -27,19 +27,19 @@ type ExtraArgs interface{}
 type ExtraReturns interface{}
 
 type noContext struct {
-	weaver.Implements[NoContext]
+	mx.Implements[NoContext]
 }
 type noError struct {
-	weaver.Implements[NoError]
+	mx.Implements[NoError]
 }
 type noContextOrError struct {
-	weaver.Implements[NoContextOrError]
+	mx.Implements[NoContextOrError]
 }
 type extraArgs struct {
-	weaver.Implements[ExtraArgs]
+	mx.Implements[ExtraArgs]
 }
 type extraReturns struct {
-	weaver.Implements[ExtraReturns]
+	mx.Implements[ExtraReturns]
 }
 
 func (noContext) Init() error                          { return nil }

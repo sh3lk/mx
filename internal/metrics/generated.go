@@ -16,18 +16,18 @@ package metrics
 
 // Names of automatically populated metrics.
 const (
-	MethodCountsName       = "serviceweaver_method_count"
-	MethodErrorsName       = "serviceweaver_method_error_count"
-	MethodLatenciesName    = "serviceweaver_method_latency_micros"
-	MethodBytesRequestName = "serviceweaver_method_bytes_request"
-	MethodBytesReplyName   = "serviceweaver_method_bytes_reply"
+	MethodCountsName       = "mx_method_count"
+	MethodErrorsName       = "mx_method_error_count"
+	MethodLatenciesName    = "mx_method_latency_micros"
+	MethodBytesRequestName = "mx_method_bytes_request"
+	MethodBytesReplyName   = "mx_method_bytes_reply"
 )
 
 // GeneratedBuckets provides rounded bucket boundaries for histograms
 // that will only store non-negative values.
 //
 // Note that these buckets are intended to be used only by the metrics generated
-// by the weaver runtime.
+// by the mx runtime.
 var GeneratedBuckets = []float64{
 	// Adjacent buckets differ from each other by 2x or 2.5x.
 	1, 2, 5,

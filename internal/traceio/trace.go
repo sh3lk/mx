@@ -22,12 +22,12 @@ import (
 )
 
 const (
-	// Trace attribute keys for various Service Weaver identifiers. These
-	// are attached to all exported traces by the weavelet, and displayed
-	// in the UI by the Service Weaver visualization tools (e.g., dashboard).
-	AppTraceKey          = attribute.Key("serviceweaver.app")
-	DeploymentIdTraceKey = attribute.Key("serviceweaver.deployment_id")
-	WeaveletIdTraceKey   = attribute.Key("serviceweaver.weavelet_id")
+	// Trace attribute keys for various MX identifiers. These
+	// are attached to all exported traces by the mxn, and displayed
+	// in the UI by the MX visualization tools (e.g., dashboard).
+	AppTraceKey          = attribute.Key("mx.app")
+	DeploymentIdTraceKey = attribute.Key("mx.deployment_id")
+	MXNIdTraceKey        = attribute.Key("mx.mxn_id")
 )
 
 // TestTracer returns a simple tracer suitable for tests.

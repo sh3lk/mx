@@ -17,7 +17,7 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type byValue struct{ notSerializable chan int }
@@ -38,6 +38,6 @@ type foo interface {
 	M(context.Context, byValue, byPointer, mixed1, mixed2) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (impl) M(context.Context, byValue, byPointer, mixed1, mixed2) error { return nil }

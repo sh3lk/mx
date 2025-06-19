@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package weaver
+package mx
 
 import (
 	"math/rand"
@@ -21,8 +21,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	imetrics "github.com/ServiceWeaver/weaver/internal/metrics"
-	"github.com/ServiceWeaver/weaver/metrics"
+	imetrics "github.com/sh3lk/mx/internal/metrics"
+	"github.com/sh3lk/mx/metrics"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -35,7 +35,7 @@ type httpLabels struct {
 	Host  string // URL host
 
 	// Is this a metric implicitly created by the framework?
-	Generated bool `weaver:"serviceweaver_generated"`
+	Generated bool `mx:"mx_generated"`
 }
 
 type httpErrorLabels struct {
@@ -44,30 +44,30 @@ type httpErrorLabels struct {
 	Code  int    // HTTP status code (e.g., 404)
 
 	// Is this a metric implicitly created by the framework?
-	Generated bool `weaver:"serviceweaver_generated"`
+	Generated bool `mx:"mx_generated"`
 }
 
 var (
 	httpRequestCounts = metrics.NewCounterMap[httpLabels](
-		"serviceweaver_http_request_count",
+		"mx_http_request_count",
 		"Count of HTTP requests received",
 	)
 	httpRequestErrors = metrics.NewCounterMap[httpErrorLabels](
-		"serviceweaver_http_error_count",
+		"mx_http_error_count",
 		"Count of HTTP replies with a 4XX or 5XX status code",
 	)
 	httpRequestLatencyMicros = metrics.NewHistogramMap[httpLabels](
-		"serviceweaver_http_request_latency_micros",
+		"mx_http_request_latency_micros",
 		"Duration, in microseconds, of HTTP request execution",
 		imetrics.GeneratedBuckets,
 	)
 	httpRequestBytesReceived = metrics.NewHistogramMap[httpLabels](
-		"serviceweaver_http_request_bytes_received",
+		"mx_http_request_bytes_received",
 		"Number of bytes received by HTTP request handlers",
 		imetrics.GeneratedBuckets,
 	)
 	httpRequestBytesReturned = metrics.NewHistogramMap[httpLabels](
-		"serviceweaver_http_request_bytes_returned",
+		"mx_http_request_bytes_returned",
 		"Number of bytes returned by HTTP request handlers",
 		imetrics.GeneratedBuckets,
 	)
@@ -77,11 +77,11 @@ var (
 // traces and metrics of HTTP request executions. Each trace and metric is
 // labelled with the supplied label. The following metrics are collected:
 //
-//   - serviceweaver_http_request_count: Total number of requests.
-//   - serviceweaver_http_error_count: Total number of 4XX and 5XX replies.
-//   - serviceweaver_http_request_latency_micros: Execution latency in microseconds.
-//   - serviceweaver_http_request_bytes_received: Total number of request bytes.
-//   - serviceweaver_http_request_bytes_returned: Total number of response bytes
+//   - mx_http_request_count: Total number of requests.
+//   - mx_http_error_count: Total number of 4XX and 5XX replies.
+//   - mx_http_request_latency_micros: Execution latency in microseconds.
+//   - mx_http_request_bytes_received: Total number of request bytes.
+//   - mx_http_request_bytes_returned: Total number of response bytes
 func InstrumentHandler(label string, handler http.Handler) http.Handler {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()

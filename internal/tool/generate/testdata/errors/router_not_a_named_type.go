@@ -14,13 +14,13 @@
 
 // ERROR: int is not a named type
 
-// weaver.WithRouter[int] is invalid because int is not a named type.
+// mx.WithRouter[int] is invalid because int is not a named type.
 package foo
 
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type foo interface {
@@ -28,8 +28,8 @@ type foo interface {
 }
 
 type impl struct {
-	weaver.Implements[foo]
-	weaver.WithRouter[int]
+	mx.Implements[foo]
+	mx.WithRouter[int]
 }
 
 func (impl) M(context.Context) error { return nil }

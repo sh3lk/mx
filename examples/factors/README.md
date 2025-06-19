@@ -1,6 +1,6 @@
 # Factors
 
-This directory contains a Service Weaver application that computes the factors
+This directory contains a MX application that computes the factors
 of a number. This application is interesting because it demonstrates routing.
 
 This app has a `Factorer` component with a `Factor(context.Context, int) ([]int,
@@ -14,11 +14,11 @@ rate of the `Factorer` component.
 %%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
 graph TD
     %% Nodes.
-    github.com/ServiceWeaver/weaver/Main(weaver.Main)
-    github.com/ServiceWeaver/weaver/examples/factors/Factorer(factors.Factorer)
+    github.com/sh3lk/mx/Main(mx.Main)
+    github.com/sh3lk/mx/examples/factors/Factorer(factors.Factorer)
 
     %% Edges.
-    github.com/ServiceWeaver/weaver/Main --> github.com/ServiceWeaver/weaver/examples/factors/Factorer
+    github.com/sh3lk/mx/Main --> github.com/sh3lk/mx/examples/factors/Factorer
 ```
 
 ## Running Locally
@@ -36,10 +36,10 @@ $ curl localhost:9000?x=100
 [1 2 4 5 10 20 25 50 100]
 ```
 
-To run the app across multiple processes, use `weaver multi deploy`:
+To run the app across multiple processes, use `mx multi deploy`:
 
 ```console
-weaver multi deploy weaver.toml
+mx multi deploy mx.toml
 ```
 
 When a `Factorer` component receives an invocation of its `Factor` method, it
@@ -48,8 +48,8 @@ pids to confirm that requests are being routed.
 
 ## Running on GKE
 
-To run the app on GKE, use `weaver gke deploy`:
+To run the app on GKE, use `mx gke deploy`:
 
 ```console
-$ weaver gke deploy weaver.toml
+$ mx gke deploy mx.toml
 ```

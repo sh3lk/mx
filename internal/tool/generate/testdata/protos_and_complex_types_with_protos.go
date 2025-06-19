@@ -15,8 +15,8 @@
 // EXPECTED
 // EncodeProto
 // DecodeProto
-// serviceweaver_enc_slice_ptr_TypeProto
-// serviceweaver_dec_map_string_ptr_TypeProto
+// mx_enc_slice_ptr_TypeProto
+// mx_dec_map_string_ptr_TypeProto
 
 // Proto types.
 package foo
@@ -24,7 +24,7 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -41,7 +41,7 @@ type foo interface {
 	N(context.Context, []*TypeProto) (map[string]*TypeProto, error)
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) M(context.Context, *TypeProto) (*TypeProto, error) {
 	return nil, nil

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package benchmarks provides various benchmarks to evaluate the performance of
-// the Service Weaver ecosystem.
+// the MX ecosystem.
 
 package benchmarks
 
@@ -27,9 +27,9 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
-	"github.com/ServiceWeaver/weaver/weavertest"
 	"github.com/google/go-cmp/cmp"
+	"github.com/sh3lk/mx/mxtest"
+	"github.com/sh3lk/mx/runtime/codegen"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -45,29 +45,29 @@ type codec interface {
 	Decode([]byte) *payloadC
 }
 
-// weaverCodec uses Service Weaver's serialization and deserialization code.
-type weaverCodec struct {
-	presizeBuffer bool             // presize the buffer? (Service Weaver does this)
+// mxCodec uses MX's serialization and deserialization code.
+type mxCodec struct {
+	presizeBuffer bool             // presize the buffer? (MX does this)
 	enc           *codegen.Encoder // reusable encoder, if not nil
 }
 
-// newWeaverCodec returns a new weaverCodec. If presizeBuffer is true, the
-// serialization buffer is presized to fit the serialization (Service Weaver does this
+// newMXCodec returns a new mxCodec. If presizeBuffer is true, the
+// serialization buffer is presized to fit the serialization (MX does this
 // by default). If reuseBuffer is true, then the encoder reuses the same buffer
 // for every serialization.
-func newWeaverCodec(presizeBuffer, reuseBuffer bool) *weaverCodec {
-	d := weaverCodec{presizeBuffer: presizeBuffer}
+func newMXCodec(presizeBuffer, reuseBuffer bool) *mxCodec {
+	d := mxCodec{presizeBuffer: presizeBuffer}
 	if reuseBuffer {
 		d.enc = codegen.NewEncoder()
 	}
 	return &d
 }
 
-func (d *weaverCodec) Encode(p *payloadC) []byte {
+func (d *mxCodec) Encode(p *payloadC) []byte {
 	if d.enc != nil {
 		// Reset the buffer, but reuse the existing allocated memory.
 		d.enc.Reset(0)
-		p.WeaverMarshal(d.enc)
+		p.MXMarshal(d.enc)
 		return d.enc.Data()
 	}
 
@@ -75,16 +75,16 @@ func (d *weaverCodec) Encode(p *payloadC) []byte {
 	// buffer).
 	enc := codegen.NewEncoder()
 	if d.presizeBuffer {
-		enc.Reset(serviceweaver_size_payloadC_7e82696e(p))
+		enc.Reset(mx_size_payloadC_7e82696e(p))
 	}
-	p.WeaverMarshal(enc)
+	p.MXMarshal(enc)
 	return enc.Data()
 }
 
-func (d *weaverCodec) Decode(b []byte) *payloadC {
+func (d *mxCodec) Decode(b []byte) *payloadC {
 	var p payloadC
 	dec := codegen.NewDecoder(b)
-	p.WeaverUnmarshal(dec)
+	p.MXUnmarshal(dec)
 	return &p
 }
 
@@ -223,7 +223,7 @@ func (g *gobCodec) Decode(b []byte) *payloadC {
 
 // protoCodec uses protobuf serialization and deserialization. Note that there
 // is overhead in converting between payloadC and PayloadCProto, but this is an
-// overhead we would have to incur if we used protobuf serialization in Service Weaver
+// overhead we would have to incur if we used protobuf serialization in MX
 // since the user doesn't operate on protobuf types.
 type protoCodec struct{}
 
@@ -247,7 +247,7 @@ func (protoCodec) Decode(b []byte) *payloadC {
 
 // BenchmarkEncDec builds a complex payload, and invokes the:
 //
-//	(1) Service Weaver encoding
+//	(1) MX encoding
 //	(2) JSON encoding
 //	(3) gob encoding
 func BenchmarkEncDec(b *testing.B) {
@@ -264,15 +264,15 @@ func BenchmarkEncDec(b *testing.B) {
 		name  string
 		codec codec
 	}{
-		{"ServiceWeaver", newWeaverCodec(true, false)},
-		{"ServiceWeaverNoPresize", newWeaverCodec(false, false)},
-		{"ServiceWeaverReuseBuffer", newWeaverCodec(true, true)},
-		{"Json", newJsonCodec(false)},
-		{"JsonReuseBuffer", newJsonCodec(true)},
+		{"MX", newMXCodec(true, false)},
+		{"MXNoPresize", newMXCodec(false, false)},
+		{"MXReuseBuffer", newMXCodec(true, true)},
+		{"Proto", protoCodec{}},
 		{"FreshGob", freshGobCodec{}},
 		{"Gob", newGobCodec(false)},
 		{"GobReuseBuffer", newGobCodec(true)},
-		{"Proto", protoCodec{}},
+		{"Json", newJsonCodec(false)},
+		{"JsonReuseBuffer", newJsonCodec(true)},
 	} {
 		// Encode only.
 		b.Run(fmt.Sprintf("%s/Encode", bench.name), func(b *testing.B) {
@@ -338,7 +338,7 @@ func BenchmarkPing(b *testing.B) {
 		}
 		name := fmt.Sprintf("chain=%02d,size=%s", bm.numChainedComponents, size)
 		b.Run(name, func(b *testing.B) {
-			weavertest.Local.Bench(b, func(b *testing.B, pObj Ping1) {
+			mxtest.Local.Bench(b, func(b *testing.B, pObj Ping1) {
 				if bm.componentSize == complex {
 					payload := genWorkload(1)[0]
 					for i := 0; i < b.N; i++ {
@@ -365,7 +365,7 @@ func BenchmarkPing(b *testing.B) {
 func TestBenchmark(t *testing.T) {
 	// Test plan: Send a ping request from Component1 to Component10. Verify that
 	// the response is the same as the request when we send both simple and complex payloads.
-	weavertest.Local.Test(t, func(t *testing.T, ping Ping1) {
+	mxtest.Local.Test(t, func(t *testing.T, ping Ping1) {
 		ctx := context.Background()
 		depth := 10
 

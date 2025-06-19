@@ -13,12 +13,12 @@
 // limitations under the License.
 
 // EXPECTED
-// func (x *A) WeaverMarshal(enc *codegen.Encoder)
-// func (x *A) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *B) WeaverMarshal(enc *codegen.Encoder)
-// func (x *B) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *C) WeaverMarshal(enc *codegen.Encoder)
-// func (x *C) WeaverUnmarshal(dec *codegen.Decoder)
+// func (x *A) MXMarshal(enc *codegen.Encoder)
+// func (x *A) MXUnmarshal(dec *codegen.Decoder)
+// func (x *B) MXMarshal(enc *codegen.Encoder)
+// func (x *B) MXUnmarshal(dec *codegen.Decoder)
+// func (x *C) MXMarshal(enc *codegen.Encoder)
+// func (x *C) MXUnmarshal(dec *codegen.Decoder)
 
 // Nested named types.
 package foo
@@ -26,21 +26,21 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type A struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	B
 }
 
 type B struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	C
 }
 
 type C struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	x int
 }
 
@@ -49,7 +49,7 @@ type foo interface {
 	MethodTwo(context.Context, B) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) MethodOne(context.Context, A) error {
 	return nil

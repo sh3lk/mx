@@ -27,23 +27,23 @@ import (
 // the binary.
 //
 // Each edge is represented by a string fragment that looks like:
-// ⟦checksum:wEaVeReDgE:src→dst⟧
+// ⟦checksum:MxEdge:src→dst⟧
 //
 // checksum is the first 8 bytes of the hex encoding of the SHA-256 of
-// the string "wEaVeReDgE:src→dst" and src and dst are the fully qualified
+// the string "MxEdge:src→dst" and src and dst are the fully qualified
 // component type names.
 
 // MakeEdgeString returns a string that should be emitted into generated
 // code to represent an edge from src to dst.
 func MakeEdgeString(src, dst string) string {
-	return fmt.Sprintf("⟦%s:wEaVeReDgE:%s→%s⟧\n", checksumEdge(src, dst), src, dst)
+	return fmt.Sprintf("⟦%s:MxEdge:%s→%s⟧\n", checksumEdge(src, dst), src, dst)
 }
 
 // ExtractEdges returns the edges corresponding to MakeEdgeString() results
 // that occur in data.
 func ExtractEdges(data []byte) [][2]string {
 	var result [][2]string
-	re := regexp.MustCompile(`⟦([0-9a-fA-F]+):wEaVeReDgE:([a-zA-Z0-9\-.~_/]*?)→([a-zA-Z0-9\-.~_/]*?)⟧`)
+	re := regexp.MustCompile(`⟦([0-9a-fA-F]+):MxEdge:([a-zA-Z0-9\-.~_/]*?)→([a-zA-Z0-9\-.~_/]*?)⟧`)
 	for _, m := range re.FindAllSubmatch(data, -1) {
 		if len(m) != 4 {
 			continue
@@ -64,7 +64,7 @@ func ExtractEdges(data []byte) [][2]string {
 }
 
 func checksumEdge(src, dst string) string {
-	edge := fmt.Sprintf("wEaVeReDgE:%s→%s", src, dst)
+	edge := fmt.Sprintf("MxEdge:%s→%s", src, dst)
 	sum := sha256.Sum256([]byte(edge))
 	return fmt.Sprintf("%0x", sum)[:8]
 }

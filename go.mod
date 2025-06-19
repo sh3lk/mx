@@ -1,4 +1,4 @@
-module github.com/ServiceWeaver/weaver
+module github.com/sh3lk/mx
 
 go 1.24.1
 

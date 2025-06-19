@@ -1,18 +1,18 @@
 # Lower Test Toil With Better Local Testing
 
-[Service Weaver][tutorial] is a programming framework that makes it easy to
+[MX][tutorial] is a programming framework that makes it easy to
 write, test, and deploy distributed applications. In [previous blog
-posts][blog], we discussed how to write and deploy Service Weaver applications.
+posts][blog], we discussed how to write and deploy MX applications.
 In this blog post, we'll focus on testing. Specifically, we'll explore unit
 tests, integration tests, and randomized tests.
 
-1. Service Weaver lets you **unit test** components of your system using
+1. MX lets you **unit test** components of your system using
    idiomatic Go unit tests.
-2. Service Weaver makes it significantly easier to write **integration tests**
+2. MX makes it significantly easier to write **integration tests**
    that would otherwise be slow and brittle. Later in this blog post, we present
-   an example where Service Weaver speeds up an integration test by a factor of
+   an example where MX speeds up an integration test by a factor of
    10,000, decreasing the test time from 20 minutes to 0.02 seconds.
-3. Service Weaver implements an advanced form of **randomized testing** called
+3. MX implements an advanced form of **randomized testing** called
    deterministic simulation that can find rare bugs that only emerge in
    pathological cases. Without deterministic simulation, these bugs are
    incredibly difficult to catch, and often arise in production with
@@ -21,11 +21,11 @@ tests, integration tests, and randomized tests.
 These three types of testing&mdash;unit testing, integration testing, and
 randomized testing&mdash;all fall on a spectrum trading off test complexity and
 test coverage. In the remainder of this blog post, we'll take a closer look at
-these three types of tests in the context of Service Weaver.
+these three types of tests in the context of MX.
 
 ## 1. Unit Testing
 
-Service Weaver has a [`weavertest` package][unit_testing] that makes it easy to
+MX has a [`mxtest` package][unit_testing] that makes it easy to
 write both unit tests and integration tests. For example, consider the following
 `Adder` component:
 
@@ -35,7 +35,7 @@ type Adder interface {
 }
 
 type adder struct {
-    weaver.Implements[Adder]
+    mx.Implements[Adder]
 }
 
 func (*adder) Add(_ context.Context, x, y int) (int, error) {
@@ -44,7 +44,7 @@ func (*adder) Add(_ context.Context, x, y int) (int, error) {
 ```
 
 To unit test the `Adder` component using [idiomatic Go unit tests][go_testing],
-we can use the `weavertest` package to write a test as follows:
+we can use the `mxtest` package to write a test as follows:
 
 ```go
 package main
@@ -53,13 +53,13 @@ import (
     "context"
     "testing"
 
-    "github.com/ServiceWeaver/weaver"
-    "github.com/ServiceWeaver/weaver/weavertest"
+    "github.com/sh3lk/mx"
+    "github.com/sh3lk/mx/mxtest"
 )
 
 func TestAdd(t *testing.T) {
     // Run the Adder component locally, and test that 1 + 2 = 3.
-    runner := weavertest.Local
+    runner := mxtest.Local
     runner.Test(t, func(t *testing.T, adder Adder) {
         got, err := adder.Add(context.Background(), 1, 2)
         if err != nil {
@@ -72,17 +72,17 @@ func TestAdd(t *testing.T) {
 
 ```
 
-In the code above, `weavertest.Local` is a unit test runner that runs all
+In the code above, `mxtest.Local` is a unit test runner that runs all
 components locally. The call to `runner.Test` executes the provided unit
 test, instantiating all the necessary components (i.e. `Adder`).
 
-Because unit tests written with the `weavertest` package are standard Go unit
+Because unit tests written with the `mxtest` package are standard Go unit
 tests, you can run them (as you would any unit test) with `go test`:
 
 ```console
 $ go test
 PASS
-ok      github.com/ServiceWeaver/adder 0.001s
+ok      github.com/sh3lk/adder 0.001s
 ```
 
 ## 2. Integration Testing
@@ -111,9 +111,9 @@ time. And this is just to *run* the application. Integration testing it would
 require even more effort.
 
 In contrast to this, we [ported Online Boutique to Service
-Weaver][sw_onlineboutique] and are able to integration test the application with
+MX][sw_onlineboutique] and are able to integration test the application with
 a single command and zero lines of config in less than a tenth of a second. To
-do so, we again use the `weavertest` package:
+do so, we again use the `mxtest` package:
 
 ```go
 package main
@@ -123,16 +123,16 @@ import (
     "testing"
     "time"
 
-    "github.com/ServiceWeaver/onlineboutique/cartservice"
-    "github.com/ServiceWeaver/onlineboutique/checkoutservice"
-    "github.com/ServiceWeaver/onlineboutique/paymentservice"
-    "github.com/ServiceWeaver/onlineboutique/productcatalogservice"
-    "github.com/ServiceWeaver/onlineboutique/shippingservice"
-    "github.com/ServiceWeaver/weaver/weavertest"
+    "github.com/sh3lk/onlineboutique/cartservice"
+    "github.com/sh3lk/onlineboutique/checkoutservice"
+    "github.com/sh3lk/onlineboutique/paymentservice"
+    "github.com/sh3lk/onlineboutique/productcatalogservice"
+    "github.com/sh3lk/onlineboutique/shippingservice"
+    "github.com/sh3lk/mx/mxtest"
 )
 
 func TestPurchase(t *testing.T) {
-    runner := weavertest.Local
+    runner := mxtest.Local
     runner.Test(t, func(
         t *testing.T,
         catalog productcatalogservice.ProductCatalogService,
@@ -183,9 +183,9 @@ func TestPurchase(t *testing.T) {
 
 The integration test lists all available products using the catalog service,
 adds one of every product to a cart using the cart service, and checks out using
-the checkout service. Service Weaver automatically initializes all these
+the checkout service. MX automatically initializes all these
 services, as well as the other services on which they depend (e.g., shipping
-service, email service, payment service, etc.). Moreover, Service Weaver reduces
+service, email service, payment service, etc.). Moreover, MX reduces
 the tedium of writing integration tests by allowing you to use language native
 types and method calls to interact with various services.
 
@@ -194,18 +194,18 @@ We can run this integration test as easily as running `go test`:
 ```console
 $ go test
 PASS
-ok      github.com/ServiceWeaver/onlineboutique 0.026s
+ok      github.com/sh3lk/onlineboutique 0.026s
 ```
 
-In addition to using the `weavertest.Local` runner, which runs all components
+In addition to using the `mxtest.Local` runner, which runs all components
 locally in a single process, we can also use
 
-- the `weavertest.RPC` runner, which forces components to interact via RPC, and
-- the `weavertest.Multi` runner, which runs every component in a separate
+- the `mxtest.RPC` runner, which forces components to interact via RPC, and
+- the `mxtest.Multi` runner, which runs every component in a separate
   OS process.
 
 Some components may be too slow or cumbersome to use in a test. In these cases,
-Service Weaver allows you to replace the component with a [**fake**][fakes]. For
+MX allows you to replace the component with a [**fake**][fakes]. For
 example, we can write a fake implementation of the product catalog service that
 uses a fixed in-memory set of products:
 
@@ -249,8 +249,8 @@ func TestPurchaseWithFakeCatalog(t *testing.T) {
             },
         },
     }
-    fake := weavertest.Fake[productcatalogservice.ProductCatalogService](catalog)
-    runner := weavertest.Local
+    fake := mxtest.Fake[productcatalogservice.ProductCatalogService](catalog)
+    runner := mxtest.Local
     runner.Fakes = append(runner.Fakes, fake)
     runner.Test(t, func(
         t *testing.T,
@@ -297,7 +297,7 @@ func FuzzReversedIsInvolutive(f *testing.F) {
 }
 ```
 
-Service Weaver takes fuzz testing to the next level and allows you to apply
+MX takes fuzz testing to the next level and allows you to apply
 randomized property-based testing to *entire applications* by checking that
 properties of an application always hold, even when we run random operations on
 random inputs in the face of random failures and random interleavings. For
@@ -308,16 +308,16 @@ protocols [tend to have subtle bugs][protocol_bugs].
 
 ### Deterministic Simulation
 
-Service Weaver implements a type of randomized testing called [**deterministic
+MX implements a type of randomized testing called [**deterministic
 simulation**][deterministic_simulation], popularized by
 [FoundationDB][foundationdb]. Deterministic simulation has the ability to (1)
 find rare, buggy executions of a system and (2) deterministically replay these
 executions. This allows you to step through a buggy execution, understand the
 bug, write a bug fix, and verify that the fix eliminates the bug.
 
-To deterministically simulate a system *without* Service Weaver, you'll have to
+To deterministically simulate a system *without* MX, you'll have to
 implement a simulator from scratch. There aren't any existing tools that make it
-easy to perform deterministic simulation. Service Weaver, on the other hand,
+easy to perform deterministic simulation. MX, on the other hand,
 ships with a full deterministic simulation implementation.
 
 ### Details
@@ -325,8 +325,8 @@ ships with a full deterministic simulation implementation.
 Deterministic simulation requires three things: a system to test, a workload,
 and a set of invariants.
 
-1. The **system to test** is self-explanatory. With Service Weaver, these are
-   Service Weaver applications. As an example, consider a banking application
+1. The **system to test** is self-explanatory. With MX, these are
+   MX applications. As an example, consider a banking application
    which allows users to deposit and withdraw money from their accounts.
 
 2. You must specify a set of operations to run against the system.  Continuing
@@ -362,7 +362,7 @@ ignoring the unrelated events that just happened to be thrown in the mix.
 ### Banking Example
 
 Now, let's look at how to, concretely, perform deterministic simulation with
-Service Weaver. We implement and test the banking example presented above. We
+MX. We implement and test the banking example presented above. We
 begin with a `Store` component that persists a mapping from strings to integers:
 
 ```go
@@ -405,8 +405,8 @@ We implement the `Bank` component using the `Store` component as follows:
 
 ```go
 type bank struct {
-    weaver.Implements[Bank]
-    store weaver.Ref[Store]
+    mx.Implements[Bank]
+    store mx.Ref[Store]
 }
 
 func (b *bank) Deposit(ctx context.Context, user string, amount int) (int, error) {
@@ -435,7 +435,7 @@ Note that the `Withdraw` method is careful not to withdraw more money than a
 user has in their account. A user should never have a negative bank account
 balance.
 
-Next, we test our banking app using Service Weaver's [`sim` package][sim]. We
+Next, we test our banking app using MX's [`sim` package][sim]. We
 begin by writing a fake implementation of the `Store` component to simplify
 testing:
 
@@ -466,7 +466,7 @@ the `sim` package, a workload is implemented as a struct that implements the
 ```go
 // BankWorkload is a workload that performs random deposits and withdrawals.
 type BankWorkload struct {
-    bank weaver.Ref[bank.Bank]
+    bank mx.Ref[bank.Bank]
 }
 ```
 
@@ -551,30 +551,30 @@ go test -v
     bank_test.go:103: sequenceDiagram
             participant op1 as Op 1
             participant op2 as Op 2
-            participant github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0 as bank.Bank 0
-            participant github.com/ServiceWeaver/weaver/sim/internal/bank/Store0 as bank.Store 0
+            participant github.com/sh3lk/mx/sim/internal/bank/Bank0 as bank.Bank 0
+            participant github.com/sh3lk/mx/sim/internal/bank/Store0 as bank.Store 0
             note right of op1: [1:1] Withdraw(alice, 58)
-            op1->>github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0: [1:2] bank.Bank.Withdraw(alice, 58)
-            github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0->>github.com/ServiceWeaver/weaver/sim/internal/bank/Store0: [1:3] bank.Store.Get(alice)
-            github.com/ServiceWeaver/weaver/sim/internal/bank/Store0->>github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0: [1:3] return 100, <nil>
+            op1->>github.com/sh3lk/mx/sim/internal/bank/Bank0: [1:2] bank.Bank.Withdraw(alice, 58)
+            github.com/sh3lk/mx/sim/internal/bank/Bank0->>github.com/sh3lk/mx/sim/internal/bank/Store0: [1:3] bank.Store.Get(alice)
+            github.com/sh3lk/mx/sim/internal/bank/Store0->>github.com/sh3lk/mx/sim/internal/bank/Bank0: [1:3] return 100, <nil>
             note right of op2: [2:5] Withdraw(alice, 45)
-            op2->>github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0: [2:6] bank.Bank.Withdraw(alice, 45)
-            github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0->>github.com/ServiceWeaver/weaver/sim/internal/bank/Store0: [2:7] bank.Store.Get(alice)
-            github.com/ServiceWeaver/weaver/sim/internal/bank/Store0->>github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0: [2:7] return 100, <nil>
-            github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0->>github.com/ServiceWeaver/weaver/sim/internal/bank/Store0: [1:4] bank.Store.Add(alice, -58)
-            github.com/ServiceWeaver/weaver/sim/internal/bank/Store0->>github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0: [1:4] return 42, <nil>
-            github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0->>op1: [1:2] return 42, <nil>
+            op2->>github.com/sh3lk/mx/sim/internal/bank/Bank0: [2:6] bank.Bank.Withdraw(alice, 45)
+            github.com/sh3lk/mx/sim/internal/bank/Bank0->>github.com/sh3lk/mx/sim/internal/bank/Store0: [2:7] bank.Store.Get(alice)
+            github.com/sh3lk/mx/sim/internal/bank/Store0->>github.com/sh3lk/mx/sim/internal/bank/Bank0: [2:7] return 100, <nil>
+            github.com/sh3lk/mx/sim/internal/bank/Bank0->>github.com/sh3lk/mx/sim/internal/bank/Store0: [1:4] bank.Store.Add(alice, -58)
+            github.com/sh3lk/mx/sim/internal/bank/Store0->>github.com/sh3lk/mx/sim/internal/bank/Bank0: [1:4] return 42, <nil>
+            github.com/sh3lk/mx/sim/internal/bank/Bank0->>op1: [1:2] return 42, <nil>
             note right of op1: [1:1] return <nil>
-            github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0->>github.com/ServiceWeaver/weaver/sim/internal/bank/Store0: [2:8] bank.Store.Add(alice, -45)
-            github.com/ServiceWeaver/weaver/sim/internal/bank/Store0->>github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0: [2:8] return -3, <nil>
-            github.com/ServiceWeaver/weaver/sim/internal/bank/Bank0->>op2: [2:6] return -3, <nil>
+            github.com/sh3lk/mx/sim/internal/bank/Bank0->>github.com/sh3lk/mx/sim/internal/bank/Store0: [2:8] bank.Store.Add(alice, -45)
+            github.com/sh3lk/mx/sim/internal/bank/Store0->>github.com/sh3lk/mx/sim/internal/bank/Bank0: [2:8] return -3, <nil>
+            github.com/sh3lk/mx/sim/internal/bank/Bank0->>op2: [2:6] return -3, <nil>
             note right of op2: [2:5] return user alice has negative balance -3
 
     bank_test.go:104: Unexpected success
 --- FAIL: TestBank (0.99s)
 FAIL
 exit status 1
-FAIL    github.com/ServiceWeaver/weaver/sim/internal/bank       1.015s
+FAIL    github.com/sh3lk/mx/sim/internal/bank       1.015s
 ```
 
 The simulator writes the failing execution to a file
@@ -601,7 +601,7 @@ need to be performed transactionally. This type of bug&mdash;the type that only 
 a very specific interleaving of a very specific set of requests&mdash;is hard to
 find and diagnose without deterministic simulation.
 
-[Workload]: https://pkg.go.dev/github.com/ServiceWeaver/weaver@v0.23.0-beta/sim#Workload
+[Workload]: https://pkg.go.dev/github.com/sh3lk/mx@v0.23.0-beta/sim#Workload
 [blog]: ../blog/
 [components]: ../docs.html#components
 [deterministic_simulation]: https://asatarin.github.io/testing-distributed-systems/#deterministic-simulation
@@ -615,7 +615,7 @@ find and diagnose without deterministic simulation.
 [onlineboutique_demo]: https://cymbal-shops.retail.cymbal.dev/
 [onlineboutique_local]: https://github.com/GoogleCloudPlatform/microservices-demo/blob/main/docs/development-guide.md#option-2---local-cluster
 [protocol_bugs]: https://github.com/dranov/protocol-bugs-list
-[sim]: https://pkg.go.dev/github.com/ServiceWeaver/weaver@v0.23.0-beta/sim
-[sw_onlineboutique]: https://github.com/ServiceWeaver/onlineboutique
+[sim]: https://pkg.go.dev/github.com/sh3lk/mx@v0.23.0-beta/sim
+[sw_onlineboutique]: https://github.com/sh3lk/onlineboutique
 [tutorial]: ../docs.html#step-by-step-tutorial
 [unit_testing]: ../docs.html#testing

@@ -17,28 +17,28 @@ package runtime
 import (
 	"fmt"
 
-	"github.com/ServiceWeaver/weaver/runtime/protos"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
 // Main is the name of the main component.
-const Main = "github.com/ServiceWeaver/weaver/Main"
+const Main = "github.com/sh3lk/mx/Main"
 
-// CheckWeaveletArgs checks that WeaveletArgs is well-formed.
-func CheckWeaveletArgs(w *protos.WeaveletArgs) error {
+// CheckMXNArgs checks that MXNArgs is well-formed.
+func CheckMXNArgs(w *protos.MXNArgs) error {
 	if w == nil {
-		return fmt.Errorf("WeaveletArgs: nil")
+		return fmt.Errorf("MXNArgs: nil")
 	}
 	if w.App == "" {
-		return fmt.Errorf("WeaveletArgs: missing app name")
+		return fmt.Errorf("MXNArgs: missing app name")
 	}
 	if w.DeploymentId == "" {
-		return fmt.Errorf("WeaveletArgs: missing deployment id")
+		return fmt.Errorf("MXNArgs: missing deployment id")
 	}
 	if w.Id == "" {
-		return fmt.Errorf("WeaveletArgs: missing weavelet id")
+		return fmt.Errorf("MXNArgs: missing mxn id")
 	}
 	if w.ControlSocket == "" {
-		return fmt.Errorf("WeaveletArgs: missing control socket")
+		return fmt.Errorf("MXNArgs: missing control socket")
 	}
 	return nil
 }

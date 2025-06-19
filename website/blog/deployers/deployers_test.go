@@ -84,8 +84,8 @@ func deployCollatz(t *testing.T, deployer string) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		log(line)
-		if strings.HasPrefix(line, "Weavelet listening on ") {
-			addr, _ = strings.CutPrefix(line, "Weavelet listening on ")
+		if strings.HasPrefix(line, "MXN listening on ") {
+			addr, _ = strings.CutPrefix(line, "MXN listening on ")
 			break
 		}
 	}
@@ -93,7 +93,7 @@ func deployCollatz(t *testing.T, deployer string) {
 		t.Fatal(err)
 	}
 	if addr == "" {
-		t.Fatal("did not find weavelet port")
+		t.Fatal("did not find mxn port")
 	}
 
 	// Curl the listener.

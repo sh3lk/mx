@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package weaver
+package mx
 
 import (
 	"fmt"
@@ -20,43 +20,43 @@ import (
 	"net"
 	"reflect"
 
-	"github.com/ServiceWeaver/weaver/internal/reflection"
-	"github.com/ServiceWeaver/weaver/internal/weaver"
+	"github.com/sh3lk/mx/internal/mx"
+	"github.com/sh3lk/mx/internal/reflection"
 )
 
 func init() {
-	// See internal/weaver/types.go.
-	weaver.SetLogger = setLogger
-	weaver.SetWeaverInfo = setWeaverInfo
-	weaver.HasRefs = hasRefs
-	weaver.FillRefs = fillRefs
-	weaver.HasListeners = hasListeners
-	weaver.FillListeners = fillListeners
-	weaver.HasConfig = hasConfig
-	weaver.GetConfig = getConfig
+	// See internal/mx/types.go.
+	mx.SetLogger = setLogger
+	mx.SetMXInfo = setMXInfo
+	mx.HasRefs = hasRefs
+	mx.FillRefs = fillRefs
+	mx.HasListeners = hasListeners
+	mx.FillListeners = fillListeners
+	mx.HasConfig = hasConfig
+	mx.GetConfig = getConfig
 }
 
-// See internal/weaver/types.go.
+// See internal/mx/types.go.
 func setLogger(v any, logger *slog.Logger) error {
 	x, ok := v.(interface{ setLogger(*slog.Logger) })
 	if !ok {
-		return fmt.Errorf("setLogger: %T does not implement weaver.Implements", v)
+		return fmt.Errorf("setLogger: %T does not implement mx.Implements", v)
 	}
 	x.setLogger(logger)
 	return nil
 }
 
-// See internal/weaver/types.go.
-func setWeaverInfo(impl any, info *weaver.WeaverInfo) error {
-	x, ok := impl.(interface{ setWeaverInfo(*weaver.WeaverInfo) })
+// See internal/mx/types.go.
+func setMXInfo(impl any, info *mx.MXInfo) error {
+	x, ok := impl.(interface{ setMXInfo(*mx.MXInfo) })
 	if !ok {
-		return fmt.Errorf("setWeaverInfo: %T does not implement weaver.Implements", impl)
+		return fmt.Errorf("setMXInfo: %T does not implement mx.Implements", impl)
 	}
-	x.setWeaverInfo(info)
+	x.setMXInfo(info)
 	return nil
 }
 
-// See internal/weaver/types.go.
+// See internal/mx/types.go.
 func hasRefs(impl any) bool {
 	p := reflect.ValueOf(impl)
 	if p.Kind() != reflect.Pointer {
@@ -80,7 +80,7 @@ func hasRefs(impl any) bool {
 	return false
 }
 
-// See internal/weaver/types.go.
+// See internal/mx/types.go.
 func fillRefs(impl any, get func(reflect.Type) (any, error)) error {
 	p := reflect.ValueOf(impl)
 	if p.Kind() != reflect.Pointer {
@@ -113,7 +113,7 @@ func fillRefs(impl any, get func(reflect.Type) (any, error)) error {
 	return nil
 }
 
-// See internal/weaver/types.go.
+// See internal/mx/types.go.
 func hasListeners(impl any) bool {
 	p := reflect.ValueOf(impl)
 	if p.Kind() != reflect.Pointer {
@@ -133,7 +133,7 @@ func hasListeners(impl any) bool {
 	return false
 }
 
-// See internal/weaver/types.go.
+// See internal/mx/types.go.
 func fillListeners(impl any, get func(name string) (net.Listener, string, error)) error {
 	p := reflect.ValueOf(impl)
 	if p.Kind() != reflect.Pointer {
@@ -153,7 +153,7 @@ func fillListeners(impl any, get func(name string) (net.Listener, string, error)
 
 		// The listener's name is the field name, unless a tag is present.
 		name := t.Name
-		if tag, ok := t.Tag.Lookup("weaver"); ok {
+		if tag, ok := t.Tag.Lookup("mx"); ok {
 			if !isValidListenerName(name) {
 				return fmt.Errorf("FillListeners: listener tag %s is not a valid Go identifier", tag)
 			}
@@ -175,13 +175,13 @@ func fillListeners(impl any, get func(name string) (net.Listener, string, error)
 	return nil
 }
 
-// See internal/weaver/types.go.
+// See internal/mx/types.go.
 func hasConfig(impl any) bool {
 	_, ok := impl.(interface{ getConfig() any })
 	return ok
 }
 
-// See internal/weaver/types.go.
+// See internal/mx/types.go.
 func getConfig(impl any) any {
 	if c, ok := impl.(interface{ getConfig() any }); ok {
 		return c.getConfig()

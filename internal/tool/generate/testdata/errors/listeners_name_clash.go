@@ -18,13 +18,13 @@
 package foo
 
 import (
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type foo interface{}
 
 type impl struct {
-	weaver.Implements[foo]
-	bar weaver.Listener
-	_   weaver.Listener `weaver:"bar"`
+	mx.Implements[foo]
+	bar mx.Listener
+	_   mx.Listener `mx:"bar"`
 }

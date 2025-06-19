@@ -70,14 +70,14 @@
 // (e.g., "/users/foo").
 //
 // You can declare a labeled metric using [NewCounterMap], [NewGaugeMap], or
-// [NewHistogramMap]. Service Weaver represents metric labels using structs.
+// [NewHistogramMap]. MX represents metric labels using structs.
 // For example, here's how to declare a counter with labels "foo" and "bar":
 //
 //	type labels struct {
 //	    Foo string
 //	    Bar string
 //	}
-//	var exampleLabeledCounter = weaver.NewCounterMap[labels](
+//	var exampleLabeledCounter = mx.NewCounterMap[labels](
 //	    "example_labeled_counter",
 //	    `An example counter with labels "foo" and "bar"`,
 //	)
@@ -117,17 +117,17 @@
 // To adhere to popular metric naming conventions, the first letter of every
 // label is lowercased by default. The Foo label for example is exported as
 // "foo", not "Foo". You can override this behavior and provide a custom label
-// name using a weaver annotation.
+// name using a mx annotation.
 //
 //	type labels struct {
 //	    Foo string                           // exported as "foo"
-//	    Bar string `weaver:"my_custom_name"` // exported as "my_custom_name"
+//	    Bar string `mx:"my_custom_name"` // exported as "my_custom_name"
 //	}
 //
 // # Exporting Metrics
 //
-// Service Weaver integrates metrics into the environment where your
-// application is deployed. If you deploy a Service Weaver application to
+// MX integrates metrics into the environment where your
+// application is deployed. If you deploy a MX application to
 // Google Cloud, for example, metrics are automatically exported to the Google
 // Cloud Metrics Explorer where they can be queried, aggregated, and graphed.
 // Refer to your deployer documentation for details.

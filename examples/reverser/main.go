@@ -22,34 +22,34 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
-//go:generate ../../cmd/weaver/weaver generate
+//go:generate ../../cmd/mx/mx generate
 
 //go:embed index.html
 var indexHtml string // index.html served on "/"
 
 func main() {
-	// Initialize the Service Weaver application.
+	// Initialize the MX application.
 	flag.Parse()
-	if err := weaver.Run(context.Background(), serve); err != nil {
+	if err := mx.Run(context.Background(), serve); err != nil {
 		log.Fatal(err)
 	}
 }
 
 type server struct {
-	weaver.Implements[weaver.Main]
-	reverser weaver.Ref[Reverser]
-	lis      weaver.Listener `weaver:"reverser"`
+	mx.Implements[mx.Main]
+	reverser mx.Ref[Reverser]
+	lis      mx.Listener `mx:"reverser"`
 }
 
 func serve(ctx context.Context, s *server) error {
 	// Setup the HTTP handler.
 	var mux http.ServeMux
-	mux.Handle("/", weaver.InstrumentHandlerFunc("root", s.handleRoot))
-	mux.Handle("/reverse", weaver.InstrumentHandlerFunc("reverse", s.handleReverse))
-	mux.HandleFunc(weaver.HealthzURL, weaver.HealthzHandler)
+	mux.Handle("/", mx.InstrumentHandlerFunc("root", s.handleRoot))
+	mux.Handle("/reverse", mx.InstrumentHandlerFunc("reverse", s.handleReverse))
+	mux.HandleFunc(mx.HealthzURL, mx.HealthzHandler)
 	s.Logger(ctx).Info("Reverser server running", "address", s.lis)
 	return http.Serve(s.lis, &mux)
 }

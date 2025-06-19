@@ -17,13 +17,13 @@ package ssh
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver/internal/tool/ssh/impl"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
-	"github.com/ServiceWeaver/weaver/runtime/tool"
+	"github.com/sh3lk/mx/internal/tool/ssh/impl"
+	"github.com/sh3lk/mx/runtime/logging"
+	"github.com/sh3lk/mx/runtime/tool"
 )
 
 var logsSpec = tool.LogsSpec{
-	Tool: "weaver ssh",
+	Tool: "mx ssh",
 	Source: func(context.Context) (logging.Source, error) {
 		return logging.FileSource(impl.LogDir), nil
 	},

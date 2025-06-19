@@ -26,13 +26,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ServiceWeaver/weaver"
-	"github.com/ServiceWeaver/weaver/examples/bankofanthos/balancereader"
-	"github.com/ServiceWeaver/weaver/examples/bankofanthos/contacts"
-	"github.com/ServiceWeaver/weaver/examples/bankofanthos/ledgerwriter"
-	"github.com/ServiceWeaver/weaver/examples/bankofanthos/transactionhistory"
-	"github.com/ServiceWeaver/weaver/examples/bankofanthos/userservice"
 	"github.com/golang-jwt/jwt"
+	"github.com/sh3lk/mx"
+	"github.com/sh3lk/mx/examples/bankofanthos/balancereader"
+	"github.com/sh3lk/mx/examples/bankofanthos/contacts"
+	"github.com/sh3lk/mx/examples/bankofanthos/ledgerwriter"
+	"github.com/sh3lk/mx/examples/bankofanthos/transactionhistory"
+	"github.com/sh3lk/mx/examples/bankofanthos/userservice"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"golang.org/x/exp/slices"
 )
@@ -55,7 +55,7 @@ type serverConfig struct {
 	podZone         string
 }
 
-// config contains configuration options read from a weaver TOML file.
+// config contains configuration options read from a mx TOML file.
 type config struct {
 	PublicKeyPath         string `toml:"public_key_path"`
 	LocalRoutingNum       string `toml:"local_routing_num"`
@@ -65,14 +65,14 @@ type config struct {
 
 // server is the application frontend.
 type server struct {
-	weaver.Implements[weaver.Main]
-	weaver.WithConfig[config]
-	lis                weaver.Listener `weaver:"bank"`
-	balanceReader      weaver.Ref[balancereader.T]
-	contacts           weaver.Ref[contacts.T]
-	ledgerWriter       weaver.Ref[ledgerwriter.T]
-	transactionHistory weaver.Ref[transactionhistory.T]
-	userService        weaver.Ref[userservice.T]
+	mx.Implements[mx.Main]
+	mx.WithConfig[config]
+	lis                mx.Listener `mx:"bank"`
+	balanceReader      mx.Ref[balancereader.T]
+	contacts           mx.Ref[contacts.T]
+	ledgerWriter       mx.Ref[ledgerwriter.T]
+	transactionHistory mx.Ref[transactionhistory.T]
+	userService        mx.Ref[userservice.T]
 
 	hostname string
 	config   serverConfig
@@ -150,7 +150,7 @@ func Serve(ctx context.Context, s *server) error {
 			}
 			fn(w, r)
 		}
-		return weaver.InstrumentHandlerFunc(label, handler)
+		return mx.InstrumentHandlerFunc(label, handler)
 	}
 
 	const get = http.MethodGet
@@ -164,7 +164,7 @@ func Serve(ctx context.Context, s *server) error {
 	mux.Handle("/consent", instrument("consent", s.consentHandler, []string{get, post}))
 	mux.Handle("/signup", instrument("signup", s.signupHandler, []string{get, post}))
 	mux.Handle("/logout", instrument("logout", s.logoutHandler, []string{post}))
-	mux.Handle("/static/", weaver.InstrumentHandler("static", http.StripPrefix("/static", http.FileServer(http.FS(staticHTML)))))
+	mux.Handle("/static/", mx.InstrumentHandler("static", http.StripPrefix("/static", http.FileServer(http.FS(staticHTML)))))
 
 	// No instrumentation of /healthz
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) { fmt.Fprint(w, "ok") })
@@ -198,7 +198,7 @@ func getClusterName(metadataURL string, metadataHeaders http.Header) string {
 	if resp.StatusCode != http.StatusOK {
 		return clusterName
 	}
-	
+
 	clusterNameBytes := make([]byte, resp.ContentLength)
 	_, err = resp.Body.Read(clusterNameBytes)
 	if err != nil {

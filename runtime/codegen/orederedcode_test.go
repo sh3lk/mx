@@ -18,7 +18,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
+	"github.com/sh3lk/mx/runtime/codegen"
 )
 
 // Currently, go doesn't let you run all the fuzz tests in a file. Instead, we

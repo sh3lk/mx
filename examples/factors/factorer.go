@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ServiceWeaver/weaver"
 	lru "github.com/hashicorp/golang-lru/v2"
+	"github.com/sh3lk/mx"
 )
 
 // The size of a factorer's LRU cache.
@@ -34,8 +34,8 @@ type Factorer interface {
 }
 
 type factorer struct {
-	weaver.Implements[Factorer] // factorer implements the Factorer component
-	weaver.WithRouter[router]   // factorer's methods are routed by router
+	mx.Implements[Factorer] // factorer implements the Factorer component
+	mx.WithRouter[router]   // factorer's methods are routed by router
 
 	cache *lru.Cache[int, []int] // maps integers to their factors
 }
@@ -61,7 +61,7 @@ func (f *factorer) Factors(ctx context.Context, x int) ([]int, error) {
 	}
 
 	// Compute the factors from scratch, and cache them. Since this code is
-	// just meant to illustrate Service Weaver features, we use a simplistic
+	// just meant to illustrate MX features, we use a simplistic
 	// approach to finding factors.
 	for i := 1; i <= x; i++ {
 		if x%i == 0 {

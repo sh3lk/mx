@@ -18,7 +18,7 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type Adder interface {
@@ -26,7 +26,7 @@ type Adder interface {
 }
 
 type first struct {
-	weaver.Implements[Adder]
+	mx.Implements[Adder]
 }
 
 func (f *first) Add(_ context.Context, x, y int) (int, error) {
@@ -34,7 +34,7 @@ func (f *first) Add(_ context.Context, x, y int) (int, error) {
 }
 
 type second struct {
-	weaver.Implements[Adder]
+	mx.Implements[Adder]
 }
 
 func (s *second) Add(_ context.Context, x, y int) (int, error) {

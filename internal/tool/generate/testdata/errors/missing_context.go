@@ -18,14 +18,14 @@
 package foo
 
 import (
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type foo interface {
 	M() error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) M() error {
 	return nil

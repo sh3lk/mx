@@ -19,11 +19,11 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/ServiceWeaver/weaver/internal/must"
-	"github.com/ServiceWeaver/weaver/internal/status"
-	itool "github.com/ServiceWeaver/weaver/internal/tool"
-	"github.com/ServiceWeaver/weaver/runtime"
-	"github.com/ServiceWeaver/weaver/runtime/tool"
+	"github.com/sh3lk/mx/internal/must"
+	"github.com/sh3lk/mx/internal/status"
+	itool "github.com/sh3lk/mx/internal/tool"
+	"github.com/sh3lk/mx/runtime"
+	"github.com/sh3lk/mx/runtime/tool"
 )
 
 var (
@@ -33,30 +33,30 @@ var (
 	PerfettoFile = filepath.Join(dataDir, "traces.DB")
 
 	dashboardSpec = &status.DashboardSpec{
-		Tool:         "weaver single",
+		Tool:         "mx single",
 		PerfettoFile: PerfettoFile,
 		Registry:     defaultRegistry,
 		Commands: func(deploymentId string) []status.Command {
 			return []status.Command{
-				{Label: "status", Command: "weaver single status"},
-				{Label: "profile", Command: fmt.Sprintf("weaver single profile --duration=30s %s", deploymentId)},
+				{Label: "status", Command: "mx single status"},
+				{Label: "profile", Command: fmt.Sprintf("mx single profile --duration=30s %s", deploymentId)},
 			}
 		},
 	}
 	purgeSpec = &tool.PurgeSpec{
-		Tool:  "weaver single",
-		Kill:  "weaver single (dashboard|profile)",
+		Tool:  "mx single",
+		Kill:  "mx single (dashboard|profile)",
 		Paths: []string{dataDir},
 	}
 
 	Commands = map[string]*tool.Command{
 		"deploy":    &deployCmd,
-		"status":    status.StatusCommand("weaver single", defaultRegistry),
+		"status":    status.StatusCommand("mx single", defaultRegistry),
 		"dashboard": status.DashboardCommand(dashboardSpec),
-		"metrics":   status.MetricsCommand("weaver single", defaultRegistry),
-		"profile":   status.ProfileCommand("weaver single", defaultRegistry),
+		"metrics":   status.MetricsCommand("mx single", defaultRegistry),
+		"profile":   status.ProfileCommand("mx single", defaultRegistry),
 		"purge":     tool.PurgeCmd(purgeSpec),
-		"version":   itool.VersionCmd("weaver single"),
+		"version":   itool.VersionCmd("mx single"),
 	}
 )
 

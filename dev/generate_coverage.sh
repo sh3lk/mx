@@ -14,20 +14,20 @@
 # limitations under the License.
 
 #
-# Generate coverage information for Service Weaver source code by running tests
+# Generate coverage information for MX source code by running tests
 # in coverage mode. Produces
 #
-#    /tmp/$USER-files/serviceweaver-coverage.html
-#    /tmp/$USER-files/serviceweaver-coverage-functions.txt
+#    /tmp/$USER-files/mx-coverage.html
+#    /tmp/$USER-files/mx-coverage-functions.txt
 #
 # Usage:
 #       dev/generate_coverage.sh
 
 tmpdir="/tmp/$USER-files"
-covfile="$tmpdir/serviceweaver.cov"
-covstripped="$tmpdir/serviceweaver-stripped.cov"
-htmlfile="$tmpdir/serviceweaver-coverage.html"
-funcfile="$tmpdir/serviceweaver-coverage-functions.txt"
+covfile="$tmpdir/mx.cov"
+covstripped="$tmpdir/mx-stripped.cov"
+htmlfile="$tmpdir/mx-coverage.html"
+funcfile="$tmpdir/mx-coverage-functions.txt"
 
 set -e
 mkdir -p "$tmpdir"
@@ -38,7 +38,7 @@ rm -f "$covfile" "$covstripped"
 go test -coverprofile="$covfile" -coverpkg=./... $(go list ./... | grep -v gke)
 
 # Filter out generated code from coverage reports.
-egrep -v '/weavertest/|/gke/|weaver_gen\.go:|\.pb\.go:' "$covfile" > "$covstripped"
+egrep -v '/mxtest/|/gke/|mx_gen\.go:|\.pb\.go:' "$covfile" > "$covstripped"
 
 # Create annotated HTML.
 go tool cover -html="$covstripped" -o "$htmlfile"

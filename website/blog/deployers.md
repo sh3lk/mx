@@ -1,100 +1,100 @@
-# How to Implement a Service Weaver Deployer
+# How to Implement a MX Deployer
 
 <div class="blog-author">Michael Whittaker</div>
 <div class="blog-date">April 5, 2023 (Updated August 14, 2023)</div>
 
-Service Weaver allows you to deploy an application in many different ways. For
+MX allows you to deploy an application in many different ways. For
 example, you can deploy an application in a [single process][singleprocess],
 across [multiple processes][multiprocess], or in [the cloud][gke]. The code that
-deploys a Service Weaver application is called, unsurprisingly, a **deployer**.
+deploys a MX application is called, unsurprisingly, a **deployer**.
 This blog post explains what deployers are and how to implement one. We'll
-assume you're familiar with how to write Service Weaver applications. If you're
+assume you're familiar with how to write MX applications. If you're
 not, we recommend you read the [step-by-step tutorial][tutorial].
 
 ## Overview
 
-A Service Weaver application consists of a number of [components][]. The
+A MX application consists of a number of [components][]. The
 application is compiled into a single application binary. A deployer deploys an
 application by running the binary multiple times, often across multiple
 machines. Every instance of the binary runs a subset of the components. To learn
 which components to run, the binary links in a small background agent called a
-weavelet, which a deployer communicates with using an envelope. This is
+mxn, which a deployer communicates with using an envelope. This is
 illustrated below.
 
 <figure>
-  <img src="deployers/assets/overview.svg" alt="An architecture diagram of a deployer. An app with components A, B, and C is compiled into a binary which is deployed by a deployer across three weavelets.">
+  <img src="deployers/assets/overview.svg" alt="An architecture diagram of a deployer. An app with components A, B, and C is compiled into a binary which is deployed by a deployer across three mxns.">
 </figure>
 
-In this blog post, we provide a high-level overview of weavelets, deployers, and
+In this blog post, we provide a high-level overview of mxns, deployers, and
 envelopes. Then, we get down to the nitty-gritty of exactly how they work by
 implementing a multiprocess deployer completely from scratch.
 
-## Weavelets
+## MXNs
 
-To understand deployers, we must first understand weavelets. A Service Weaver
-application is compiled into a single executable binary. The Service Weaver
-libraries linked into the binary include a small agent called a **weavelet**,
-which is created when you call [`weaver.Run`][Run]. A weavelet's main
+To understand deployers, we must first understand mxns. A MX
+application is compiled into a single executable binary. The MX
+libraries linked into the binary include a small agent called a **mxn**,
+which is created when you call [`mx.Run`][Run]. A mxn's main
 responsibility is to start and manage a set of components.
 
-When a Service Weaver application is deployed, there isn't just one weavelet. If
-there were, Service Weaver applications wouldn't be very distributed. Rather,
+When a MX application is deployed, there isn't just one mxn. If
+there were, MX applications wouldn't be very distributed. Rather,
 deployers run your binary multiple times&mdash;in different processes across
-different machines&mdash;to launch multiple weavelets which work together to
+different machines&mdash;to launch multiple mxns which work together to
 execute your distributed application.
 
-Every weavelet hosts a potentially different set of components. Because
-components are replicated, a component may be hosted by multiple weavelets. For
+Every mxn hosts a potentially different set of components. Because
+components are replicated, a component may be hosted by multiple mxns. For
 example, consider an application with components `A`, `B`, and `C`. An
-example deployment consisting of three weavelets is shown in the figure below.
-Weavelet 1 hosts components `A` and `B`; weavelet 2 hosts components `B` and
-`C`, and weavelet 3 hosts component `C`.
+example deployment consisting of three mxns is shown in the figure below.
+MXN 1 hosts components `A` and `B`; mxn 2 hosts components `B` and
+`C`, and mxn 3 hosts component `C`.
 
 <figure>
-  <img src="deployers/assets/weavelets.svg" alt="Three weavelets hosting different subsets of components A, B, and C. Each weavelet has its own network address.">
+  <img src="deployers/assets/mxns.svg" alt="Three mxns hosting different subsets of components A, B, and C. Each mxn has its own network address.">
 </figure>
 
-You'll also notice that every weavelet has a unique network address. Weavelets
+You'll also notice that every mxn has a unique network address. MXNs
 use these addresses to execute remote methods calls. For example, imagine
-component `A` on weavelet 1 in the figure above wants to call a method on
-component `C`. Weavelet 1 will contact either weavelet 2 on address 2.2.2.2 or
-weavelet 3 on address 3.3.3.3 to execute the method.
+component `A` on mxn 1 in the figure above wants to call a method on
+component `C`. MXN 1 will contact either mxn 2 on address 2.2.2.2 or
+mxn 3 on address 3.3.3.3 to execute the method.
 
 ## Deployers
 
-A deployer distributes a Service Weaver application by launching and managing a
-set of weavelets. Managing weavelets involves four main responsibilities
+A deployer distributes a MX application by launching and managing a
+set of mxns. Managing mxns involves four main responsibilities
 related to (1) components, (2) listeners, (3) telemetry, and (4) security.
 
-1. **Components**. A deployer starts weavelets and tells them which components
-   to host. A deployer also ensures that weavelets know the addresses of other
-   weavelets. If a deployer starts a new weavelet, for example, the deployer
-   notifies all other weavelets of the existence of the new weavelet, including
+1. **Components**. A deployer starts mxns and tells them which components
+   to host. A deployer also ensures that mxns know the addresses of other
+   mxns. If a deployer starts a new mxn, for example, the deployer
+   notifies all other mxns of the existence of the new mxn, including
    its address and the components it's hosting. Conversely, if a deployer
-   detects that a weavelet has failed, the deployer notifies all other weavelets
+   detects that a mxn has failed, the deployer notifies all other mxns
    of its failure.
 
 2. **Listeners**. When a component wants to serve external traffic, it requests
    a network listener. The deployer picks an address for the listener and
-   ensures that the listener is publicly accessible. Multiple weavelets may
+   ensures that the listener is publicly accessible. Multiple mxns may
    share the same listener, and a deployer must ensure that traffic is balanced
    across them. This often involves running or configuring a proxy.
 
 3. **Telemetry**. A deployer collects, aggregates, and exports all telemetry
-   produced by weavelets. This includes logs, metrics, traces, and profiles.
+   produced by mxns. This includes logs, metrics, traces, and profiles.
 
 4. **Security**. A deployer can optionally enable [mTLS][mtls] between
    components. When mTLS is enabled, a deployer is responsible for distributing
    and validating certificates. To keeps things as simple as possible, we'll
    leave mTLS disabled for the remainder of this article.
 
-A deployer and a weavelet communicate by making remote procedure calls over Unix
+A deployer and a mxn communicate by making remote procedure calls over Unix
 domain sockets to each other. We call the part of a deployer that communicates
-with a weavelet an **envelope**. New deployers can be built by using
-ServiceWeaver's [`Envelope`][Envelope] API.
+with a mxn an **envelope**. New deployers can be built by using
+MX's [`Envelope`][Envelope] API.
 
-Communication between an envelope and a weavelet is either weavelet initiated or
-envelope initiated. Weavelet initiated communication shows up as a method call
+Communication between an envelope and a mxn is either mxn initiated or
+envelope initiated. MXN initiated communication shows up as a method call
 to an [`EnvelopeHandler`][EnvelopeHandler] interface supplied by the deployer
 implementation.
 
@@ -105,10 +105,10 @@ Envelope initiated communication is performed by invoking a method on
 
 In this section, we implement [a fully working multiprocess
 deployer][multi_deployer]. We'll compile our deployer into an executable called
-`deploy`. We'll then be able to deploy Service Weaver binaries by running
-`./deploy <Service Weaver binary>`. To make things simple, our deployer won't
+`deploy`. We'll then be able to deploy MX binaries by running
+`./deploy <MX binary>`. To make things simple, our deployer won't
 co-locate or replicate any components. Every component will run by itself in a
-separate process. We begin by declaring types for the deployer and for weavelets.
+separate process. We begin by declaring types for the deployer and for mxns.
 
 ```go
 package main
@@ -123,56 +123,56 @@ type deployer struct {
     handlers map[string]*handler // handlers, by component
 }
 
-// A handler handles messages from a weavelet. It implements the
+// A handler handles messages from a mxn. It implements the
 // EnvelopeHandler interface.
 type handler struct {
     deployer *deployer          // underlying deployer
-    envelope *envelope.Envelope // envelope to the weavelet
-    address  string             // weavelet's address
+    envelope *envelope.Envelope // envelope to the mxn
+    address  string             // mxn's address
 }
 
 // Check that handler implements the envelope.EnvelopeHandler interface.
 var _ envelope.EnvelopeHandler = &handler{}
 ```
 
-Next, we implement a `spawn` method that spawns a weavelet to host a component.
+Next, we implement a `spawn` method that spawns a mxn to host a component.
 
-1. To spawn the weavelet and get an `Envelope` to communicate with it, we call
+1. To spawn the mxn and get an `Envelope` to communicate with it, we call
    the [`envelope.NewEnvelope`][NewEnvelope] function. This function takes in a
-   [`WeaveletArgs`][WeaveletArgs] that's passed to the weavelet and an
+   [`MXNArgs`][MXNArgs] that's passed to the mxn and an
    [`AppConfig`][AppConfig] that describes the application. `NewEnvelope` runs
-   the provided Service Weaver binary&mdash;`flag.Arg(0)` in this case&mdash;in
+   the provided MX binary&mdash;`flag.Arg(0)` in this case&mdash;in
    a subprocess. It then returns an `Envelope` which communicates with the
-   weavelet via remote procedure calls.
-2. We call the `UpdateComponents` method to tell the weavelet which component to
+   mxn via remote procedure calls.
+2. We call the `UpdateComponents` method to tell the mxn which component to
    run. A deployer should call `UpdateComponents` whenever there is a change to
-   the set of components a weavelet should be running.
-3. We call `envelope.Serve` to handle requests from the weavelet.
+   the set of components a mxn should be running.
+3. We call `envelope.Serve` to handle requests from the mxn.
 
 ```go
 // The unique id of the application deployment.
 var deploymentId = uuid.New().String()
 
-// spawn spawns a weavelet to host the provided component (if one hasn't
-// already spawned) and returns a handler to the weavelet.
+// spawn spawns a mxn to host the provided component (if one hasn't
+// already spawned) and returns a handler to the mxn.
 func (d *deployer) spawn(component string) (*handler, error) {
     d.mu.Lock()
     defer d.mu.Unlock()
 
-    // Check if a weavelet has already been spawned.
+    // Check if a mxn has already been spawned.
     if h, ok := d.handlers[component]; ok {
-        // The weavelet has already been spawned.
+        // The mxn has already been spawned.
         return h, nil
     }
 
-    // Spawn a weavelet in a subprocess to host the component.
-    info := &protos.WeaveletArgs{
+    // Spawn a mxn in a subprocess to host the component.
+    info := &protos.MXNArgs{
         App:             "app",                     // the application name
         DeploymentId:    deploymentId,              // the deployment id
-        Id:              uuid.New().String(),       // the weavelet id
+        Id:              uuid.New().String(),       // the mxn id
         Mtls:            false,                     // don't enable mtls
-        RunMain:         component == runtime.Main, // should the weavelet run main?
-        InternalAddress: "localhost:0",             // internal address of the weavelet
+        RunMain:         component == runtime.Main, // should the mxn run main?
+        InternalAddress: "localhost:0",             // internal address of the mxn
     }
     config := &protos.AppConfig{
         Name:   "app",       // the application name
@@ -185,16 +185,16 @@ func (d *deployer) spawn(component string) (*handler, error) {
     h := &handler{
         deployer: d,
         envelope: envelope,
-        address:  envelope.WeaveletAddress(),
+        address:  envelope.MXNAddress(),
     }
 
     go func() {
-        // Inform the weavelet of the component it should host.
+        // Inform the mxn of the component it should host.
         envelope.UpdateComponents([]string{component})
     }()
 
     go func() {
-        // Handle messages from the weavelet.
+        // Handle messages from the mxn.
         envelope.Serve(h)
     }()
 
@@ -204,49 +204,49 @@ func (d *deployer) spawn(component string) (*handler, error) {
 }
 ```
 
-Now, we implement the `EnvelopeHandler` methods, which handle the weavelet
+Now, we implement the `EnvelopeHandler` methods, which handle the mxn
 initiated communication to the deployer.
 
 <div class="note">
-For each <code>EnvelopeHandler</code> method, we also summarize how <a href="https://github.com/ServiceWeaver/weaver/blob/main/internal/tool/multi/deployer.go"><code>weaver multi</code></a> and <a href="https://github.com/ServiceWeaver/weaver-gke/blob/main/internal/babysitter/babysitter.go"><code>weaver gke</code><a/> implement the method to give you a better sense for how these methods are implemented by more advanced deployers.
+For each <code>EnvelopeHandler</code> method, we also summarize how <a href="https://github.com/sh3lk/mx/blob/main/internal/tool/multi/deployer.go"><code>mx multi</code></a> and <a href="https://github.com/sh3lk/mx-gke/blob/main/internal/babysitter/babysitter.go"><code>mx gke</code><a/> implement the method to give you a better sense for how these methods are implemented by more advanced deployers.
 </div>
 
 ### Components
 
 First, we implement `ActivateComponent`. When some component `T` is needed, the
-weavelet calls the `EnvelopeHandler.ActivateComponent` method to activate
+mxn calls the `EnvelopeHandler.ActivateComponent` method to activate
 `T`. `ActivateComponent` should start the component&mdash;potentially with
 multiple replicas&mdash;if it hasn't already been started.
 
-Our handler calls `deployer.spawn` to spawn a new weavelet to host the
+Our handler calls `deployer.spawn` to spawn a new mxn to host the
 component. The handler then calls `UpdateRoutingInfo` to inform the requesting
-weavelet of the newly spawned weavelet's address. This allows components on the
-requesting weavelet to perform RPCs with the component on the newly spawned
-weavelet.
+mxn of the newly spawned mxn's address. This allows components on the
+requesting mxn to perform RPCs with the component on the newly spawned
+mxn.
 
-Referring back to the figure above as an example, if component `A` on weavelet 1
-activates component `C`, then the deployer spawns weavelets 2 and 3 (if they
-haven't been spawned already) and then tells weavelet 1 the addresses of
-weavelets 2 and 3.
+Referring back to the figure above as an example, if component `A` on mxn 1
+activates component `C`, then the deployer spawns mxns 2 and 3 (if they
+haven't been spawned already) and then tells mxn 1 the addresses of
+mxns 2 and 3.
 
 A deployer should call `UpdateRoutingInfo` whenever there is a change to the
-routing information of a component for which a weavelet has called
-`ActivateComponent`. For example, if a deployer detects that a weavelet hosting
-component `A` has crashed, it should call `UpdateRoutingInfo` on all weavelets
+routing information of a component for which a mxn has called
+`ActivateComponent`. For example, if a deployer detects that a mxn hosting
+component `A` has crashed, it should call `UpdateRoutingInfo` on all mxns
 that have called `ActivateComponent` on `A` with new routing information that
-omits the address of the failed weavelet.
+omits the address of the failed mxn.
 
 ```go
 // Responsibility 1: Components.
 func (h *handler) ActivateComponent(_ context.Context, req *protos.ActivateComponentRequest) (*protos.ActivateComponentReply, error) {
-    // Spawn a weavelet to host the component, if one hasn't already been
+    // Spawn a mxn to host the component, if one hasn't already been
     // spawned.
     spawned, err := h.deployer.spawn(req.Component)
     if err != nil {
         return nil, err
     }
 
-    // Tell the weavelet the address of the requested component.
+    // Tell the mxn the address of the requested component.
     h.envelope.UpdateRoutingInfo(&protos.RoutingInfo{
         Component: req.Component,
         Replicas:  []string{spawned.address},
@@ -257,7 +257,7 @@ func (h *handler) ActivateComponent(_ context.Context, req *protos.ActivateCompo
 ```
 
 <div class="note">
-<a href="https://github.com/ServiceWeaver/weaver/blob/main/internal/tool/multi/deployer.go"><code>weaver multi</code></a>, like our deployer, spawns weavelets in subprocesses. <a href="https://github.com/ServiceWeaver/weaver-gke/blob/main/internal/babysitter/babysitter.go"><code>weaver gke</code></a> spawns weavelets in <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/">Kubernetes deployments</a>.
+<a href="https://github.com/sh3lk/mx/blob/main/internal/tool/multi/deployer.go"><code>mx multi</code></a>, like our deployer, spawns mxns in subprocesses. <a href="https://github.com/sh3lk/mx-gke/blob/main/internal/babysitter/babysitter.go"><code>mx gke</code></a> spawns mxns in <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/">Kubernetes deployments</a>.
 </div>
 
 ### Listeners
@@ -267,12 +267,12 @@ listener, `Envelopehandler.GetListenerAddress` method is invoked. This method re
 address on which the component should listen. Our simple deployer always returns
 `"localhost:0"`.
 
-After a weavelet receives an address from `GetListenerAddress`, it creates a
+After a mxn receives an address from `GetListenerAddress`, it creates a
 network listener on the address and invokes the `ExportListener` method with the
-concrete address that it's listening on. For example, after a weavelet receives
+concrete address that it's listening on. For example, after a mxn receives
 `"localhost:0"` from our `GetListenerAddress` implementation, it listens on
 `"localhost:0"`. This results in a dialable address, say `"127.0.0.1:35879"`,
-which the weavelet then reports to the `ExportListener` handler. Our simple
+which the mxn then reports to the `ExportListener` handler. Our simple
 deployer merely prints out this address for users to contact directly.
 
 ```go
@@ -284,21 +284,21 @@ func (h *handler) GetListenerAddress(_ context.Context, req *protos.GetListenerA
 func (h *handler) ExportListener(_ context.Context, req *protos.ExportListenerRequest) (*protos.ExportListenerReply, error) {
     // This simplified deployer does not proxy network traffic. Listeners
     // should be contacted directly.
-    fmt.Printf("Weavelet listening on %s\n", req.Address)
+    fmt.Printf("MXN listening on %s\n", req.Address)
     return &protos.ExportListenerReply{}, nil
 }
 ```
 
 <div class="note">
-<a href="https://github.com/ServiceWeaver/weaver/blob/main/internal/tool/multi/deployer.go"><code>weaver multi</code></a>'s implementation of <code>GetListenerAddress</code> always returns <code>"localhost:0"</code>. Its <code>ExportListener</code> runs a local HTTP proxy on the address specified in the <code>LocalAddress</code> field of the <a href="https://pkg.go.dev/github.com/ServiceWeaver/weaver#ListenerOptions">ListenerOptions</a> passed to <a href="https://pkg.go.dev/github.com/ServiceWeaver/weaver#Instance">Listener</a>. This proxy balances traffic across the addresses of the listeners reported to <code>ExportListener</code>. <a href="https://github.com/ServiceWeaver/weaver-gke/blob/main/internal/babysitter/babysitter.go"><code>weaver gke</code></a> implements listeners by configuring load balancers in Google Cloud.
+<a href="https://github.com/sh3lk/mx/blob/main/internal/tool/multi/deployer.go"><code>mx multi</code></a>'s implementation of <code>GetListenerAddress</code> always returns <code>"localhost:0"</code>. Its <code>ExportListener</code> runs a local HTTP proxy on the address specified in the <code>LocalAddress</code> field of the <a href="https://pkg.go.dev/github.com/sh3lk/mx#ListenerOptions">ListenerOptions</a> passed to <a href="https://pkg.go.dev/github.com/sh3lk/mx#Instance">Listener</a>. This proxy balances traffic across the addresses of the listeners reported to <code>ExportListener</code>. <a href="https://github.com/sh3lk/mx-gke/blob/main/internal/babysitter/babysitter.go"><code>mx gke</code></a> implements listeners by configuring load balancers in Google Cloud.
 </div>
 
 ### Telemetry
 
-Next, we implement the telemetry methods. All logs produced by a weavelet are
+Next, we implement the telemetry methods. All logs produced by a mxn are
 received by the `LogBatch` method. Our deployer uses a pretty printer from
-Service Weaver's `logging` library to print the logs to stdout. Similarly, all
-traces produced by a weavelet are received by the `HandleTraceSpans` function.
+MX's `logging` library to print the logs to stdout. Similarly, all
+traces produced by a mxn are received by the `HandleTraceSpans` function.
 For simplicity, our deployer ignores traces.
 
 ```golang
@@ -318,7 +318,7 @@ func (h *handler) HandleTraceSpans(context.Context, *protos.TraceSpans) error {
 ```
 
 <div class="note">
-<a href="https://github.com/ServiceWeaver/weaver/blob/main/internal/tool/multi/deployer.go"><code>weaver multi</code></a> writes logs and traces to files. <a href="https://github.com/ServiceWeaver/weaver-gke/blob/main/internal/babysitter/babysitter.go"><code>weaver gke</code></a> exports logs and traces to <a href="https://cloud.google.com/logging">Cloud Logging</a> and <a href="https://cloud.google.com/trace">Cloud Trace</a>.
+<a href="https://github.com/sh3lk/mx/blob/main/internal/tool/multi/deployer.go"><code>mx multi</code></a> writes logs and traces to files. <a href="https://github.com/sh3lk/mx-gke/blob/main/internal/babysitter/babysitter.go"><code>mx gke</code></a> exports logs and traces to <a href="https://cloud.google.com/logging">Cloud Logging</a> and <a href="https://cloud.google.com/trace">Cloud Trace</a>.
 </div>
 
 ### Security
@@ -359,11 +359,11 @@ func main() {
 }
 ```
 
-If we compile our deployer, we can pass it a Service Weaver binary to deploy.
+If we compile our deployer, we can pass it a MX binary to deploy.
 
 ```console
 $ go build -o deploy main.go       # compile the deployer
-$ ./deploy <Service Weaver binary> # deploy an application
+$ ./deploy <MX binary> # deploy an application
 ```
 
 ## Advanced Deployer Features
@@ -372,21 +372,21 @@ The multiprocess deployer in the previous section was designed to be as simple
 as possible. Real-world deployers, on the other hand, require a number of more
 advanced features. Enumerating and explaining how to implement these features is
 beyond the scope of this blog post, but we'll summarize some advanced features
-here. You can review the implementations of our [`weaver multi`][weaver_github]
-and [`weaver gke`][weaver_gke_github] deployers for reference.
+here. You can review the implementations of our [`mx multi`][mx_github]
+and [`mx gke`][mx_gke_github] deployers for reference.
 
 - **Longevity and Persistence**. The multiprocess deployer in the previous
   section lived only as long as the application it deployed. Real-world
-  deployers should be long running and fault tolerant services. The `weaver gke`
+  deployers should be long running and fault tolerant services. The `mx gke`
   deployer, for example, runs a long running controller job in a Kubernetes
   cluster that persists its state to a strongly consistent data store. It also
   runs a long running subordinate job in every cluster where applications get
-  deployed. When you run `weaver gke deploy` to deploy an application, the app
+  deployed. When you run `mx gke deploy` to deploy an application, the app
   is sent to the controller which in turn distributes it to the subordinates.
 
-- **Failure Detection**. A deployer should detect when a weavelet has failed and
-  notify the other weavelets accordingly. You can use the
-  [`Envelope.GetHealth`][GetHealth] method to check the health of a weavelet.
+- **Failure Detection**. A deployer should detect when a mxn has failed and
+  notify the other mxns accordingly. You can use the
+  [`Envelope.GetHealth`][GetHealth] method to check the health of a mxn.
   Multi-machine deployers will have to implement their own health-checking to
   detect machine failures.
 
@@ -394,12 +394,12 @@ and [`weaver gke`][weaver_gke_github] deployers for reference.
   the components in their application and to configure the deployer that deploys
   their application. A deployer should parse this config file using
   [`runtime.ParseConfig`][ParseConfig] and pass the relevant sections to the
-  weavelets via an [`WeaveletArgs`][WeaveletArgs].
+  mxns via an [`MXNArgs`][MXNArgs].
 
 - **Routing**. A deployer should support [routed components][routing] by
   monitoring the load on routed components and generating [routing
   assignments][Assignment] that balance this load. You can use the
-  [`Envelope.GetLoad`][GetLoad] method to get the load of a weavelet.
+  [`Envelope.GetLoad`][GetLoad] method to get the load of a mxn.
 
 - **Rollouts**. A deployer should implement [versioned rollouts][versioning],
   allowing one version of an application to be rolled out as a replacement to a
@@ -411,30 +411,30 @@ and [`weaver gke`][weaver_gke_github] deployers for reference.
   methods.
 
 - **Tooling**. A deployer should provide tooling to inspect and debug the state
-  of an application. `weaver multi status`, `weaver multi dashboard`, and
-  `weaver multi logs`, for example, can be used to inspect applications deployed
-  with `weaver multi deploy`.
+  of an application. `mx multi status`, `mx multi dashboard`, and
+  `mx multi logs`, for example, can be used to inspect applications deployed
+  with `mx multi deploy`.
 
-[AppConfig]: https://pkg.go.dev/github.com/ServiceWeaver/weaver/runtime/protos#AppConfig
-[Assignment]: https://pkg.go.dev/github.com/ServiceWeaver/weaver/runtime/protos#Assignment
-[Envelope]: https://pkg.go.dev/github.com/ServiceWeaver/weaver/runtime/envelope#Envelope
-[EnvelopeHandler]: https://pkg.go.dev/github.com/ServiceWeaver/weaver/runtime/envelope#EnvelopeHandler
-[WeaveletArgs]: https://pkg.go.dev/github.com/ServiceWeaver/weaver/runtime/protos#WeaveletArgs
-[GetHealth]: https://pkg.go.dev/github.com/ServiceWeaver/weaver/runtime/envelope#Envelope.GetHealth
-[GetLoad]: https://pkg.go.dev/github.com/ServiceWeaver/weaver/runtime/envelope#Envelope.GetLoad
-[NewEnvelope]: https://pkg.go.dev/github.com/ServiceWeaver/weaver/runtime/envelope#NewEnvelope
-[ParseConfig]: https://pkg.go.dev/github.com/ServiceWeaver/weaver/runtime#ParseConfig
-[Run]: https://pkg.go.dev/github.com/ServiceWeaver/weaver#Run
-[WeaveletArgs]: https://pkg.go.dev/github.com/ServiceWeaver/weaver/runtime/protos#WeaveletArgs
+[AppConfig]: https://pkg.go.dev/github.com/sh3lk/mx/runtime/protos#AppConfig
+[Assignment]: https://pkg.go.dev/github.com/sh3lk/mx/runtime/protos#Assignment
+[Envelope]: https://pkg.go.dev/github.com/sh3lk/mx/runtime/envelope#Envelope
+[EnvelopeHandler]: https://pkg.go.dev/github.com/sh3lk/mx/runtime/envelope#EnvelopeHandler
+[MXNArgs]: https://pkg.go.dev/github.com/sh3lk/mx/runtime/protos#MXNArgs
+[GetHealth]: https://pkg.go.dev/github.com/sh3lk/mx/runtime/envelope#Envelope.GetHealth
+[GetLoad]: https://pkg.go.dev/github.com/sh3lk/mx/runtime/envelope#Envelope.GetLoad
+[NewEnvelope]: https://pkg.go.dev/github.com/sh3lk/mx/runtime/envelope#NewEnvelope
+[ParseConfig]: https://pkg.go.dev/github.com/sh3lk/mx/runtime#ParseConfig
+[Run]: https://pkg.go.dev/github.com/sh3lk/mx#Run
+[MXNArgs]: https://pkg.go.dev/github.com/sh3lk/mx/runtime/protos#MXNArgs
 [components]: ../docs.html#components
 [config]: ../docs.html#components-config
 [gke]: ../docs.html#gke
 [mtls]: https://www.cloudflare.com/learning/access-management/what-is-mutual-tls/
-[multi_deployer]: https://github.com/ServiceWeaver/weaver/blob/main/website/blog/deployers/multi/main.go
+[multi_deployer]: https://github.com/sh3lk/mx/blob/main/website/blog/deployers/multi/main.go
 [multiprocess]: ../docs.html#multiprocess
 [routing]: ../docs.html#routing
 [singleprocess]: ../docs.html#single-process
 [tutorial]: ../docs.html#step-by-step-tutorial
 [versioning]: ../docs.html#versioning
-[weaver_github]: https://github.com/ServiceWeaver/weaver/blob/main/internal/tool/multi/deployer.go
-[weaver_gke_github]: https://github.com/ServiceWeaver/weaver-gke/blob/main/internal/babysitter/babysitter.go
+[mx_github]: https://github.com/sh3lk/mx/blob/main/internal/tool/multi/deployer.go
+[mx_gke_github]: https://github.com/sh3lk/mx-gke/blob/main/internal/babysitter/babysitter.go

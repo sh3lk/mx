@@ -23,9 +23,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/runtime/protos"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
 func TestTestLogger(t *testing.T) {
@@ -51,7 +51,7 @@ func TestWithAttribute(t *testing.T) {
 	logSaver := func(e *protos.LogEntry) {
 		got = e.Attrs
 	}
-	logger := newAttrLogger("app", "version", "component", "weavelet", logSaver)
+	logger := newAttrLogger("app", "version", "component", "mxn", logSaver)
 	logger.Info("", "foo", "bar")
 	want := []string{"foo", "bar"}
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -64,7 +64,7 @@ func TestWithAttributes(t *testing.T) {
 	logSaver := func(e *protos.LogEntry) {
 		got = e.Attrs
 	}
-	logger := newAttrLogger("app", "version", "component", "weavelet", logSaver)
+	logger := newAttrLogger("app", "version", "component", "mxn", logSaver)
 	logger.Info("", "foo", "bar", "baz", "qux")
 	want := []string{"foo", "bar", "baz", "qux"}
 	less := func(x, y string) bool { return x < y }
@@ -87,7 +87,7 @@ func TestConcurrentAttributes(t *testing.T) {
 		defer mu.Unlock()
 		allAttributes = append(allAttributes, e.Attrs...)
 	}
-	logger := newAttrLogger("app", "version", "component", "weavelet", logSaver)
+	logger := newAttrLogger("app", "version", "component", "mxn", logSaver)
 	var wait sync.WaitGroup
 	const parallelism = 5
 	wait.Add(parallelism)
@@ -131,13 +131,13 @@ func TestConcurrentAttributes(t *testing.T) {
 	}
 }
 
-func newAttrLogger(app, version, component, weavelet string, saver func(*protos.LogEntry)) *slog.Logger {
+func newAttrLogger(app, version, component, mxn string, saver func(*protos.LogEntry)) *slog.Logger {
 	return slog.New(&LogHandler{
 		Opts: Options{
 			App:        app,
 			Deployment: version,
 			Component:  component,
-			Weavelet:   weavelet,
+			MXN:        mxn,
 		},
 		Write: saver,
 	})

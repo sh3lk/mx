@@ -22,9 +22,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ServiceWeaver/weaver/internal/reflection"
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
 	"github.com/google/go-cmp/cmp"
+	"github.com/sh3lk/mx/internal/reflection"
+	"github.com/sh3lk/mx/runtime/codegen"
 )
 
 type localClient struct {
@@ -113,7 +113,7 @@ func TestCall(t *testing.T) {
 			[]interface{}{"1, str, false"},
 			"",
 		},
-		// Test encode only using the ServiceWeaver encoder.
+		// Test encode only using the MX encoder.
 		{
 			func(_ context.Context, a int, b string, c bool) (string, error) {
 				return fmt.Sprintf("%v, %v, %v", a, b, c), nil
@@ -127,7 +127,7 @@ func TestCall(t *testing.T) {
 			// Encode arguments.
 			enc := codegen.NewEncoder()
 			for _, arg := range test.args {
-				weaverEncode(enc, arg)
+				mxEncode(enc, arg)
 			}
 
 			// Call the method.
@@ -150,7 +150,7 @@ func TestCall(t *testing.T) {
 			var outResults []interface{}
 			dec := codegen.NewDecoder(out)
 			for _, res := range testResults {
-				outResults = append(outResults, weaverDecode(dec, res))
+				outResults = append(outResults, mxDecode(dec, res))
 			}
 
 			if diff := cmp.Diff(test.results, outResults); diff != "" {
@@ -206,7 +206,7 @@ func TestErrorResultsNotDecoded(t *testing.T) {
 	// Verify that the results are not set.
 	enc := codegen.NewEncoder()
 	for _, arg := range args {
-		weaverEncode(enc, arg)
+		mxEncode(enc, arg)
 	}
 
 	var testResults []interface{}
@@ -280,7 +280,7 @@ func handleCall(ctx context.Context, m reflect.Value, b []byte) ([]byte, error) 
 	d := codegen.NewDecoder(b)
 	for i := 1; i < mt.NumIn(); i++ {
 		arg := reflect.New(mt.In(i)).Interface()
-		args[i] = reflect.ValueOf(weaverDecode(d, arg))
+		args[i] = reflect.ValueOf(mxDecode(d, arg))
 	}
 
 	// Call.
@@ -296,16 +296,16 @@ func handleCall(ctx context.Context, m reflect.Value, b []byte) ([]byte, error) 
 	// Encode results.
 	e := codegen.NewEncoder()
 	for i := 0; i < len(results)-1; i++ {
-		weaverEncode(e, results[i].Interface())
+		mxEncode(e, results[i].Interface())
 	}
 	return e.Data(), nil
 }
 
-// weaverEncode encodes input using the Service Weaver encoder.
+// mxEncode encodes input using the MX encoder.
 //
-// Note that the only Service Weaver encoding types supported in tests are
+// Note that the only MX encoding types supported in tests are
 // int/string/bool. We should add more supported types as needed.
-func weaverEncode(e *codegen.Encoder, input interface{}) {
+func mxEncode(e *codegen.Encoder, input interface{}) {
 	switch x := input.(type) {
 	case int:
 		e.Int(input.(int))
@@ -314,15 +314,15 @@ func weaverEncode(e *codegen.Encoder, input interface{}) {
 	case bool:
 		e.Bool(input.(bool))
 	default:
-		panic(fmt.Errorf("Unable to encode %v (type %T) with Service Weaver encoder\n", x, x))
+		panic(fmt.Errorf("Unable to encode %v (type %T) with MX encoder\n", x, x))
 	}
 }
 
-// weaverDecode decodes output using the Service Weaver encoder.
+// mxDecode decodes output using the MX encoder.
 //
-// Note that the only Service Weaver decoding type supported in tests are
+// Note that the only MX decoding type supported in tests are
 // int/string/bool. We should add more supported types as needed.
-func weaverDecode(d *codegen.Decoder, output interface{}) interface{} {
+func mxDecode(d *codegen.Decoder, output interface{}) interface{} {
 	switch x := output.(type) {
 	case *int:
 		return d.Int()
@@ -331,6 +331,6 @@ func weaverDecode(d *codegen.Decoder, output interface{}) interface{} {
 	case *bool:
 		return d.Bool()
 	default:
-		panic(fmt.Errorf("Unable to decode type %v with Service Weaver decoder\n", x))
+		panic(fmt.Errorf("Unable to decode type %v with MX decoder\n", x))
 	}
 }

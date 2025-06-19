@@ -13,7 +13,7 @@
 // limitations under the License.
 
 syntax = "proto3";
-option go_package = "github.com/ServiceWeaver/weaver/internal/status";
+option go_package = "github.com/sh3lk/mx/internal/status";
 
 package status;
 
@@ -21,7 +21,7 @@ import "google/protobuf/timestamp.proto";
 import "runtime/protos/config.proto";
 import "runtime/protos/runtime.proto";
 
-// Status describes the status of a Service Weaver application deployment.
+// Status describes the status of a MX application deployment.
 message Status {
   string app = 1;                                 // application name
   string deployment_id = 2;                       // deployment id
@@ -32,7 +32,7 @@ message Status {
   runtime.AppConfig config = 7;                   // application config
 }
 
-// Component describes a Service Weaver component.
+// Component describes a MX component.
 message Component {
   string name = 1;                // component name (e.g., Cache)
   repeated Replica replicas = 3;  // replica details
@@ -42,7 +42,7 @@ message Component {
 // Replica stores info related to replica
 message Replica {
   int64 pid = 1;         // replica process id
-  string weaveletId = 2; // replica weavelet id
+  string mxnId = 2; // replica mxn id
 }
 
 // Method describes a Component method.
@@ -61,7 +61,7 @@ message MethodStats {
   double sent_kb_per_sec = 4;  // KB/s returned by method
 }
 
-// Listener describes a Service Weaver listener.
+// Listener describes a MX listener.
 message Listener {
   string name = 1;  // exported listener name
   string addr = 2;  // dialable listener address

@@ -17,7 +17,7 @@ package call
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
+	"github.com/sh3lk/mx/runtime/codegen"
 	"go.opentelemetry.io/otel/trace"
 )
 

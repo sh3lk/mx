@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// ERROR: cannot embed weaver.AutoMarshal
+// ERROR: cannot embed mx.AutoMarshal
 package foo
 
-import "github.com/ServiceWeaver/weaver"
+import "github.com/sh3lk/mx"
 
 type option[T any] struct {
 	x int
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	y bool
 }

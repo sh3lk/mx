@@ -30,7 +30,7 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type foo interface {
@@ -38,8 +38,8 @@ type foo interface {
 }
 
 type impl struct {
-	weaver.Implements[foo]
-	weaver.WithRouter[fooRouter]
+	mx.Implements[foo]
+	mx.WithRouter[fooRouter]
 }
 
 func (l *impl) M(context.Context) error {

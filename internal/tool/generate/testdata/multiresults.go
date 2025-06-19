@@ -20,8 +20,8 @@
 // results, err = s.stub.Run(ctx, 0, nil, shardKey)
 // r0 = dec.String()
 // r1 = dec.Int()
-// func (x *Bar) WeaverMarshal(enc *codegen.Encoder)
-// func (x *Bar) WeaverUnmarshal(dec *codegen.Decoder)
+// func (x *Bar) MXMarshal(enc *codegen.Encoder)
+// func (x *Bar) MXUnmarshal(dec *codegen.Decoder)
 // err = s.caller("A", ctx, []any{}, []any{&r0, &r1, &r2})
 
 // UNEXPECTED
@@ -33,7 +33,7 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type Foo interface {
@@ -41,10 +41,10 @@ type Foo interface {
 }
 
 type Bar struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 }
 
-type impl struct{ weaver.Implements[Foo] }
+type impl struct{ mx.Implements[Foo] }
 
 func (l *impl) A(context.Context) (string, int, Bar, error) {
 	return "", 0, Bar{}, nil

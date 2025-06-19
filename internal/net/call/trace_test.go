@@ -19,8 +19,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
 	"github.com/google/uuid"
+	"github.com/sh3lk/mx/runtime/codegen"
 	"go.opentelemetry.io/otel/trace"
 )
 

@@ -23,9 +23,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ServiceWeaver/weaver/internal/traceio"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
-	"github.com/ServiceWeaver/weaver/runtime/traces"
+	"github.com/sh3lk/mx/internal/traceio"
+	"github.com/sh3lk/mx/runtime/protos"
+	"github.com/sh3lk/mx/runtime/traces"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.opentelemetry.io/otel/trace"
@@ -72,13 +72,13 @@ func encodeSpanEvents(span sdktrace.ReadOnlySpan) ([][]byte, error) {
 
 	// Extract information from the span attributes.
 	var pid int
-	var weaveletId string
+	var mxnId string
 	for _, a := range span.Resource().Attributes() {
 		switch a.Key {
 		case semconv.ProcessPIDKey:
 			pid = int(a.Value.AsInt64())
-		case traceio.WeaveletIdTraceKey:
-			weaveletId = a.Value.AsString()
+		case traceio.MXNIdTraceKey:
+			mxnId = a.Value.AsString()
 		}
 	}
 
@@ -114,7 +114,7 @@ func encodeSpanEvents(span sdktrace.ReadOnlySpan) ([][]byte, error) {
 	}
 
 	// Generate a complete event and a series of metadata events.
-	weaveletFP := fp(weaveletId)
+	mxnFP := fp(mxnId)
 
 	// Build two metadata events for each colocation group (one to replace the
 	// process name label and one for the thread name).
@@ -122,9 +122,9 @@ func encodeSpanEvents(span sdktrace.ReadOnlySpan) ([][]byte, error) {
 		Ph:   "M", // make it a metadata event
 		Name: "process_name",
 		Cat:  span.SpanKind().String(),
-		Pid:  weaveletFP,
-		Tid:  weaveletFP,
-		Args: map[string]string{"name": "Weavelet"},
+		Pid:  mxnFP,
+		Tid:  mxnFP,
+		Args: map[string]string{"name": "MXN"},
 	}); err != nil {
 		return nil, err
 	}
@@ -132,9 +132,9 @@ func encodeSpanEvents(span sdktrace.ReadOnlySpan) ([][]byte, error) {
 		Ph:   "M", // make it a metadata event
 		Name: "thread_name",
 		Cat:  span.SpanKind().String(),
-		Pid:  weaveletFP,
-		Tid:  weaveletFP,
-		Args: map[string]string{"name": "Weavelet"},
+		Pid:  mxnFP,
+		Tid:  mxnFP,
+		Args: map[string]string{"name": "MXN"},
 	}); err != nil {
 		return nil, err
 	}
@@ -144,8 +144,8 @@ func encodeSpanEvents(span sdktrace.ReadOnlySpan) ([][]byte, error) {
 		Ph:   "X", // make it a complete event
 		Name: eventName,
 		Cat:  span.SpanKind().String(),
-		Pid:  weaveletFP,
-		Tid:  weaveletFP,
+		Pid:  mxnFP,
+		Tid:  mxnFP,
 		Args: args,
 		Ts:   span.StartTime().UnixMicro(),
 		Dur:  span.EndTime().UnixMicro() - span.StartTime().UnixMicro(),
@@ -163,8 +163,8 @@ func encodeSpanEvents(span sdktrace.ReadOnlySpan) ([][]byte, error) {
 			Ph:   "M", // make it a metadata event
 			Name: e.Name,
 			Cat:  span.SpanKind().String(),
-			Pid:  weaveletFP,
-			Tid:  weaveletFP,
+			Pid:  mxnFP,
+			Tid:  mxnFP,
 			Args: attrs,
 		}); err != nil {
 			return nil, err

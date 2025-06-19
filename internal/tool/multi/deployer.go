@@ -29,22 +29,22 @@ import (
 	"syscall"
 	"time"
 
-	imetrics "github.com/ServiceWeaver/weaver/internal/metrics"
-	"github.com/ServiceWeaver/weaver/internal/proxy"
-	"github.com/ServiceWeaver/weaver/internal/routing"
-	"github.com/ServiceWeaver/weaver/internal/status"
-	"github.com/ServiceWeaver/weaver/internal/tool/certs"
-	"github.com/ServiceWeaver/weaver/runtime"
-	"github.com/ServiceWeaver/weaver/runtime/bin"
-	"github.com/ServiceWeaver/weaver/runtime/colors"
-	"github.com/ServiceWeaver/weaver/runtime/envelope"
-	"github.com/ServiceWeaver/weaver/runtime/graph"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
-	"github.com/ServiceWeaver/weaver/runtime/metrics"
-	"github.com/ServiceWeaver/weaver/runtime/profiling"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
-	"github.com/ServiceWeaver/weaver/runtime/traces"
 	"github.com/google/uuid"
+	imetrics "github.com/sh3lk/mx/internal/metrics"
+	"github.com/sh3lk/mx/internal/proxy"
+	"github.com/sh3lk/mx/internal/routing"
+	"github.com/sh3lk/mx/internal/status"
+	"github.com/sh3lk/mx/internal/tool/certs"
+	"github.com/sh3lk/mx/runtime"
+	"github.com/sh3lk/mx/runtime/bin"
+	"github.com/sh3lk/mx/runtime/colors"
+	"github.com/sh3lk/mx/runtime/envelope"
+	"github.com/sh3lk/mx/runtime/graph"
+	"github.com/sh3lk/mx/runtime/logging"
+	"github.com/sh3lk/mx/runtime/metrics"
+	"github.com/sh3lk/mx/runtime/profiling"
+	"github.com/sh3lk/mx/runtime/protos"
+	"github.com/sh3lk/mx/runtime/traces"
 	"golang.org/x/exp/maps"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -58,7 +58,7 @@ type deployer struct {
 	ctx          context.Context
 	ctxCancel    context.CancelFunc
 	deploymentId string
-	tmpDir       string // Private directory for this weavelet/envelope
+	tmpDir       string // Private directory for this mxn/envelope
 	config       *MultiConfig
 	started      time.Time
 	logger       *slog.Logger
@@ -81,10 +81,10 @@ type deployer struct {
 // A group contains information about a co-location group.
 type group struct {
 	name        string                          // group name
-	envelopes   []*envelope.Envelope            // envelopes, one per weavelet
-	replicas    []*status.Replica               // stores replica info such as pid, weavelet id
+	envelopes   []*envelope.Envelope            // envelopes, one per mxn
+	replicas    []*status.Replica               // stores replica info such as pid, mxn id
 	started     map[string]bool                 // started components
-	addresses   map[string]bool                 // weavelet addresses
+	addresses   map[string]bool                 // mxn addresses
 	assignments map[string]*protos.Assignment   // assignment, by component
 	subscribers map[string][]*envelope.Envelope // routing info subscribers, by component
 	callable    []string                        // callable components for group
@@ -99,7 +99,7 @@ type proxyInfo struct {
 	addr     string       // dialable address of the proxy
 }
 
-// handler handles a connection to a weavelet.
+// handler handles a connection to a mxn.
 type handler struct {
 	*deployer
 	g          *group
@@ -122,8 +122,8 @@ func newDeployer(ctx context.Context, deploymentId string, config *MultiConfig, 
 		Opts: logging.Options{
 			App:       config.App.Name,
 			Component: "deployer",
-			Weavelet:  uuid.NewString(),
-			Attrs:     []string{"serviceweaver/system", ""},
+			MXN:       uuid.NewString(),
+			Attrs:     []string{"mx/system", ""},
 		},
 		Write: func(e *protos.LogEntry) { log(logsDB, printer, e) },
 	})
@@ -320,8 +320,8 @@ func (d *deployer) startColocationGroup(g *group) error {
 
 	components := maps.Keys(g.started)
 	for r := 0; r < defaultReplication; r++ {
-		// Start the weavelet and capture its logs, traces, and metrics.
-		info := &protos.WeaveletArgs{
+		// Start the mxn and capture its logs, traces, and metrics.
+		info := &protos.MXNArgs{
 			App:             d.config.App.Name,
 			DeploymentId:    d.deploymentId,
 			Id:              uuid.New().String(),
@@ -353,9 +353,9 @@ func (d *deployer) startColocationGroup(g *group) error {
 			panic("multi deployer child must be a real process")
 		}
 		// Add replica info to group
-		g.replicas = append(g.replicas, &status.Replica{Pid: int64(pid), WeaveletId: info.Id})
+		g.replicas = append(g.replicas, &status.Replica{Pid: int64(pid), MXNId: info.Id})
 		// Register replica
-		if err := d.registerReplica(g, e.WeaveletAddress()); err != nil {
+		if err := d.registerReplica(g, e.MXNAddress()); err != nil {
 			return err
 		}
 		if err := e.UpdateComponents(components); err != nil {
@@ -420,7 +420,7 @@ func (h *handler) VerifyClientCertificate(_ context.Context, req *protos.VerifyC
 		return nil, err
 	}
 
-	// Find which weavelet components the client is allowed to call.
+	// Find which mxn components the client is allowed to call.
 	g, ok := h.groups[groupName]
 	if !ok {
 		return nil, fmt.Errorf("unknown client group %q", groupName)
@@ -479,7 +479,7 @@ func (d *deployer) activateComponent(req *protos.ActivateComponentRequest) error
 	if !target.started[req.Component] {
 		target.started[req.Component] = true
 
-		// Notify the weavelets.
+		// Notify the mxns.
 		components := maps.Keys(target.started)
 		for _, envelope := range target.envelopes {
 			if err := envelope.UpdateComponents(components); err != nil {
@@ -509,7 +509,7 @@ func (d *deployer) activateComponent(req *protos.ActivateComponentRequest) error
 }
 
 // registerReplica registers the information about a colocation group replica
-// (i.e., a weavelet).
+// (i.e., a mxn).
 func (d *deployer) registerReplica(g *group, replicaAddr string) error {
 	// Update addresses and pids.
 	if g.addresses[replicaAddr] {

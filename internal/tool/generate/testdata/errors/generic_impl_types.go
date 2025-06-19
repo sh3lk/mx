@@ -20,11 +20,11 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type foo[V any] interface {
 	M(context.Context) error
 }
 
-type impl[V any] struct{ weaver.Implements[foo[V]] }
+type impl[V any] struct{ mx.Implements[foo[V]] }

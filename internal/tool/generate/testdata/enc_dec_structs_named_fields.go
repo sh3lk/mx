@@ -13,8 +13,8 @@
 // limitations under the License.
 
 // EXPECTED
-// func (x *X) WeaverMarshal(enc *codegen.Encoder)
-// func (x *X) WeaverUnmarshal(dec *codegen.Decoder)
+// func (x *X) MXMarshal(enc *codegen.Encoder)
+// func (x *X) MXUnmarshal(dec *codegen.Decoder)
 // enc.Int(x.A1)
 // enc.String(x.A2)
 // enc.Int((int)(x.A3))
@@ -25,10 +25,10 @@
 // *(*string)(&x.A4) = dec.String()
 
 // UNEXPECTED
-// func serviceweaver_enc_ItemID
-// func serviceweaver_dec_ItemID
-// func serviceweaver_enc_ConfigID
-// func serviceweaver_dec_ConfigID
+// func mx_enc_ItemID
+// func mx_dec_ItemID
+// func mx_enc_ConfigID
+// func mx_dec_ConfigID
 // Preallocate
 
 // Generate methods for structs with named types. Verify that for structs
@@ -39,14 +39,14 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type foo interface {
 	M(context.Context, X, Y) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) M(ctx context.Context, x X, y Y) error {
 	return nil
@@ -56,7 +56,7 @@ type ItemID int
 type ConfigID string
 
 type X struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	A1 int
 	A2 string
 	A3 ItemID

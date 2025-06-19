@@ -25,10 +25,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/runtime/protomsg"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/sh3lk/mx/runtime/protomsg"
+	"github.com/sh3lk/mx/runtime/protos"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
@@ -109,8 +109,8 @@ func follow(t *testing.T, ctx context.Context, q Query) Reader {
 }
 
 type fileTestLogger struct {
-	app, dep, component, weavelet string // used to construct a FileLogger
-	n                             int    // the number of entries to write
+	app, dep, component, mxn string // used to construct a FileLogger
+	n                        int    // the number of entries to write
 }
 
 // Log logs the messages 0, ..., l.n - 1, sleeping for the provided amount of
@@ -118,7 +118,7 @@ type fileTestLogger struct {
 func (l *fileTestLogger) Log(ctx context.Context, sleep time.Duration) error {
 	// Make the logger.
 	os.MkdirAll(logdir, 0o777)
-	fname := filename(l.app, l.dep, l.weavelet, "info")
+	fname := filename(l.app, l.dep, l.mxn, "info")
 	file, err := os.Create(filepath.Join(logdir, fname))
 	if err != nil {
 		return fmt.Errorf("create log file: %q %q %w", logdir, fname, err)
@@ -131,7 +131,7 @@ func (l *fileTestLogger) Log(ctx context.Context, sleep time.Duration) error {
 			App:        l.app,
 			Version:    l.dep,
 			Component:  l.component,
-			Node:       l.weavelet,
+			Node:       l.mxn,
 			TimeMicros: time.Now().UnixMicro(),
 			Level:      "info",
 			File:       "",
@@ -158,7 +158,7 @@ func (l *fileTestLogger) Entries() []*protos.LogEntry {
 			App:        l.app,
 			Version:    l.dep,
 			Component:  l.component,
-			Node:       l.weavelet,
+			Node:       l.mxn,
 			TimeMicros: time.Now().UnixMicro(),
 			Level:      "info",
 			File:       "",
@@ -180,7 +180,7 @@ func loggers(n int) []*fileTestLogger {
 					app:       app,
 					dep:       dep,
 					component: c,
-					weavelet:  strconv.Itoa(i),
+					mxn:       strconv.Itoa(i),
 					n:         n,
 				}
 				loggers = append(loggers, &logger)
@@ -381,7 +381,7 @@ func TestParseLogfile(t *testing.T) {
 		// File suffix.
 		{"log", "log", "log", "log"},
 	} {
-		name := filename(want.app, want.deployment, want.weavelet, want.level)
+		name := filename(want.app, want.deployment, want.mxn, want.level)
 		t.Run(name, func(t *testing.T) {
 			got, err := parseLogfile(name)
 			if err != nil {

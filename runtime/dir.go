@@ -19,22 +19,22 @@ import (
 	"path/filepath"
 )
 
-// LogsDir returns the default directory for Service Weaver logs,
-// $DIR/tmp/serviceweaver/logs where $DIR is the default directory used for
+// LogsDir returns the default directory for MX logs,
+// $DIR/tmp/mx/logs where $DIR is the default directory used for
 // temporary files (see [os.TempDir] for details). We recommend that deployers
 // store their logs in a directory within this default directory. For example,
-// on Unix systems, the "weaver multi" deployer stores its data in
-// /tmp/serviceweaver/logs/multi.
+// on Unix systems, the "mx multi" deployer stores its data in
+// /tmp/mx/logs/multi.
 func LogsDir() string {
-	return filepath.Join(os.TempDir(), "serviceweaver", "logs")
+	return filepath.Join(os.TempDir(), "mx", "logs")
 }
 
-// DataDir returns the default directory for Service Weaver deployer data. The
-// returned directory is $XDG_DATA_HOME/serviceweaver, or
-// ~/.local/share/serviceweaver if XDG_DATA_HOME is not set.
+// DataDir returns the default directory for MX deployer data. The
+// returned directory is $XDG_DATA_HOME/mx, or
+// ~/.local/share/mx if XDG_DATA_HOME is not set.
 //
 // We recommend that deployers store their data in a directory within this
-// default directory. For example, the "weaver multi" deployer stores its data
+// default directory. For example, the "mx multi" deployer stores its data
 // in "DataDir()/multi".
 func DataDir() (string, error) {
 	dataDir := os.Getenv("XDG_DATA_HOME")
@@ -46,7 +46,7 @@ func DataDir() (string, error) {
 		}
 		dataDir = filepath.Join(home, ".local", "share")
 	}
-	regDir := filepath.Join(dataDir, "serviceweaver")
+	regDir := filepath.Join(dataDir, "mx")
 	if err := os.MkdirAll(regDir, 0700); err != nil {
 		return "", err
 	}
@@ -59,7 +59,7 @@ func DataDir() (string, error) {
 // Caller is responsible for cleaning up the directory when not needed.
 func NewTempDir() (string, error) {
 	// Make temporary directory.
-	tmpDir, err := os.MkdirTemp("", "weaver")
+	tmpDir, err := os.MkdirTemp("", "mx")
 	if err != nil {
 		return "", err
 	}

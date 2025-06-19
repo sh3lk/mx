@@ -24,33 +24,33 @@ import (
 	"runtime/debug"
 	"time"
 
-	imetrics "github.com/ServiceWeaver/weaver/internal/metrics"
-	"github.com/ServiceWeaver/weaver/metrics"
+	imetrics "github.com/sh3lk/mx/internal/metrics"
+	"github.com/sh3lk/mx/metrics"
 	"google.golang.org/protobuf/proto"
 )
 
 var (
 	httpRequestCounts = metrics.NewCounterMap[handlerLabels](
-		"serviceweaver_system_http_request_count",
-		"Count of Service Weaver HTTP requests received",
+		"mx_system_http_request_count",
+		"Count of MX HTTP requests received",
 	)
 	httpRequestErrorCounts = metrics.NewCounterMap[errorLabels](
-		"serviceweaver_system_http_request_error_count",
-		"Count of Service Weaver HTTP requests received that result in an error",
+		"mx_system_http_request_error_count",
+		"Count of MX HTTP requests received that result in an error",
 	)
 	httpRequestLatencyMicros = metrics.NewHistogramMap[handlerLabels](
-		"serviceweaver_system_http_request_latency_micros",
-		"Duration, in microseconds, of Service Weaver HTTP request execution",
+		"mx_system_http_request_latency_micros",
+		"Duration, in microseconds, of MX HTTP request execution",
 		imetrics.GeneratedBuckets,
 	)
 	httpRequestBytesReceived = metrics.NewHistogramMap[handlerLabels](
-		"serviceweaver_system_http_request_bytes_received",
-		"Number of bytes received by Service Weaver HTTP request handlers",
+		"mx_system_http_request_bytes_received",
+		"Number of bytes received by MX HTTP request handlers",
 		imetrics.GeneratedBuckets,
 	)
 	httpRequestBytesReturned = metrics.NewHistogramMap[handlerLabels](
-		"serviceweaver_system_http_request_bytes_returned",
-		"Number of bytes returned by Service Weaver HTTP request handlers",
+		"mx_system_http_request_bytes_returned",
+		"Number of bytes returned by MX HTTP request handlers",
 		imetrics.GeneratedBuckets,
 	)
 )
@@ -59,7 +59,7 @@ type handlerLabels struct {
 	Path string // HTTP request URL path (e.g., "/manager/start_process")
 
 	// Is this a metric implicitly created by the framework?
-	Generated bool `weaver:"serviceweaver_generated"`
+	Generated bool `mx:"mx_generated"`
 }
 
 type errorLabels struct {
@@ -76,7 +76,7 @@ type errorLabels struct {
 	Error string
 
 	// Is this a metric implicitly created by the framework?
-	Generated bool `weaver:"serviceweaver_generated"`
+	Generated bool `mx:"mx_generated"`
 }
 
 // ProtoPointer[T] is an interface which asserts that *T is a proto.Message.

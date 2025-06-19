@@ -18,9 +18,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ServiceWeaver/weaver/runtime/protos"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
 func TestIncExport(t *testing.T) {

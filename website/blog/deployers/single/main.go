@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package main implements a simple singleprocess deployer. See
-// https://serviceweaver.dev/blog/deployers.html for corresponding blog post.
+// https://mx.dev/blog/deployers.html for corresponding blog post.
 package main
 
 import (
@@ -22,24 +22,24 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ServiceWeaver/weaver/runtime/colors"
-	"github.com/ServiceWeaver/weaver/runtime/envelope"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
 	"github.com/google/uuid"
+	"github.com/sh3lk/mx/runtime/colors"
+	"github.com/sh3lk/mx/runtime/envelope"
+	"github.com/sh3lk/mx/runtime/logging"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
 // deployer is a simple single process deployer that runs every component in a
 // single OS process.
 type deployer struct {
-	envelope   *envelope.Envelope // envelope to the weavelet
+	envelope   *envelope.Envelope // envelope to the mxn
 	components []string           // activated components
 }
 
 // Check that deployer implements the envelope.EnvelopeHandler interface.
 var _ envelope.EnvelopeHandler = &deployer{}
 
-// Usage: ./single <service weaver binary>
+// Usage: ./single <service mx binary>
 func main() {
 	flag.Parse()
 	if err := deploy(flag.Arg(0)); err != nil {
@@ -49,13 +49,13 @@ func main() {
 
 // deploy deploys the provided application and blocks until it exits.
 func deploy(binary string) error {
-	// Spawn the weavelet.
-	info := &protos.WeaveletArgs{
+	// Spawn the mxn.
+	info := &protos.MXNArgs{
 		App:             "app",               // the application name
 		DeploymentId:    uuid.New().String(), // the deployment id
-		Id:              uuid.New().String(), // the weavelet id
-		RunMain:         true,                // should the weavelet run main?
-		InternalAddress: "localhost:0",       // internal address of the weavelet
+		Id:              uuid.New().String(), // the mxn id
+		RunMain:         true,                // should the mxn run main?
+		InternalAddress: "localhost:0",       // internal address of the mxn
 	}
 	config := &protos.AppConfig{
 		Name:   "app",  // the application name
@@ -66,7 +66,7 @@ func deploy(binary string) error {
 		return err
 	}
 
-	// Handle messages from the weavelet.
+	// Handle messages from the mxn.
 	return envelope.Serve(&deployer{envelope: envelope})
 }
 
@@ -74,10 +74,10 @@ func deploy(binary string) error {
 func (d *deployer) ActivateComponent(_ context.Context, req *protos.ActivateComponentRequest) (*protos.ActivateComponentReply, error) {
 	d.components = append(d.components, req.Component)
 
-	// Tell the weavelet to run the component.
+	// Tell the mxn to run the component.
 	d.envelope.UpdateComponents(d.components)
 
-	// Tell the weavelet to route requests to the component locally.
+	// Tell the mxn to route requests to the component locally.
 	d.envelope.UpdateRoutingInfo(&protos.RoutingInfo{
 		Component: req.Component,
 		Local:     true,
@@ -94,7 +94,7 @@ func (d *deployer) GetListenerAddress(_ context.Context, req *protos.GetListener
 func (d *deployer) ExportListener(_ context.Context, req *protos.ExportListenerRequest) (*protos.ExportListenerReply, error) {
 	// This simplified deployer does not proxy network traffic. Listeners
 	// should be contacted directly.
-	fmt.Printf("Weavelet listening on %s\n", req.Address)
+	fmt.Printf("MXN listening on %s\n", req.Address)
 	return &protos.ExportListenerReply{}, nil
 }
 

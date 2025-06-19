@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package runtime contains code suitable for deployer implementers but not
-// Service Weaver application developers.
+// MX application developers.
 package runtime
 
 import (
@@ -21,33 +21,33 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ServiceWeaver/weaver/internal/proto"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
+	"github.com/sh3lk/mx/internal/proto"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
 const (
-	// WeaveletArgsKey is the environment variable that holds the base64 encoded
-	// protos.WeaveletArgs message for a weavelet started by an envelope. For internal
-	// use by Service Weaver infrastructure.
-	WeaveletArgsKey = "WEAVELET_ARGS"
+	// MXNArgsKey is the environment variable that holds the base64 encoded
+	// protos.MXNArgs message for a mxn started by an envelope. For internal
+	// use by MX infrastructure.
+	MXNArgsKey = "MXN_ARGS"
 )
 
 // Bootstrap holds configuration information used to start a process execution.
 type Bootstrap struct {
-	Args *protos.WeaveletArgs
+	Args *protos.MXNArgs
 }
 
 // GetBootstrap returns information needed to configure process
 // execution. For normal execution, this comes from the environment. For
-// weavertest, it comes from a context value.
+// mxtest, it comes from a context value.
 func GetBootstrap(ctx context.Context) (Bootstrap, error) {
-	argsEnv := os.Getenv(WeaveletArgsKey)
+	argsEnv := os.Getenv(MXNArgsKey)
 	if argsEnv == "" {
 		return Bootstrap{}, nil
 	}
-	args := &protos.WeaveletArgs{}
+	args := &protos.MXNArgs{}
 	if err := proto.FromEnv(argsEnv, args); err != nil {
-		return Bootstrap{}, fmt.Errorf("decoding weavelet args: %w", err)
+		return Bootstrap{}, fmt.Errorf("decoding mxn args: %w", err)
 	}
 	return Bootstrap{
 		Args: args,

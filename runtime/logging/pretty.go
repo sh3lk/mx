@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/runtime/colors"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
+	"github.com/sh3lk/mx/runtime/colors"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
 var (
@@ -161,7 +161,7 @@ func (pp *PrettyPrinter) sortedAttributes(e *protos.LogEntry) [][2]string {
 	// Get attributes and sort.
 	for i := 0; i+1 < len(e.Attrs); i += 2 {
 		name, value := e.Attrs[i], e.Attrs[i+1]
-		if name == "serviceweaver/system" {
+		if name == "mx/system" {
 			continue // Aleady implied by component name
 		}
 		attrs = append(attrs, [2]string{name, value})

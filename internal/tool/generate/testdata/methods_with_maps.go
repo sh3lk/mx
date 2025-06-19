@@ -17,10 +17,10 @@
 // var a1 map[int]bool
 // var a2 map[[10]int]int
 // r0, appErr := s.impl.A
-// serviceweaver_enc_map_int_slice_X
-// serviceweaver_enc_map_int_bool
-// serviceweaver_dec_map_array_10_int_int
-// serviceweaver_enc_map_Y_map_string_slice_X
+// mx_enc_map_int_slice_X
+// mx_enc_map_int_bool
+// mx_dec_map_array_10_int_int
+// mx_enc_map_Y_map_string_slice_X
 
 // UNEXPECTED
 // Preallocate
@@ -33,17 +33,17 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type Y struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	a int
 	b X
 }
 
 type X struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	a int
 }
 
@@ -51,7 +51,7 @@ type foo interface {
 	A(context.Context, map[int][]X, map[int]bool, map[[10]int]int) (map[Y]map[string][]X, error)
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) A(context.Context, map[int][]X, map[int]bool, map[[10]int]int) (map[Y]map[string][]X, error) {
 	return nil, nil

@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package weaver
+package mx
 
 import (
 	"context"
 	"fmt"
 	"os"
 
-	"github.com/ServiceWeaver/weaver/internal/control"
-	"github.com/ServiceWeaver/weaver/runtime/colors"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
+	"github.com/sh3lk/mx/internal/control"
+	"github.com/sh3lk/mx/runtime/colors"
+	"github.com/sh3lk/mx/runtime/logging"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
-// deployerControl is a component hosted in every deployer. Weavelets make calls to this
+// deployerControl is a component hosted in every deployer. MXNs make calls to this
 // component to interact with the deployer.
 type deployerControl control.DeployerControl
 

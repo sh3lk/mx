@@ -34,11 +34,11 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/ServiceWeaver/weaver/internal/files"
-	"github.com/ServiceWeaver/weaver/internal/tool"
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
-	"github.com/ServiceWeaver/weaver/runtime/colors"
-	"github.com/ServiceWeaver/weaver/runtime/version"
+	"github.com/sh3lk/mx/internal/files"
+	"github.com/sh3lk/mx/internal/tool"
+	"github.com/sh3lk/mx/runtime/codegen"
+	"github.com/sh3lk/mx/runtime/colors"
+	"github.com/sh3lk/mx/runtime/version"
 	"golang.org/x/exp/maps"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/types/typeutil"
@@ -49,55 +49,55 @@ import (
 // which can be confusing and also we might do unnecessary work.
 
 const (
-	generatedCodeFile = "weaver_gen.go"
+	generatedCodeFile = "mx_gen.go"
 
-	Usage = `Generate code for a Service Weaver application.
+	Usage = `Generate code for a MX application.
 
 Usage:
-  weaver generate [-tags taglist] [packages]
+  mx generate [-tags taglist] [packages]
 
 Description:
-  "weaver generate" generates code for the Service Weaver applications in the
-  provided packages. For example, "weaver generate . ./foo" will generate code
-  for the Service Weaver applications in the current directory and in the ./foo
-  directory. For every package, the generated code is placed in a weaver_gen.go
-  file in the package's directory. For example, "weaver generate . ./foo" will
-  create ./weaver_gen.go and ./foo/weaver_gen.go.
+  "mx generate" generates code for the MX applications in the
+  provided packages. For example, "mx generate . ./foo" will generate code
+  for the MX applications in the current directory and in the ./foo
+  directory. For every package, the generated code is placed in a mx_gen.go
+  file in the package's directory. For example, "mx generate . ./foo" will
+  create ./mx_gen.go and ./foo/mx_gen.go.
 
-  You specify build tags for "weaver generate" in the same way you specify build
+  You specify build tags for "mx generate" in the same way you specify build
   tags for go build. See "go help build" for more information.
 
-  You specify packages for "weaver generate" in the same way you specify
+  You specify packages for "mx generate" in the same way you specify
   packages for go build, go test, go vet, etc. See "go help packages" for more
   information.
 
-  Rather than invoking "weaver generate" directly, you can place a line of the
+  Rather than invoking "mx generate" directly, you can place a line of the
   following form in one of the .go files in the package:
 
-      //go:generate weaver generate
+      //go:generate mx generate
 
   and then use the normal "go generate" command.
 
 Examples:
   # Generate code for the package in the current directory.
-  weaver generate
+  mx generate
 
-  # Same as "weaver generate".
-  weaver generate .
+  # Same as "mx generate".
+  mx generate .
 
   # Generate code for the package in the ./foo directory.
-  weaver generate ./foo
+  mx generate ./foo
 
   # Generate code for all packages in all subdirectories of current directory.
-  weaver generate ./...
+  mx generate ./...
 
   # Generate code for all files that have a "//go:build good" line at the top of
   the file.
-  weaver generate -tags good
+  mx generate -tags good
 
   # Generate code for all files that have a "//go:build good,prod" line at the
   top of the file.
-  weaver generate -tags good,prod`
+  mx generate -tags good,prod`
 )
 
 // Options controls the operation of Generate.
@@ -106,7 +106,7 @@ type Options struct {
 	BuildTags string
 }
 
-// Generate generates Service Weaver code for the specified packages.
+// Generate generates MX code for the specified packages.
 // The list of supplied packages are treated similarly to the arguments
 // passed to "go build" (see "go help packages" for details).
 func Generate(dir string, pkgs []string, opt Options) error {
@@ -118,7 +118,7 @@ func Generate(dir string, pkgs []string, opt Options) error {
 		Mode:      packages.NeedName | packages.NeedSyntax | packages.NeedImports | packages.NeedTypes | packages.NeedTypesInfo,
 		Dir:       dir,
 		Fset:      fset,
-		ParseFile: parseNonWeaverGenFile,
+		ParseFile: parseNonMXGenFile,
 	}
 	if len(opt.BuildTags) > 0 {
 		cfg.BuildFlags = []string{"-tags", opt.BuildTags}
@@ -143,10 +143,10 @@ func Generate(dir string, pkgs []string, opt Options) error {
 	return errors.Join(errs...)
 }
 
-// parseNonWeaverGenFile parses a Go file, except for weaver_gen.go files whose
+// parseNonMXGenFile parses a Go file, except for mx_gen.go files whose
 // contents are ignored since those contents may reference types that no longer
 // exist.
-func parseNonWeaverGenFile(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
+func parseNonMXGenFile(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
 	if filepath.Base(filename) == generatedCodeFile {
 		return parser.ParseFile(fset, filename, src, parser.PackageClauseOnly)
 	}
@@ -158,15 +158,15 @@ type generator struct {
 	tset           *typeSet
 	fileset        *token.FileSet
 	components     []*component
-	sizeFuncNeeded typeutil.Map // types that need a serviceweaver_size_* function
+	sizeFuncNeeded typeutil.Map // types that need a mx_size_* function
 	generated      typeutil.Map // memo cache for generateEncDecMethodsFor
 }
 
 // errorf is like fmt.Errorf but prefixes the error with the provided position.
 func errorf(fset *token.FileSet, pos token.Pos, format string, args ...interface{}) error {
 	// Rewrite the position's filename relative to the current directory. This
-	// replaces long filenames like "/home/foo/ServiceWeaver/weaver/weaver.go"
-	// with much shorter filenames like "./weaver.go".
+	// replaces long filenames like "/home/foo/MX/mx/mx.go"
+	// with much shorter filenames like "./mx.go".
 	position := fset.Position(pos)
 	if cwd, err := filepath.Abs("."); err == nil {
 		if filename, err := filepath.Rel(cwd, position.Filename); err == nil {
@@ -193,12 +193,12 @@ func newGenerator(opt Options, pkg *packages.Package, fset *token.FileSet, autom
 	}
 
 	// Search every file in the package for types that embed the
-	// weaver.AutoMarshal struct.
+	// mx.AutoMarshal struct.
 	tset := newTypeSet(pkg, automarshals, &typeutil.Map{})
 	for _, file := range pkg.Syntax {
 		filename := fset.Position(file.Package).Filename
 		if filepath.Base(filename) == generatedCodeFile {
-			// Ignore weaver_gen.go files.
+			// Ignore mx_gen.go files.
 			continue
 		}
 		ts, err := findAutoMarshals(pkg, file)
@@ -214,10 +214,10 @@ func newGenerator(opt Options, pkg *packages.Package, fset *token.FileSet, autom
 		return nil, err
 	}
 
-	// Just because a type embeds weaver.AutoMarshal doesn't mean we can
+	// Just because a type embeds mx.AutoMarshal doesn't mean we can
 	// automatically marshal it. Some types, like `struct { x chan int }`, are
 	// just not serializable. Here, we check that every type that embeds
-	// weaver.AutoMarshal is actually serializable.
+	// mx.AutoMarshal is actually serializable.
 	for _, t := range tset.automarshalCandidates.Keys() {
 		n := t.(*types.Named)
 		if err := errors.Join(tset.checkSerializable(n)...); err != nil {
@@ -235,7 +235,7 @@ func newGenerator(opt Options, pkg *packages.Package, fset *token.FileSet, autom
 	for _, file := range pkg.Syntax {
 		filename := fset.Position(file.Package).Filename
 		if filepath.Base(filename) == generatedCodeFile {
-			// Ignore weaver_gen.go files.
+			// Ignore mx_gen.go files.
 			continue
 		}
 
@@ -247,7 +247,7 @@ func newGenerator(opt Options, pkg *packages.Package, fset *token.FileSet, autom
 
 		for _, c := range fileComponents {
 			// Check for component duplicates, two components that embed the
-			// same weaver.Implements[T].
+			// same mx.Implements[T].
 			//
 			// TODO(mwhittaker): This code relies on the fact that a component
 			// interface and component implementation have to be in the same
@@ -266,7 +266,7 @@ func newGenerator(opt Options, pkg *packages.Package, fset *token.FileSet, autom
 	for _, file := range pkg.Syntax {
 		filename := fset.Position(file.Package).Filename
 		if filepath.Base(filename) == generatedCodeFile {
-			// Ignore weaver_gen.go files.
+			// Ignore mx_gen.go files.
 			continue
 		}
 		if err := findMethodAttributes(pkg, file, components); err != nil {
@@ -290,7 +290,7 @@ func newGenerator(opt Options, pkg *packages.Package, fset *token.FileSet, autom
 // findComponents will find and return the following component.
 //
 //	type something struct {
-//	    weaver.Implements[SomeComponentType]
+//	    mx.Implements[SomeComponentType]
 //	    ...
 //	}
 func findComponents(opt Options, pkg *packages.Package, f *ast.File, tset *typeSet) ([]*component, error) {
@@ -321,7 +321,7 @@ func findComponents(opt Options, pkg *packages.Package, f *ast.File, tset *typeS
 
 func findMethodAttributes(pkg *packages.Package, f *ast.File, components map[string]*component) error {
 	// Look for declarations of the form:
-	//	var _ weaver.NotRetriable = Component.Method
+	//	var _ mx.NotRetriable = Component.Method
 	var errs []error
 	for _, decl := range f.Decls {
 		gendecl, ok := decl.(*ast.GenDecl)
@@ -338,14 +338,14 @@ func findMethodAttributes(pkg *packages.Package, f *ast.File, components map[str
 				continue
 			}
 			t := typeAndValue.Type
-			if !isWeaverNotRetriable(t) {
+			if !isMXNotRetriable(t) {
 				continue
 			}
 			for _, val := range valspec.Values {
 				// We allow non-blank vars for uniformity.
 				comp, method, ok := findComponentMethod(pkg, components, val)
 				if !ok {
-					errs = append(errs, errorf(pkg.Fset, valspec.Pos(), "weaver.NonRetriable should only be assigned a value that identifies a method of a component implemented by this package"))
+					errs = append(errs, errorf(pkg.Fset, valspec.Pos(), "mx.NonRetriable should only be assigned a value that identifies a method of a component implemented by this package"))
 					continue
 				}
 				if comp.noretry == nil {
@@ -388,7 +388,7 @@ func findComponentMethod(pkg *packages.Package, components map[string]*component
 }
 
 // findAutoMarshals returns the types in the provided file which embed the
-// weaver.AutoMarshal struct.
+// mx.AutoMarshal struct.
 func findAutoMarshals(pkg *packages.Package, f *ast.File) ([]*types.Named, error) {
 	var automarshals []*types.Named
 	var errs []error
@@ -430,11 +430,11 @@ func findAutoMarshals(pkg *packages.Package, f *ast.File) ([]*types.Named, error
 				continue
 			}
 
-			// Check for an embedded weaver.AutoMarshal field.
+			// Check for an embedded mx.AutoMarshal field.
 			automarshal := false
 			for i := 0; i < t.NumFields(); i++ {
 				f := t.Field(i)
-				if f.Embedded() && isWeaverAutoMarshal(f.Type()) {
+				if f.Embedded() && isMXAutoMarshal(f.Type()) {
 					automarshal = true
 					break
 				}
@@ -448,19 +448,19 @@ func findAutoMarshals(pkg *packages.Package, f *ast.File) ([]*types.Named, error
 			// declaration:
 			//
 			//     type Register[A any] struct {
-			//         weaver.AutoMarshal
+			//         mx.AutoMarshal
 			//         a A
 			//     }
 			//
 			// Is Register[A] serializable? It depends on A. Plus, we cannot
-			// really generate WeaverMarshal and WeaverUnmarshal methods for
+			// really generate MXMarshal and MXUnmarshal methods for
 			// specific instantiations of Register[A]. Because of these
 			// complications, we ignore generic types.
 			//
 			// TODO(mwhittaker): Handle generics somehow?
 			if n.TypeParams() != nil { // generics have non-nil TypeParams()
 				errs = append(errs, errorf(pkg.Fset, spec.Pos(),
-					"generic struct %v cannot embed weaver.AutoMarshal. See serviceweaver.dev/docs.html#serializable-types for more information.",
+					"generic struct %v cannot embed mx.AutoMarshal. See mx.dev/docs.html#serializable-types for more information.",
 					formatType(pkg, n)))
 				continue
 			}
@@ -493,11 +493,11 @@ func extractComponent(opt Options, pkg *packages.Package, file *ast.File, tset *
 		return nil, nil
 	}
 
-	// Find any weaver.Implements[T] or weaver.WithRouter[T] embedded fields.
+	// Find any mx.Implements[T] or mx.WithRouter[T] embedded fields.
 	var intf *types.Named   // The component interface type
 	var router *types.Named // Router type (if any)
-	var isMain bool         // Is intf weaver.Main?
-	var refs []*types.Named // T for which weaver.Ref[T] exists in struct
+	var isMain bool         // Is intf mx.Main?
+	var refs []*types.Named // T for which mx.Ref[T] exists in struct
 	var listeners []string  // Names of all listener fields declared in struct
 	for _, f := range s.Fields.List {
 		typeAndValue, ok := pkg.TypesInfo.Types[f.Type]
@@ -506,21 +506,21 @@ func extractComponent(opt Options, pkg *packages.Package, file *ast.File, tset *
 		}
 		t := typeAndValue.Type
 
-		if isWeaverRef(t) {
-			// The field f has type weaver.Ref[T].
+		if isMXRef(t) {
+			// The field f has type mx.Ref[T].
 			arg := t.(*types.Named).TypeArgs().At(0)
-			if isWeaverMain(arg) {
+			if isMXMain(arg) {
 				return nil, errorf(pkg.Fset, f.Pos(),
-					"components cannot contain a reference to weaver.Main")
+					"components cannot contain a reference to mx.Main")
 			}
 			named, ok := arg.(*types.Named)
 			if !ok {
 				return nil, errorf(pkg.Fset, f.Pos(),
-					"weaver.Ref argument %s is not a named type.",
+					"mx.Ref argument %s is not a named type.",
 					formatType(pkg, arg))
 			}
 			refs = append(refs, named)
-		} else if isWeaverListener(t) {
+		} else if isMXListener(t) {
 			lis, err := getListenerNamesFromStructField(pkg, f)
 			if err != nil {
 				return nil, err
@@ -532,47 +532,47 @@ func extractComponent(opt Options, pkg *packages.Package, file *ast.File, tset *
 			// Ignore unembedded fields.
 			//
 			// TODO(mwhittaker): Warn the user about unembedded
-			// weaver.Implements, weaver.WithConfig, or weaver.WithRouter?
+			// mx.Implements, mx.WithConfig, or mx.WithRouter?
 			continue
 		}
 
 		switch {
-		// The field f is an embedded weaver.Implements[T].
-		case isWeaverImplements(t):
+		// The field f is an embedded mx.Implements[T].
+		case isMXImplements(t):
 			// Check that T is a named interface type inside the package.
 			arg := t.(*types.Named).TypeArgs().At(0)
 			named, ok := arg.(*types.Named)
 			if !ok {
 				return nil, errorf(pkg.Fset, f.Pos(),
-					"weaver.Implements argument %s is not a named type.",
+					"mx.Implements argument %s is not a named type.",
 					formatType(pkg, arg))
 			}
-			isMain = isWeaverMain(arg)
+			isMain = isMXMain(arg)
 			if !isMain && named.Obj().Pkg() != pkg.Types {
 				return nil, errorf(pkg.Fset, f.Pos(),
-					"weaver.Implements argument %s is a type outside the current package. A component interface and implementation must be in the same package. If you can't move them into the same package, you can add `type %s %v` to the implementation's package and embed `weaver.Implements[%s]` instead of `weaver.Implements[%s]`.",
+					"mx.Implements argument %s is a type outside the current package. A component interface and implementation must be in the same package. If you can't move them into the same package, you can add `type %s %v` to the implementation's package and embed `mx.Implements[%s]` instead of `mx.Implements[%s]`.",
 					formatType(pkg, named), named.Obj().Name(), formatType(pkg, named), named.Obj().Name(), formatType(pkg, named))
 			}
 			if _, ok := named.Underlying().(*types.Interface); !ok {
 				return nil, errorf(pkg.Fset, f.Pos(),
-					"weaver.Implements argument %s is not an interface.",
+					"mx.Implements argument %s is not an interface.",
 					formatType(pkg, named))
 			}
 			intf = named
 
-		// The field f is an embedded weaver.WithRouter[T].
-		case isWeaverWithRouter(t):
+		// The field f is an embedded mx.WithRouter[T].
+		case isMXWithRouter(t):
 			// Check that T is a named type inside the package.
 			arg := t.(*types.Named).TypeArgs().At(0)
 			named, ok := arg.(*types.Named)
 			if !ok {
 				return nil, errorf(pkg.Fset, f.Pos(),
-					"weaver.WithRouter argument %s is not a named type.",
+					"mx.WithRouter argument %s is not a named type.",
 					formatType(pkg, arg))
 			}
 			if named.Obj().Pkg() != pkg.Types {
 				return nil, errorf(pkg.Fset, f.Pos(),
-					"weaver.WithRouter argument %s is a type outside the current package.",
+					"mx.WithRouter argument %s is a type outside the current package.",
 					formatType(pkg, named))
 			}
 			router = named
@@ -580,8 +580,8 @@ func extractComponent(opt Options, pkg *packages.Package, file *ast.File, tset *
 	}
 
 	if intf == nil {
-		// TODO(mwhittaker): Warn the user if they embed weaver.WithRouter or
-		// weaver.WithConfig but don't embed weaver.Implements.
+		// TODO(mwhittaker): Warn the user if they embed mx.WithRouter or
+		// mx.WithConfig but don't embed mx.Implements.
 		return nil, nil
 	}
 
@@ -589,7 +589,7 @@ func extractComponent(opt Options, pkg *packages.Package, file *ast.File, tset *
 	// interface.
 	if !types.Implements(types.NewPointer(impl), intf.Underlying().(*types.Interface)) {
 		return nil, errorf(pkg.Fset, spec.Pos(),
-			"type %s embeds weaver.Implements[%s] but does not implement interface %s.",
+			"type %s embeds mx.Implements[%s] but does not implement interface %s.",
 			formatType(pkg, impl), formatType(pkg, intf), formatType(pkg, intf))
 	}
 
@@ -646,7 +646,7 @@ func extractComponent(opt Options, pkg *packages.Package, file *ast.File, tset *
 }
 
 // getListenerNamesFromStructField extracts listener names from the given
-// weaver.Listener field in the component implementation struct.
+// mx.Listener field in the component implementation struct.
 func getListenerNamesFromStructField(pkg *packages.Package, f *ast.Field) ([]string, error) {
 	// Try to get the listener name from the struct tag.
 	if f.Tag != nil {
@@ -656,7 +656,7 @@ func getListenerNamesFromStructField(pkg *packages.Package, f *ast.Field) ([]str
 			return nil, errorf(pkg.Fset, f.Pos(),
 				"Tag %s repeated for multiple fields", tag)
 		}
-		if name, ok := tag.Lookup("weaver"); ok {
+		if name, ok := tag.Lookup("mx"); ok {
 			if !token.IsIdentifier(name) {
 				return nil, errorf(pkg.Fset, f.Pos(),
 					"Listener tag %s is not a valid Go identifier", tag)
@@ -677,7 +677,7 @@ func getListenerNamesFromStructField(pkg *packages.Package, f *ast.Field) ([]str
 	return ret, nil
 }
 
-// component represents a Service Weaver component.
+// component represents a MX component.
 //
 // A component is divided into an interface and implementation. For example, in
 // the following code, Adder is the component interface, and adder is the
@@ -685,8 +685,8 @@ func getListenerNamesFromStructField(pkg *packages.Package, f *ast.Field) ([]str
 //
 //	type Adder interface{}
 //	type adder struct {
-//	    weaver.Implements[Adder]
-//	    weaver.WithRouter[router]
+//	    mx.Implements[Adder]
+//	    mx.WithRouter[router]
 //	}
 //	type router struct{}
 type component struct {
@@ -695,8 +695,8 @@ type component struct {
 	router        *types.Named        // router, or nil if there is no router
 	routingKey    types.Type          // routing key, or nil if there is no router
 	routedMethods map[string]bool     // the set of methods with a routing function
-	isMain        bool                // intf is weaver.Main
-	refs          []*types.Named      // List of T where a weaver.Ref[T] field is in impl struct
+	isMain        bool                // intf is mx.Main
+	refs          []*types.Named      // List of T where a mx.Ref[T] field is in impl struct
 	listeners     []string            // Names of listener fields declared in impl struct
 	noretry       map[string]struct{} // Methods that should not be retried
 }
@@ -751,7 +751,7 @@ func validateMethods(pkg *packages.Package, tset *typeSet, intf *types.Named) er
 		// Disallow unexported methods.
 		if !m.Exported() {
 			errs = append(errs, errorf(pkg.Fset, m.Pos(),
-				"Method `%s%s %s` of Service Weaver component %q is unexported. Every method in a component interface must be exported.",
+				"Method `%s%s %s` of MX component %q is unexported. Every method in a component interface must be exported.",
 				m.Name(), formatType(pkg, t.Params()), formatType(pkg, t.Results()), intf.Obj().Name()))
 			continue
 		}
@@ -761,7 +761,7 @@ func validateMethods(pkg *packages.Package, tset *typeSet, intf *types.Named) er
 			err := fmt.Errorf(format, arg...)
 			return errorf(
 				pkg.Fset, m.Pos(),
-				"Method `%s%s %s` of Service Weaver component %q has incorrect %s types. %w",
+				"Method `%s%s %s` of MX component %q has incorrect %s types. %w",
 				m.Name(), formatType(pkg, t.Params()), formatType(pkg, t.Results()), intf.Obj().Name(), bad, err)
 		}
 
@@ -814,7 +814,7 @@ func checkMistypedInitOrShutdown(pkg *packages.Package, tset *typeSet, impl *typ
 		// TODO(mwhittaker): Highlight the warning yellow instead of red.
 		sig := m.Type().(*types.Signature)
 		err := errorf(pkg.Fset, m.Pos(),
-			`WARNING: Component %v's %s method has type "%v", not type "func(context.Context) error". It will be ignored. See https://serviceweaver.dev/docs.html#components-implementation for more information.`,
+			`WARNING: Component %v's %s method has type "%v", not type "func(context.Context) error". It will be ignored. See https://mx.dev/docs.html#components-implementation for more information.`,
 			impl.Obj().Name(), m.Name(), sig)
 
 		// Check parameters.
@@ -833,11 +833,11 @@ func checkMistypedInitOrShutdown(pkg *packages.Package, tset *typeSet, impl *typ
 
 // routerMethods returns the routing key and the set of routed methods for comp.
 //
-// A developer can annotate a Service Weaver component with a router, like this:
+// A developer can annotate a MX component with a router, like this:
 //
 //	type foo struct {
-//		weaver.Implements[Foo]
-//		weaver.WithRouter[fooRouter]
+//		mx.Implements[Foo]
+//		mx.WithRouter[fooRouter]
 //		...
 //	}
 //	func (*foo) A(context.Context) error {...}
@@ -1009,15 +1009,15 @@ func (g *generator) pkgDir() string {
 // implemented by a component in generated code.
 func (g *generator) componentRef(comp *component) string {
 	if comp.isMain {
-		return g.weaver().qualify("Main")
+		return g.mx().qualify("Main")
 	}
 	return comp.intfName() // We already checked that interface is in the same package.
 }
 
 // generateImports generates code to import all the dependencies.
 func (g *generator) generateImports(p printFn) {
-	p(`// Code generated by "weaver generate". DO NOT EDIT.`)
-	p("//go:build !ignoreWeaverGen")
+	p(`// Code generated by "mx generate". DO NOT EDIT.`)
+	p("//go:build !ignoreMXGen")
 	p("")
 	p("package %s", g.pkg.Name)
 	p("")
@@ -1041,11 +1041,11 @@ func (g *generator) generateVersionCheck(p printFn) error {
 		return fmt.Errorf("read self version: %w", err)
 	}
 
-	// Example output when 'weaver generate' has codegen API version 0.1.0:
+	// Example output when 'mx generate' has codegen API version 0.1.0:
 	//
 	//     var _ codegen.LatestVersion = codegen.Version[[0][1]struct{}]("You used ...")
 	p(``)
-	p(`// Note that "weaver generate" will always generate the error message below.`)
+	p(`// Note that "mx generate" will always generate the error message below.`)
 	p(`// Everything is okay. The error message is only relevant if you see it when`)
 	p(`// you run "go build" or "go run".`)
 	p(`var _ %s = %s[[%d][%d]struct{}](%s)`,
@@ -1053,21 +1053,21 @@ func (g *generator) generateVersionCheck(p printFn) error {
 		version.CodegenMajor, version.CodegenMinor,
 		fmt.Sprintf("`"+`
 
-ERROR: You generated this file with 'weaver generate' %s (codegen
+ERROR: You generated this file with 'mx generate' %s (codegen
 version %s). The generated code is incompatible with the version of the
-github.com/ServiceWeaver/weaver module that you're using. The weaver module
+github.com/sh3lk/mx module that you're using. The mx module
 version can be found in your go.mod file or by running the following command.
 
-    go list -m github.com/ServiceWeaver/weaver
+    go list -m github.com/sh3lk/mx
 
-We recommend updating the weaver module and the 'weaver generate' command by
+We recommend updating the mx module and the 'mx generate' command by
 running the following.
 
-    go get github.com/ServiceWeaver/weaver@latest
-    go install github.com/ServiceWeaver/weaver/cmd/weaver@latest
+    go get github.com/sh3lk/mx@latest
+    go install github.com/sh3lk/mx/cmd/mx@latest
 
-Then, re-run 'weaver generate' and re-build your code. If the problem persists,
-please file an issue at https://github.com/ServiceWeaver/weaver/issues.
+Then, re-run 'mx generate' and re-build your code. If the problem persists,
+please file an issue at https://github.com/sh3lk/mx/issues.
 
 `+"`", selfVersion, version.CodegenVersion),
 	)
@@ -1075,36 +1075,36 @@ please file an issue at https://github.com/ServiceWeaver/weaver/issues.
 }
 
 // generateInstanceChecks generates code that checks that every component
-// implementation type implements weaver.InstanceOf[T] for the appropriate T.
+// implementation type implements mx.InstanceOf[T] for the appropriate T.
 func (g *generator) generateInstanceChecks(p printFn) {
-	// If someone deletes a weaver.Implements annotation and forgets to re-run
-	// `weaver generate`, these checks will fail to build. Similarly, if a user
-	// changes the interface in a weaver.Implements and forgets to re-run
-	// `weaver generate`, these checks will fail to build.
+	// If someone deletes a mx.Implements annotation and forgets to re-run
+	// `mx generate`, these checks will fail to build. Similarly, if a user
+	// changes the interface in a mx.Implements and forgets to re-run
+	// `mx generate`, these checks will fail to build.
 	p(``)
-	p(`// weaver.InstanceOf checks.`)
+	p(`// mx.InstanceOf checks.`)
 	for _, c := range g.components {
-		// e.g., var _ weaver.InstanceOf[Odd] = &odd{}
-		p(`var _ %s[%s] = (*%s)(nil)`, g.weaver().qualify("InstanceOf"), g.tset.genTypeString(c.intf), g.tset.genTypeString(c.impl))
+		// e.g., var _ mx.InstanceOf[Odd] = &odd{}
+		p(`var _ %s[%s] = (*%s)(nil)`, g.mx().qualify("InstanceOf"), g.tset.genTypeString(c.intf), g.tset.genTypeString(c.impl))
 	}
 }
 
 // generateRouterChecks generates code that checks that every component
 // implementation is either unrouted or is routed by the expected router.
 func (g *generator) generateRouterChecks(p printFn) {
-	// If a user adds, deletes, or changes an embedded weaver.WithRouter[T]
-	// annotation and forgets to re-run `weaver generate`, these checks will
+	// If a user adds, deletes, or changes an embedded mx.WithRouter[T]
+	// annotation and forgets to re-run `mx generate`, these checks will
 	// fail to build.
 	p(``)
-	p(`// weaver.Router checks.`)
+	p(`// mx.Router checks.`)
 	for _, c := range g.components {
 		if c.router == nil {
-			// e.g., var _ weaver.Unrouted = &odd{}
-			p(`var _ %s = (*%s)(nil)`, g.weaver().qualify("Unrouted"), g.tset.genTypeString(c.impl))
+			// e.g., var _ mx.Unrouted = &odd{}
+			p(`var _ %s = (*%s)(nil)`, g.mx().qualify("Unrouted"), g.tset.genTypeString(c.impl))
 
 		} else {
-			// e.g., var _ weaver.RoutedBy[router] = &odd{}
-			p(`var _ %s[%s] = (*%s)(nil)`, g.weaver().qualify("RoutedBy"), g.tset.genTypeString(c.router), g.tset.genTypeString(c.impl))
+			// e.g., var _ mx.RoutedBy[router] = &odd{}
+			p(`var _ %s[%s] = (*%s)(nil)`, g.mx().qualify("RoutedBy"), g.tset.genTypeString(c.router), g.tset.genTypeString(c.impl))
 		}
 	}
 
@@ -1130,7 +1130,7 @@ func (g *generator) generateRouterChecks(p printFn) {
 		// component struct "calc", a router "router", and unrouted methods
 		// "add" and "sub", we generate the following code:
 		//
-		//     type __calc_router_if_youre_seeing_this_you_probably_forgot_to_run_weaver_generate struct {
+		//     type __calc_router_if_youre_seeing_this_you_probably_forgot_to_run_mx_generate struct {
 		//         router
 		//         __calc_router_embedding
 		//     }
@@ -1138,7 +1138,7 @@ func (g *generator) generateRouterChecks(p printFn) {
 		//     type __calc_router_embedding struct {}
 		//     func (__calc_router_embedding) add()
 		//     func (__calc_router_embedding) sub()
-		checker := fmt.Sprintf("__%s_%s_if_youre_seeing_this_you_probably_forgot_to_run_weaver_generate", c.impl.Obj().Name(), c.router.Obj().Name())
+		checker := fmt.Sprintf("__%s_%s_if_youre_seeing_this_you_probably_forgot_to_run_mx_generate", c.impl.Obj().Name(), c.router.Obj().Name())
 		embedding := fmt.Sprintf("__%s_%s_embedding", c.impl.Obj().Name(), c.router.Obj().Name())
 		if len(unrouted) > 0 {
 			p(`type %s struct {`, checker)
@@ -1154,7 +1154,7 @@ func (g *generator) generateRouterChecks(p printFn) {
 		}
 
 		// If a user deletes a routed method from or implements an unrouted
-		// method on an embedded router and forgets to re-run `weaver
+		// method on an embedded router and forgets to re-run `mx
 		// generate`, these checks will fail to build.
 		//
 		// For example, given a component struct "calc", a router "router",
@@ -1162,8 +1162,8 @@ func (g *generator) generateRouterChecks(p printFn) {
 		// generate the following code:
 		//
 		//     var _ func(context.Context, int, int) (int, error) = (&calc{}).mul // routed
-		//     var _ = (&__calc_router_if_youre_seeing_this_you_probably_forgot_to_run_weaver_generate{}).add // unrouted
-		//     var _ = (&__calc_router_if_youre_seeing_this_you_probably_forgot_to_run_weaver_generate{}).sub // unrouted
+		//     var _ = (&__calc_router_if_youre_seeing_this_you_probably_forgot_to_run_mx_generate{}).add // unrouted
+		//     var _ = (&__calc_router_if_youre_seeing_this_you_probably_forgot_to_run_mx_generate{}).sub // unrouted
 		for i := 0; i < c.router.NumMethods(); i++ {
 			m := c.router.Method(i)
 			p(`var _ %s = (&%s{}).%s // routed`, g.tset.genTypeString(m.Type()), g.tset.genTypeString(c.router), m.Name())
@@ -1174,7 +1174,7 @@ func (g *generator) generateRouterChecks(p printFn) {
 	}
 }
 
-// generateRegisteredComponents generates code that registers the components with Service Weaver.
+// generateRegisteredComponents generates code that registers the components with MX.
 func (g *generator) generateRegisteredComponents(p printFn) {
 	if len(g.components) == 0 {
 		return
@@ -1247,7 +1247,7 @@ func (g *generator) generateRegisteredComponents(p printFn) {
 		}
 
 		// E.g.,
-		//	weaver.Register(weaver.Registration{
+		//	mx.Register(mx.Registration{
 		//	    Props: codegen.ComponentProperties{},
 		//	    ...,
 		//	})
@@ -1421,7 +1421,7 @@ func (g *generator) generateClientStubs(p printFn) {
 			p(`		if err == nil {`)
 			p(`			err = %s(recover())`, g.codegen().qualify("CatchPanics"))
 			p(`			if err != nil {`)
-			p(`				err = %s(%s, err)`, g.errorsPackage().qualify("Join"), g.weaver().qualify("RemoteCallError"))
+			p(`				err = %s(%s, err)`, g.errorsPackage().qualify("Join"), g.mx().qualify("RemoteCallError"))
 			p(`			}`)
 			p(`		}`)
 			p(``)
@@ -1501,7 +1501,7 @@ func (g *generator) generateClientStubs(p printFn) {
 			p(`	results, err = s.stub.Run(ctx, %d, %s, shardKey)`, methodIndex[m.Name()], data)
 			p(`	replyBytes = len(results)`)
 			p(`	if err != nil {`)
-			p(`		err = %s(%s, err)`, g.errorsPackage().qualify("Join"), g.weaver().qualify("RemoteCallError"))
+			p(`		err = %s(%s, err)`, g.errorsPackage().qualify("Join"), g.mx().qualify("RemoteCallError"))
 			p(`		return`)
 			p(`	}`)
 
@@ -1568,16 +1568,16 @@ func (g *generator) returns(sig *types.Signature) string {
 // preallocatable returns whether we can preallocate a buffer of the right size
 // to encode the provided type.
 func (g *generator) preallocatable(t types.Type) bool {
-	return g.tset.isMeasurable(t) && g.isWeaverEncoded(t)
+	return g.tset.isMeasurable(t) && g.isMXEncoded(t)
 }
 
-// isWeaverEncoded returns whether the provided type is encoded using the
-// Service Weaver encoding logic. Most serializable types use the
-// Service Weaver encoding format, but some types default to using proto
+// isMXEncoded returns whether the provided type is encoded using the
+// MX encoding logic. Most serializable types use the
+// MX encoding format, but some types default to using proto
 // serialization or MarshalBinary methods instead.
 //
 // REQUIRES: t is serializable.
-func (g *generator) isWeaverEncoded(t types.Type) bool {
+func (g *generator) isMXEncoded(t types.Type) bool {
 	if g.tset.isProto(t) || g.tset.hasMarshalBinary(t) {
 		return false
 	}
@@ -1593,25 +1593,25 @@ func (g *generator) isWeaverEncoded(t types.Type) bool {
 			types.String:
 			return true
 		default:
-			panic(fmt.Sprintf("isWeaverEncoded: unexpected type: %v", t))
+			panic(fmt.Sprintf("isMXEncoded: unexpected type: %v", t))
 		}
 
 	case *types.Pointer:
-		return g.isWeaverEncoded(x.Elem())
+		return g.isMXEncoded(x.Elem())
 
 	case *types.Array:
-		return g.isWeaverEncoded(x.Elem())
+		return g.isMXEncoded(x.Elem())
 
 	case *types.Slice:
-		return g.isWeaverEncoded(x.Elem())
+		return g.isMXEncoded(x.Elem())
 
 	case *types.Map:
-		return g.isWeaverEncoded(x.Key()) && g.isWeaverEncoded(x.Elem())
+		return g.isMXEncoded(x.Key()) && g.isMXEncoded(x.Elem())
 
 	case *types.Struct:
 		for i := 0; i < x.NumFields(); i++ {
 			f := x.Field(i)
-			if !g.isWeaverEncoded(f.Type()) {
+			if !g.isMXEncoded(f.Type()) {
 				return false
 			}
 		}
@@ -1621,13 +1621,13 @@ func (g *generator) isWeaverEncoded(t types.Type) bool {
 		if s, ok := x.Underlying().(*types.Struct); ok {
 			for i := 0; i < s.NumFields(); i++ {
 				f := s.Field(i)
-				if !g.isWeaverEncoded(f.Type()) {
+				if !g.isMXEncoded(f.Type()) {
 					return false
 				}
 			}
 			return true
 		}
-		return g.isWeaverEncoded(x.Underlying())
+		return g.isMXEncoded(x.Underlying())
 
 	default:
 		panic(fmt.Sprintf("size: unexpected type %v", t))
@@ -1637,19 +1637,19 @@ func (g *generator) isWeaverEncoded(t types.Type) bool {
 // size returns a go expression that evaluates to the size of the provided
 // expression e of the provided type t.
 //
-// REQUIRES: t is serializable, measurable, serviceweaver-encoded.
+// REQUIRES: t is serializable, measurable, mx-encoded.
 func (g *generator) size(e string, t types.Type) string {
 	g.findSizeFuncNeededs(t)
 
 	// size(e: basic type t) = fixedsize(t)
 	// size(e: string) = 4 + len(e)
-	// size(e: *t) = serviceweaver_size_ptr_t(e)
+	// size(e: *t) = mx_size_ptr_t(e)
 	// size(e: [N]t) = 4 + len(e) * fixedsize(t)
 	// size(e: []t) = 4 + len(e) * fixedsize(t)
 	// size(e: map[k]v) = 4 + len(e) * (fixedsize(k) + fixedsize(v))
-	// size(e: struct{...}) = serviceweaver_size_struct_XXXXXXXX(e)
-	// size(e: weaver.AutoMarshal) = 0
-	// size(e: type t struct{...}) = serviceweaver_size_t(e)
+	// size(e: struct{...}) = mx_size_struct_XXXXXXXX(e)
+	// size(e: mx.AutoMarshal) = 0
+	// size(e: type t struct{...}) = mx_size_t(e)
 	// size(e: type t u) = size(e: u)
 
 	var f func(e string, t types.Type) string
@@ -1670,7 +1670,7 @@ func (g *generator) size(e string, t types.Type) string {
 			}
 
 		case *types.Pointer:
-			return fmt.Sprintf("serviceweaver_size_%s(%s)", sanitize(t), e)
+			return fmt.Sprintf("mx_size_%s(%s)", sanitize(t), e)
 
 		case *types.Array:
 			return fmt.Sprintf("(4 + (len(%s) * %d))", e, g.tset.sizeOfType(x.Elem()))
@@ -1684,18 +1684,18 @@ func (g *generator) size(e string, t types.Type) string {
 			return fmt.Sprintf("(4 + (len(%s) * (%d + %d)))", e, keySize, elemSize)
 
 		case *types.Struct:
-			return fmt.Sprintf("serviceweaver_size_%s(&%s)", sanitize(t), e)
+			return fmt.Sprintf("mx_size_%s(&%s)", sanitize(t), e)
 
 		case *types.Named:
-			if isWeaverAutoMarshal(x) {
-				// Avoid generating unnecessary serviceweaver_size_Automarshal
+			if isMXAutoMarshal(x) {
+				// Avoid generating unnecessary mx_size_Automarshal
 				// functions that always return 0.
 				//
 				// TODO(mwhittaker): This yields a `size += 0` line in the
 				// generated code. Don't produce those lines.
 				return "0"
 			} else if _, ok := x.Underlying().(*types.Struct); ok {
-				return fmt.Sprintf("serviceweaver_size_%s(&%s)", sanitize(t), e)
+				return fmt.Sprintf("mx_size_%s(&%s)", sanitize(t), e)
 			}
 			return f(e, x.Underlying())
 
@@ -1707,7 +1707,7 @@ func (g *generator) size(e string, t types.Type) string {
 }
 
 // findSizeFuncNeededs finds any nested types within the provided type that
-// require a weaver generated size function.
+// require a mx generated size function.
 //
 // We can compute the size of most measurable types without calling a function.
 // For example, the size of a string s is just len(s). However, computing the
@@ -1760,7 +1760,7 @@ func (g *generator) findSizeFuncNeededs(t types.Type) {
 			}
 
 		case *types.Named:
-			if isWeaverAutoMarshal(x) {
+			if isMXAutoMarshal(x) {
 				return
 			}
 			if s, ok := x.Underlying().(*types.Struct); ok {
@@ -1781,21 +1781,21 @@ func (g *generator) findSizeFuncNeededs(t types.Type) {
 //
 // REQUIRES: t is a type found by findSizeFuncNeededs.
 func (g *generator) generateSizeFunction(p printFn, t types.Type) {
-	p("// serviceweaver_size_%s returns the size (in bytes) of the serialization", sanitize(t))
+	p("// mx_size_%s returns the size (in bytes) of the serialization", sanitize(t))
 	p("// of the provided type.")
 
 	switch x := t.(type) {
 	case *types.Pointer:
 		// For example:
 		//
-		//     func serviceweaver_size_ptr_string(x *string) int {
+		//     func mx_size_ptr_string(x *string) int {
 		//         if x == nil {
 		//             return 1
 		//         } else {
 		//             return 1 + len(*x)
 		//         }
 		//     }
-		p("func serviceweaver_size_%s(x %s) int {", sanitize(t), g.tset.genTypeString(t))
+		p("func mx_size_%s(x %s) int {", sanitize(t), g.tset.genTypeString(t))
 		p("	if x == nil {")
 		p("		return 1")
 		p("	} else {")
@@ -1808,14 +1808,14 @@ func (g *generator) generateSizeFunction(p printFn, t types.Type) {
 		//
 		//     type A struct { x int, y string }
 		//
-		//     func serviceweaver_size_ptr_A(x *A) int {
+		//     func mx_size_ptr_A(x *A) int {
 		//         size := 0
 		//         size += 8
 		//         size += len(x.y)
 		//         return size
 		//     }
 		s := x.Underlying().(*types.Struct)
-		p("func serviceweaver_size_%s(x *%s) int {", sanitize(t), g.tset.genTypeString(t))
+		p("func mx_size_%s(x *%s) int {", sanitize(t), g.tset.genTypeString(t))
 		p("	size := 0")
 		for i := 0; i < s.NumFields(); i++ {
 			f := s.Field(i)
@@ -1826,7 +1826,7 @@ func (g *generator) generateSizeFunction(p printFn, t types.Type) {
 
 	case *types.Struct:
 		// Same as Named.
-		p("func serviceweaver_size_%s(x *%s) int {", sanitize(t), g.tset.genTypeString(t))
+		p("func mx_size_%s(x *%s) int {", sanitize(t), g.tset.genTypeString(t))
 		p("	size := 0")
 		for i := 0; i < x.NumFields(); i++ {
 			f := x.Field(i)
@@ -2013,8 +2013,8 @@ func (g *generator) generateReflectStubs(p printFn) {
 	}
 }
 
-// generateAutoMarshalMethods generates WeaverMarshal and WeaverUnmarshal methods
-// for any types that declares itself as weaver.AutoMarshal.
+// generateAutoMarshalMethods generates MXMarshal and MXUnmarshal methods
+// for any types that declares itself as mx.AutoMarshal.
 func (g *generator) generateAutoMarshalMethods(p printFn) {
 	if g.tset.automarshalCandidates.Len() > 0 {
 		p(``)
@@ -2037,54 +2037,54 @@ func (g *generator) generateAutoMarshalMethods(p printFn) {
 		// Pair type:
 		//
 		//     type Pair struct {
-		//         weaver.AutoMarshal
+		//         mx.AutoMarshal
 		//         x int
 		//         y int
 		//     }
 		//
 		// We generate the following code:
 		//
-		//     var _ weaver.AutoMarshal = &pair{}
+		//     var _ mx.AutoMarshal = &pair{}
 		//
 		//     type __is_Pair[T ~struct {
-		//         weaver.AutoMarshal
+		//         mx.AutoMarshal
 		//         x int
 		//         y int
 		//     }] struct{}
 		//     var _ __is_Pair[Pair]
 		//
 		// These checks ensure that if a user changes the Pair struct and
-		// forgets to re-run "weaver generate", the app will not build.
+		// forgets to re-run "mx generate", the app will not build.
 		p(``)
 		p(`var _ %s = (*%s)(nil)`, g.codegen().qualify("AutoMarshal"), ts(t))
 		p(`type __is_%s[T ~%s] struct{}`, t.(*types.Named).Obj().Name(), ts(s))
 		p(`var _ __is_%s[%s]`, t.(*types.Named).Obj().Name(), ts(t))
 
-		// Generate WeaverMarshal method.
+		// Generate MXMarshal method.
 		fmt := g.tset.importPackage("fmt", "fmt")
 		p(``)
-		p(`func (x *%s) WeaverMarshal(enc *%s) {`, ts(t), g.codegen().qualify("Encoder"))
+		p(`func (x *%s) MXMarshal(enc *%s) {`, ts(t), g.codegen().qualify("Encoder"))
 		p(`	if x == nil {`)
-		p(`		panic(%s("%s.WeaverMarshal: nil receiver"))`, fmt.qualify("Errorf"), ts(t))
+		p(`		panic(%s("%s.MXMarshal: nil receiver"))`, fmt.qualify("Errorf"), ts(t))
 		p(`	}`)
 		for i := 0; i < s.NumFields(); i++ {
 			fi := s.Field(i)
-			if !isWeaverAutoMarshal(fi.Type()) {
+			if !isMXAutoMarshal(fi.Type()) {
 				p(`	%s`, g.encode("enc", "x."+fi.Name(), fi.Type()))
 				innerTypes = append(innerTypes, fi.Type())
 			}
 		}
 		p(`}`)
 
-		// Generate WeaverUnmarshal method.
+		// Generate MXUnmarshal method.
 		p(``)
-		p(`func (x *%s) WeaverUnmarshal(dec *%s) {`, ts(t), g.codegen().qualify("Decoder"))
+		p(`func (x *%s) MXUnmarshal(dec *%s) {`, ts(t), g.codegen().qualify("Decoder"))
 		p(`	if x == nil {`)
-		p(`		panic(%s("%s.WeaverUnmarshal: nil receiver"))`, fmt.qualify("Errorf"), ts(t))
+		p(`		panic(%s("%s.MXUnmarshal: nil receiver"))`, fmt.qualify("Errorf"), ts(t))
 		p(`	}`)
 		for i := 0; i < s.NumFields(); i++ {
 			fi := s.Field(i)
-			if !isWeaverAutoMarshal(fi.Type()) {
+			if !isMXAutoMarshal(fi.Type()) {
 				p(`	%s`, g.decode("dec", "&x."+fi.Name(), fi.Type()))
 			}
 		}
@@ -2132,7 +2132,7 @@ func (g *generator) generateRouterMethodsFor(p printFn, comp *component, t types
 		s := t.Underlying().(*types.Struct)
 		for i := 0; i < s.NumFields(); i++ {
 			f := s.Field(i)
-			if isWeaverAutoMarshal(f.Type()) {
+			if isMXAutoMarshal(f.Type()) {
 				continue
 			}
 			tname := f.Type().Underlying().String()
@@ -2152,7 +2152,7 @@ func (g *generator) generateRouterMethodsFor(p printFn, comp *component, t types
 		s := t.Underlying().(*types.Struct)
 		for i := 0; i < s.NumFields(); i++ {
 			f := s.Field(i)
-			if isWeaverAutoMarshal(f.Type()) {
+			if isMXAutoMarshal(f.Type()) {
 				continue
 			}
 			p(`	enc.Write%s(r.%s)`, exported(f.Type().String()), f.Name())
@@ -2191,22 +2191,22 @@ func deref(e string) string {
 // "enc.Int(1)".
 func (g *generator) encode(stub, e string, t types.Type) string {
 	f := func(t types.Type) string {
-		return fmt.Sprintf("serviceweaver_enc_%s", sanitize(t))
+		return fmt.Sprintf("mx_enc_%s", sanitize(t))
 	}
 
 	// Let enc(stub, e: t) be the statement that encodes e into stub. [t] is
 	// shorthand for sanitize(t). under(t) is the underlying type of t.
 	//
 	// enc(stub, e: basic type t) = stub.[t](e)
-	// enc(stub, e: *t) = serviceweaver_enc_[*t](&stub, e)
-	// enc(stub, e: [N]t) = serviceweaver_enc_[[N]t](&stub, &e)
-	// enc(stub, e: []t) = serviceweaver_enc_[[]t](&stub, e)
-	// enc(stub, e: map[k]v) = serviceweaver_enc_[map[k]v](&stub, e)
-	// enc(stub, e: struct{...}) = serviceweaver_enc_[struct{...}](&stub, &e)
+	// enc(stub, e: *t) = mx_enc_[*t](&stub, e)
+	// enc(stub, e: [N]t) = mx_enc_[[N]t](&stub, &e)
+	// enc(stub, e: []t) = mx_enc_[[]t](&stub, e)
+	// enc(stub, e: map[k]v) = mx_enc_[map[k]v](&stub, e)
+	// enc(stub, e: struct{...}) = mx_enc_[struct{...}](&stub, &e)
 	// enc(stub, e: type t u) = stub.EncodeProto(&e)           // t implements proto.Message
-	// enc(stub, e: type t u) = (e).WeaverMarshal(stub)         // t implements AutoMarshal
+	// enc(stub, e: type t u) = (e).MXMarshal(stub)         // t implements AutoMarshal
 	// enc(stub, e: type t u) = stub.EncodeBinaryMarshaler(&e) // t implements BinaryMarshaler
-	// enc(stub, e: type t u) = serviceweaver_enc_[t](&stub, &e)       // under(u) = struct{...}
+	// enc(stub, e: type t u) = mx_enc_[t](&stub, &e)       // under(u) = struct{...}
 	// enc(stub, e: type t u) = enc(&stub, under(t)(e))        // otherwise
 	switch x := t.(type) {
 	case *types.Basic:
@@ -2242,7 +2242,7 @@ func (g *generator) encode(stub, e string, t types.Type) string {
 			return fmt.Sprintf("%s.EncodeProto(%s)", stub, ref(e))
 		}
 		if g.tset.automarshals.At(x) != nil || g.tset.implementsAutoMarshal(x) {
-			return fmt.Sprintf("(%s).WeaverMarshal(%s)", e, stub)
+			return fmt.Sprintf("(%s).MXMarshal(%s)", e, stub)
 		}
 		if g.tset.hasMarshalBinary(x) {
 			return fmt.Sprintf("%s.EncodeBinaryMarshaler(%s)", stub, ref(e))
@@ -2263,7 +2263,7 @@ func (g *generator) encode(stub, e string, t types.Type) string {
 // "p", int) is "*p = dec.Int()".
 func (g *generator) decode(stub, v string, t types.Type) string {
 	f := func(t types.Type) string {
-		return fmt.Sprintf("serviceweaver_dec_%s", sanitize(t))
+		return fmt.Sprintf("mx_dec_%s", sanitize(t))
 	}
 
 	// Let dec(stub, v: t) be the statement that decodes a value of type t from
@@ -2271,15 +2271,15 @@ func (g *generator) decode(stub, v string, t types.Type) string {
 	// the underlying type of t.
 	//
 	// dec(stub, v: basic type t) = *v := stub.[t](e)
-	// dec(stub, v: *t) = *v := serviceweaver_dec_[*t](&stub)
-	// dec(stub, v: [N]t) = serviceweaver_dec_[[N]t](stub, v)
-	// dec(stub, v: []t) = v := *v = serviceweaver_dec_[[]t](stub)
-	// dec(stub, v: map[k]v) = *v := serviceweaver_dec_[map[k]v](stub)
-	// dec(stub, v: struct{...}) = serviceweaver_dec_[struct{...}](stub, &v)
+	// dec(stub, v: *t) = *v := mx_dec_[*t](&stub)
+	// dec(stub, v: [N]t) = mx_dec_[[N]t](stub, v)
+	// dec(stub, v: []t) = v := *v = mx_dec_[[]t](stub)
+	// dec(stub, v: map[k]v) = *v := mx_dec_[map[k]v](stub)
+	// dec(stub, v: struct{...}) = mx_dec_[struct{...}](stub, &v)
 	// dec(stub, v: type t u) = stub.DecodeProto(v)             // t implements proto.Message
-	// dec(stub, v: type t u) = (v).WeaverUnmarshal(stub)        // t implements AutoMarshal
+	// dec(stub, v: type t u) = (v).MXUnmarshal(stub)        // t implements AutoMarshal
 	// dec(stub, v: type t u) = stub.DecodeBinaryUnmarshaler(v) // t implements BinaryUnmarshaler
-	// dec(stub, v: type t u) = serviceweaver_dec_[t](stub, v)          // under(u) = struct{...}
+	// dec(stub, v: type t u) = mx_dec_[t](stub, v)          // under(u) = struct{...}
 	// dec(stub, v: type t u) = dec(stub, (*under(t))(v))       // otherwise
 	switch x := t.(type) {
 	case *types.Basic:
@@ -2315,7 +2315,7 @@ func (g *generator) decode(stub, v string, t types.Type) string {
 			return fmt.Sprintf("%s.DecodeProto(%s)", stub, v)
 		}
 		if g.tset.automarshals.At(x) != nil || g.tset.implementsAutoMarshal(x) {
-			return fmt.Sprintf("(%s).WeaverUnmarshal(%s)", v, stub)
+			return fmt.Sprintf("(%s).MXUnmarshal(%s)", v, stub)
 		}
 		if g.tset.hasMarshalBinary(x) {
 			return fmt.Sprintf("%s.DecodeBinaryUnmarshaler(%s)", stub, v)
@@ -2388,7 +2388,7 @@ func (g *generator) generateEncDecMethodsFor(p printFn, t types.Type) {
 		g.generateEncDecMethodsFor(p, x.Elem())
 
 		p(``)
-		p(`func serviceweaver_enc_%s(enc *%s, arg %s) {`, sanitize(x), g.codegen().qualify("Encoder"), ts(x))
+		p(`func mx_enc_%s(enc *%s, arg %s) {`, sanitize(x), g.codegen().qualify("Encoder"), ts(x))
 		p(`	if arg == nil {`)
 		p(`		enc.Bool(false)`)
 		p(`	} else {`)
@@ -2398,7 +2398,7 @@ func (g *generator) generateEncDecMethodsFor(p printFn, t types.Type) {
 		p(`}`)
 
 		p(``)
-		p(`func serviceweaver_dec_%s(dec *%s) %s {`, sanitize(x), g.codegen().qualify("Decoder"), ts(x))
+		p(`func mx_dec_%s(dec *%s) %s {`, sanitize(x), g.codegen().qualify("Decoder"), ts(x))
 		p(`	if !dec.Bool() {`)
 		p(`		return nil`)
 		p(`	}`)
@@ -2412,7 +2412,7 @@ func (g *generator) generateEncDecMethodsFor(p printFn, t types.Type) {
 
 		// Note that arg is never nil.
 		p(``)
-		p(`func serviceweaver_enc_%s(enc *%s, arg *%s) {`, sanitize(x), g.codegen().qualify("Encoder"), ts(x))
+		p(`func mx_enc_%s(enc *%s, arg *%s) {`, sanitize(x), g.codegen().qualify("Encoder"), ts(x))
 		p(`	for i := 0; i < %d; i++ {`, x.Len())
 		p(`		%s`, g.encode("enc", "arg[i]", x.Elem()))
 		p(`	}`)
@@ -2420,7 +2420,7 @@ func (g *generator) generateEncDecMethodsFor(p printFn, t types.Type) {
 
 		// Note that res is never nil.
 		p(``)
-		p(`func serviceweaver_dec_%s(dec *%s, res *%s) {`, sanitize(x), g.codegen().qualify("Decoder"), ts(x))
+		p(`func mx_dec_%s(dec *%s, res *%s) {`, sanitize(x), g.codegen().qualify("Decoder"), ts(x))
 		p(`	for i := 0; i < %d; i++ {`, x.Len())
 		p(`		%s`, g.decode("dec", "&res[i]", x.Elem()))
 		p(`	}`)
@@ -2430,7 +2430,7 @@ func (g *generator) generateEncDecMethodsFor(p printFn, t types.Type) {
 		g.generateEncDecMethodsFor(p, x.Elem())
 
 		p(``)
-		p(`func serviceweaver_enc_%s(enc *%s, arg %s) {`, sanitize(x), g.codegen().qualify("Encoder"), ts(x))
+		p(`func mx_enc_%s(enc *%s, arg %s) {`, sanitize(x), g.codegen().qualify("Encoder"), ts(x))
 		p(`	if arg == nil {`)
 		p(`		enc.Len(-1)`)
 		p(`		return`)
@@ -2442,7 +2442,7 @@ func (g *generator) generateEncDecMethodsFor(p printFn, t types.Type) {
 		p(`}`)
 
 		p(``)
-		p(`func serviceweaver_dec_%s(dec *%s) %s {`, sanitize(x), g.codegen().qualify("Decoder"), ts(x))
+		p(`func mx_dec_%s(dec *%s) %s {`, sanitize(x), g.codegen().qualify("Decoder"), ts(x))
 		p(`	n := dec.Len()`)
 		p(`	if n == -1 {`)
 		p(`		return nil`)
@@ -2459,7 +2459,7 @@ func (g *generator) generateEncDecMethodsFor(p printFn, t types.Type) {
 		g.generateEncDecMethodsFor(p, x.Elem())
 
 		p(``)
-		p(`func serviceweaver_enc_%s(enc *%s, arg %s) {`, sanitize(x), g.codegen().qualify("Encoder"), ts(x))
+		p(`func mx_enc_%s(enc *%s, arg %s) {`, sanitize(x), g.codegen().qualify("Encoder"), ts(x))
 		p(`	if arg == nil {`)
 		p(`		enc.Len(-1)`)
 		p(`		return`)
@@ -2472,7 +2472,7 @@ func (g *generator) generateEncDecMethodsFor(p printFn, t types.Type) {
 		p(`}`)
 
 		p(``)
-		p(`func serviceweaver_dec_%s(dec *%s) %s {`, sanitize(x), g.codegen().qualify("Decoder"), ts(x))
+		p(`func mx_dec_%s(dec *%s) %s {`, sanitize(x), g.codegen().qualify("Decoder"), ts(x))
 		p(`	n := dec.Len()`)
 		p(`	if n == -1 {`)
 		p(`		return nil`)
@@ -2494,7 +2494,7 @@ func (g *generator) generateEncDecMethodsFor(p printFn, t types.Type) {
 
 	case *types.Named:
 		if g.tset.isProto(x) || g.tset.automarshals.At(x) != nil || g.tset.implementsAutoMarshal(x) || g.tset.hasMarshalBinary(x) {
-			// Types implementing proto.Marshal, weaver.AutoMarshal, or
+			// Types implementing proto.Marshal, mx.AutoMarshal, or
 			// encoding.BinaryMarshaler and encoding.BinaryUnmarshaler don't
 			// need encoding or decoding methods. Instead, we call methods
 			// directly on a codegen.Encoder or codegen.Decoder (e.g.,
@@ -2511,14 +2511,14 @@ func (g *generator) generateEncDecMethodsFor(p printFn, t types.Type) {
 	}
 }
 
-// weaver imports and returns the weaver package.
-func (g *generator) weaver() importPkg {
-	return g.tset.importPackage(weaverPackagePath, "weaver")
+// mx imports and returns the mx package.
+func (g *generator) mx() importPkg {
+	return g.tset.importPackage(mxPackagePath, "mx")
 }
 
 // codegen imports and returns the codegen package.
 func (g *generator) codegen() importPkg {
-	path := fmt.Sprintf("%s/runtime/codegen", weaverPackagePath)
+	path := fmt.Sprintf("%s/runtime/codegen", mxPackagePath)
 	return g.tset.importPackage(path, "codegen")
 }
 

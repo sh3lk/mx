@@ -28,7 +28,7 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type foo interface {
@@ -36,7 +36,7 @@ type foo interface {
 	B(context.Context) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) A(context.Context) error {
 	return nil

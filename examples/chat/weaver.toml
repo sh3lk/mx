@@ -1,8 +1,8 @@
-[serviceweaver]
+[mx]
 binary = "./chat"
 rollout = "5m"
 
-["github.com/ServiceWeaver/weaver/examples/chat/SQLStore"]
+["github.com/sh3lk/mx/examples/chat/SQLStore"]
 db_driver = "mysql"
 db_uri = "root:password@tcp(localhost:3306)/chat"
 

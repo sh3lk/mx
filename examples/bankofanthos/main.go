@@ -17,8 +17,8 @@
 // This application is a forked version of Google Cloud's Bank of Anthos
 // app [1], with the following changes:
 //   - It is written entirely in Go.
-//   - It is written as a single Service Weaver application.
-//   - It is written to use Service Weaver specific logging/tracing/monitoring.
+//   - It is written as a single MX application.
+//   - It is written to use MX specific logging/tracing/monitoring.
 //
 // [1]: https://github.com/GoogleCloudPlatform/bank-of-anthos
 package main
@@ -28,15 +28,15 @@ import (
 	"flag"
 	"log"
 
-	"github.com/ServiceWeaver/weaver"
-	"github.com/ServiceWeaver/weaver/examples/bankofanthos/frontend"
+	"github.com/sh3lk/mx"
+	"github.com/sh3lk/mx/examples/bankofanthos/frontend"
 )
 
-//go:generate ../../cmd/weaver/weaver generate
+//go:generate ../../cmd/mx/mx generate
 
 func main() {
 	flag.Parse()
-	if err := weaver.Run(context.Background(), frontend.Serve); err != nil {
+	if err := mx.Run(context.Background(), frontend.Serve); err != nil {
 		log.Fatal(err)
 	}
 }

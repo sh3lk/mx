@@ -24,27 +24,27 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ServiceWeaver/weaver/internal/status"
-	itool "github.com/ServiceWeaver/weaver/internal/tool"
-	"github.com/ServiceWeaver/weaver/internal/tool/config"
-	"github.com/ServiceWeaver/weaver/runtime"
-	"github.com/ServiceWeaver/weaver/runtime/bin"
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
-	"github.com/ServiceWeaver/weaver/runtime/retry"
-	"github.com/ServiceWeaver/weaver/runtime/tool"
-	"github.com/ServiceWeaver/weaver/runtime/version"
 	"github.com/google/uuid"
+	"github.com/sh3lk/mx/internal/status"
+	itool "github.com/sh3lk/mx/internal/tool"
+	"github.com/sh3lk/mx/internal/tool/config"
+	"github.com/sh3lk/mx/runtime"
+	"github.com/sh3lk/mx/runtime/bin"
+	"github.com/sh3lk/mx/runtime/codegen"
+	"github.com/sh3lk/mx/runtime/retry"
+	"github.com/sh3lk/mx/runtime/tool"
+	"github.com/sh3lk/mx/runtime/version"
 )
 
 const (
-	configKey      = "github.com/ServiceWeaver/weaver/multi"
+	configKey      = "github.com/sh3lk/mx/multi"
 	shortConfigKey = "multi"
 )
 
 var deployCmd = tool.Command{
 	Name:        "deploy",
-	Description: "Deploy a Service Weaver app",
-	Help:        "Usage:\n  weaver multi deploy <configfile>",
+	Description: "Deploy a MX app",
+	Help:        "Usage:\n  mx multi deploy <configfile>",
 	Flags:       flag.NewFlagSet("deploy", flag.ContinueOnError),
 	Fn:          deploy,
 }
@@ -103,18 +103,18 @@ func deploy(ctx context.Context, args []string) error {
 		}
 		return fmt.Errorf(`
 ERROR: The binary you're trying to deploy (%q) was built with
-github.com/ServiceWeaver/weaver module version %s. However, the 'weaver
-multi' binary you're using was built with weaver module version %s.
+github.com/sh3lk/mx module version %s. However, the 'mx
+multi' binary you're using was built with mx module version %s.
 These versions are incompatible.
 
-We recommend updating both the weaver module your application is built with and
-updating the 'weaver multi' command by running the following.
+We recommend updating both the mx module your application is built with and
+updating the 'mx multi' command by running the following.
 
-    go get github.com/ServiceWeaver/weaver@latest
-    go install github.com/ServiceWeaver/weaver/cmd/weaver@latest
+    go get github.com/sh3lk/mx@latest
+    go install github.com/sh3lk/mx/cmd/mx@latest
 
-Then, re-build your code and re-run 'weaver multi deploy'. If the problem
-persists, please file an issue at https://github.com/ServiceWeaver/weaver/issues.`,
+Then, re-build your code and re-run 'mx multi deploy'. If the problem
+persists, please file an issue at https://github.com/sh3lk/mx/issues.`,
 			binary, versions.ModuleVersion, selfVersion)
 	}
 

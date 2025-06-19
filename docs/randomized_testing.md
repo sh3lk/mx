@@ -29,7 +29,7 @@ func FuzzReversedIsInvolutive(f *testing.F) {
 }
 ```
 
-We can test Service Weaver applications in the same way and check that
+We can test MX applications in the same way and check that
 properties of an application always hold, even when we run random operations
 on random inputs in the face of random failures and random interleavings. For
 distributed systems, this kind of randomized property-based testing is
@@ -40,7 +40,7 @@ protocols tend to have subtle bugs][protocol_bugs].
 ## Overview
 
 In this document, we describe three ways to introduce randomized property-based
-testing to Service Weaver. This doc borrows heavily from [*Testing Distributed
+testing to MX. This doc borrows heavily from [*Testing Distributed
 Systems*][testing_distributed_systems] by [Andrey Satarin][asatarin].
 
 The various approaches differ in the following ways.
@@ -53,7 +53,7 @@ The various approaches differ in the following ways.
 
 ## Jepsen Testing
 
-With [Jepsen][jepsen]-style testing, we run a Service Weaver application with
+With [Jepsen][jepsen]-style testing, we run a MX application with
 components in their own containers. We execute random client requests against
 the system, with requests allowed to execute in parallel. We periodically inject
 failures into the system. For example, we can
@@ -86,7 +86,7 @@ deterministic). Running an app across a set of containers can also be slow.
 ## Deterministic Simulation
 
 With [deterministic simulation][deterministic_simulation], we run a Service
-Weaver application all within a single process. We execute random client
+MX application all within a single process. We execute random client
 requests concurrently, but not in parallel. Specifically, a client request
 executes on its own, but when the client request calls a component method, its
 execution is suspended and control is passed to a centralized scheduler. The
@@ -132,7 +132,7 @@ very particular point in the middle of its execution. Because deterministic
 simulation only suspends a component at method call boundaries, it won't uncover
 this bug.
 
-If the code in a Service Weaver application is not deterministic, then
+If the code in a MX application is not deterministic, then
 deterministic simulation is less effective. A failing execution may not always
 fail, and minimization may act erratically.
 
@@ -142,7 +142,7 @@ at every method call.
 
 ## Chaos Testing
 
-[Chaos testing][chaos_monkey] a Service Weaver app is similar to Jepsen testing
+[Chaos testing][chaos_monkey] a MX app is similar to Jepsen testing
 it. We run the application in a set of containers, run a random workload against
 it, and fail things periodically. The difference is that Jepsen-style testing
 tests properties that should always hold, no matter how many failures there are
@@ -161,7 +161,7 @@ reason about but also less expressive.
 
 ## Proposal
 
-I propose we introduce deterministic simulation style testing to weavertest.
+I propose we introduce deterministic simulation style testing to mxtest.
 Later, we may be able to implement Jepsen-style testing as well using the same
 or very similar API. Both deterministic testing and Jepsen testing require
 roughly the same things from the user (which operations to run, how to generate
@@ -176,5 +176,5 @@ check).
 [jepsen]: https://jepsen.io/
 [minimization]: https://www.usenix.org/system/files/conference/nsdi16/nsdi16-paper-scott.pdf
 [protocol_bugs]: https://github.com/dranov/protocol-bugs-list
-[sim_demo]: https://github.com/ServiceWeaver/weaver/tree/sim/internal/sim
+[sim_demo]: https://github.com/sh3lk/mx/tree/sim/internal/sim
 [testing_distributed_systems]: https://asatarin.github.io/testing-distributed-systems/

@@ -1,4 +1,4 @@
-# A Quick Introduction to Service Weaver
+# A Quick Introduction to MX
 
 <div class="blog-author">Robert Grandl</div>
 <div class="blog-date">March 1, 2023</div>
@@ -20,15 +20,15 @@
 of microservices!</b></i></p>
 
 <p style='text-align: justify; margin-bottom: 0.5em;'>
-<b>TL;DR:</b> Service Weaver is a programming framework for writing, deploying, and
-managing distributed applications in Go. With Service Weaver, you write your
+<b>TL;DR:</b> MX is a programming framework for writing, deploying, and
+managing distributed applications in Go. With MX, you write your
 application like it is a traditional, single-process Go executable that runs on
 your local machine. Then, you deploy it to the Cloud, and the framework breaks
 it down into a set of connected microservices and integrates it with the cloud
 provider (e.g., monitoring, tracing, logging).</p>
 </div>
 
-## Why Service Weaver?
+## Why MX?
 
 When we write an application that runs on our laptop, we rely on traditional
 programming concepts such as functions and interfaces, and our main challenges
@@ -58,8 +58,8 @@ HTTP servers).
 Hence, our application code becomes more complicated and we slowly get
 distracted from our initial focus: application business logic.
 
->With Service Weaver, your focus is mostly on the application business logic.
->Service Weaver takes care of cloud configuration and integration with the cloud
+>With MX, your focus is mostly on the application business logic.
+>MX takes care of cloud configuration and integration with the cloud
 >provider.
 
 
@@ -80,7 +80,7 @@ we often end up with more microservices than we need, resulting in additional
 failure points, greater latency, and an inherently more difficult application
 to develop, deploy, and manage.
 
->With Service Weaver, you are encouraged to split the application into as many
+>With MX, you are encouraged to split the application into as many
 >components as desired. During deployment, you easily configure which components
 >run together in the same microservice and which run in separate microservices.
 
@@ -107,7 +107,7 @@ also contain cloud-specific calls, end-to-end testing is challenging to do
 locally. We are more likely to rely on detecting errors when deploying the
 application services, as opposed to running end-to-end tests.
 
->With Service Weaver, you deploy and manage a single application binary. The
+>With MX, you deploy and manage a single application binary. The
 >fact that it runs as separate microservices in the cloud is an implementation
 >detail: all of your tooling preserves the impression of a single application
 >binary. You can also easily run and test your application locally, before
@@ -122,14 +122,14 @@ the network. We don't want to reinvent the network transport and serialization
 protocols, so we just leave the application as is. It costs us more to run, but
 we don't want to invest additional engineering time in optimizing performance.
 
->Service Weaver uses custom serialization and transport protocols that are up to
+>MX uses custom serialization and transport protocols that are up to
 >three times more cost effective than the best industry solutions (i.e., gRPC
 >and protocol buffers). This means your cloud bill is significantly reduced and
 >you can double-down on your focus on the application logic.
 
-## How to Write an Application with Service Weaver?
+## How to Write an Application with MX?
 
-The core abstraction of Service Weaver is a *component*, an actor-like unit of
+The core abstraction of MX is a *component*, an actor-like unit of
 computation. A component is represented as a regular Go interface, and
 components interact with each other by calling the methods defined by these
 interfaces. For example, here is a simple Reverser component that, as the name
@@ -143,7 +143,7 @@ type Reverser interface {
 
 // The implementation of the Reverser component.
 type reverser struct{
-    weaver.Implements[Reverser]
+    mx.Implements[Reverser]
 }
 
 func (r reverser) Reverse(_ context.Context, s string) (string, error) {
@@ -168,7 +168,7 @@ Despite the fact that we didn’t write any networking or serialization code,
 components can run in separate processes or on completely different machines.
 Here is a diagram illustrating this concept:
 
-![A diagram showing off various types of Service Weaver deployments](../assets/images/components.svg)
+![A diagram showing off various types of MX deployments](../assets/images/components.svg)
 
 When two components run together in a single process, method calls between them
 are executed as regular Go method calls. When two components run in separate
@@ -189,34 +189,34 @@ dependencies.
 * Splitting and merging microservices can be painful. This leads people to avoid
 microservices entirely or to split their application into an unnecessarily large
 number of microservices out of fear that “it will be harder to split later”.
-Service Weaver makes it trivial to add new components or merge two components
+MX makes it trivial to add new components or merge two components
 together. You don’t have to worry about getting component boundaries perfect.
 
-## How to Manage my Service Weaver Application?
+## How to Manage my MX Application?
 
-Service Weaver provides mechanisms to easily test, debug and deploy new versions
+MX provides mechanisms to easily test, debug and deploy new versions
 of your application, without the headaches and the burden a cloud developer has
 to face today.
 
 <h3 class="emphasize-title">Deploying</h3>
 
-Service Weaver makes it as easy to run an application on the cloud as it is to
+MX makes it as easy to run an application on the cloud as it is to
 run it locally on your laptop:
 
 ```console
 $ go run .                           # Run locally, in the same OS process.
-$ weaver multi deploy weaver.toml    # Run locally, in multiple OS processes.
-$ weaver gke deploy weaver.toml      # Run in the cloud.
+$ mx multi deploy mx.toml    # Run locally, in multiple OS processes.
+$ mx gke deploy mx.toml      # Run in the cloud.
 ```
 
 <h3 class="emphasize-title">Configuration</h3>
 
-Service Weaver requires a tiny amount of configuration to deploy to the cloud.
+MX requires a tiny amount of configuration to deploy to the cloud.
 The Online Boutique demo application has over 1,500 lines of configuration.
-The same app written with Service Weaver has less than 10:
+The same app written with MX has less than 10:
 
 ```toml
-[weaver]
+[mx]
 binary = "./online_boutique"
 rollout = "6h"
 
@@ -246,19 +246,19 @@ interactions between multiple versions of a system:
 >About two thirds of update failures are caused by interaction between two
 >software versions that hold incompatible data syntax or semantics assumptions.
 
-Service Weaver takes a different approach to rollouts. It ensures that client
+MX takes a different approach to rollouts. It ensures that client
 requests are executed entirely within a single version of a system. A component
 in one version will never communicate with a component in a different version.
 This eliminates the leading cause of update failures, allowing you to roll out
 new versions of your application safely and with less headache.
 
 When you make changes to your application, simply rebuild and rerun it. Service
-Weaver will take care of gradually shifting traffic from the old version to the
+MX will take care of gradually shifting traffic from the old version to the
 new version.
 
 <h3 class="emphasize-title">Instrumenting</h3>
 
-Service Weaver provides libraries for logging, metrics, and tracing. This
+MX provides libraries for logging, metrics, and tracing. This
 telemetry is automatically integrated into the environment where an application
 is deployed. For example, if we deploy an application on Google Cloud, logs are
 automatically exported to [Google Cloud Logging][cloud_logging], metrics are
@@ -286,25 +286,25 @@ dependencies, install complex testing frameworks, or deploy the application to
 the cloud. All of these approaches take a significant toll on development
 velocity.
 
-Service Weaver applications, on the other hand, can be built, run, and tested
+MX applications, on the other hand, can be built, run, and tested
 like regular Go programs. You can make a change to your application, and simply
 run `go run .` to see the effect of the changes immediately. Additionally,
-Service Weaver provides a `weavertest` package that makes writing end-to-end
+MX provides a `mxtest` package that makes writing end-to-end
 tests as easy as writing unit tests.
 
 ## High-Performance
 
-Service Weaver applications are not only easier to write, run, and manage;
+MX applications are not only easier to write, run, and manage;
 they’re also faster.
 
->We found out that Service Weaver improves application latency by 15x and reduces
+>We found out that MX improves application latency by 15x and reduces
 >VM costs by 9x when compared to a typical microservices solution built on top
 >of gRPC and protocol buffers.
 
 <h3 class="emphasize-title">No RPCs, No Protos, An Efficient Network Protocol</h3>
 
 The fact that all application components run at the same code version allows
-Service Weaver to heavily optimize its serialization and communication
+MX to heavily optimize its serialization and communication
 protocols. For example, co-located components communicate via direct method
 calls; components that aren't co-located communicate using language native
 data-structures and a custom RPC protocol. Both the serialization and the RPC
@@ -314,23 +314,23 @@ the overhead needed to resolve versioning issues.
 <h3 class="emphasize-title">Efficient Autoscaling and Load Balancing</h3>
 
 Another benefit of running all components at the same version in a single
-application binary is that Service Weaver has a bird’s-eye view into the
-application and the interactions between components. This allows Service Weaver
+application binary is that MX has a bird’s-eye view into the
+application and the interactions between components. This allows MX
 to make intelligent component placement decisions and employ efficient
 autoscaling solutions.
 
 <h3 class="emphasize-title">Flexible Placement</h3>
 
-Service Weaver provides flexible component placement. For example, we can
+MX provides flexible component placement. For example, we can
 co-locate two components that communicate often with each other in the same
 process or machine. Conversely, we can place components with the same resource
 bottleneck on different machines to improve resource utilization or to improve
-fault-isolation. Service Weaver enables us to do all this with a single-line
+fault-isolation. MX enables us to do all this with a single-line
 config change.
 
 <h3 class="emphasize-title">Sharding</h3>
 
-Service Weaver enables you to shard application requests across component
+MX enables you to shard application requests across component
 replicas with application specific sharding keys. This allows you to more
 intelligently spread load across component replicas. The affinity also improves
 cache efficiency, which lowers application latency and reduces hotspots.

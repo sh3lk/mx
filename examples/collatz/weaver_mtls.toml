@@ -1,4 +1,4 @@
-[serviceweaver]
+[mx]
 binary = "./collatz"
 rollout = "5m"
 

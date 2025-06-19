@@ -14,12 +14,12 @@
 
 // EXPECTED
 // Preallocate
-// func (x *A) WeaverMarshal(enc *codegen.Encoder)
-// func (x *A) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *B) WeaverMarshal(enc *codegen.Encoder)
-// func (x *B) WeaverUnmarshal(dec *codegen.Decoder)
-// serviceweaver_size_A_7d96e200(x *A)
-// serviceweaver_size_B_1fd0dae2(x *B)
+// func (x *A) MXMarshal(enc *codegen.Encoder)
+// func (x *A) MXUnmarshal(dec *codegen.Decoder)
+// func (x *B) MXMarshal(enc *codegen.Encoder)
+// func (x *B) MXUnmarshal(dec *codegen.Decoder)
+// mx_size_A_7d96e200(x *A)
+// mx_size_B_1fd0dae2(x *B)
 
 // Generate methods for named types that are structs.
 package foo
@@ -27,16 +27,16 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type B struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	A
 }
 
 type A struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	A1 int
 	A2 string
 }
@@ -45,7 +45,7 @@ type foo interface {
 	M(context.Context, A, B) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) M(context.Context, A, B) error {
 	return nil

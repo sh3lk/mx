@@ -23,19 +23,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/runtime/colors"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
-	dtool "github.com/ServiceWeaver/weaver/runtime/tool"
+	"github.com/sh3lk/mx/runtime/colors"
+	"github.com/sh3lk/mx/runtime/logging"
+	dtool "github.com/sh3lk/mx/runtime/tool"
 )
 
 // StatusCommand returns a "status" subcommand that pretty prints the status of
 // all active applications registered with the provided registry. tool is the
 // name of the command-line tool the returned subcommand runs as (e.g.,
-// "weaver single").
+// "mx single").
 func StatusCommand(tool string, registry func(context.Context) (*Registry, error)) *dtool.Command {
 	return &dtool.Command{
 		Name:        "status",
-		Description: "Show the status of Service Weaver applications",
+		Description: "Show the status of MX applications",
 		Help: fmt.Sprintf(`Usage:
   %s status
 
@@ -111,7 +111,7 @@ func formatComponents(w io.Writer, statuses []*Status) {
 	title := []colors.Text{{{S: "COMPONENTS", Bold: true}}}
 	t := colors.NewTabularizer(w, title, colors.PrefixDim)
 	defer t.Flush()
-	t.Row("APP", "DEPLOYMENT", "COMPONENT", "REPLICA PIDS", "WEAVELET IDS")
+	t.Row("APP", "DEPLOYMENT", "COMPONENT", "REPLICA PIDS", "MXN IDS")
 	for _, status := range statuses {
 		sort.Slice(status.Components, func(i, j int) bool {
 			return status.Components[i].Name < status.Components[j].Name
@@ -123,12 +123,12 @@ func formatComponents(w io.Writer, statuses []*Status) {
 				return component.Replicas[i].Pid < component.Replicas[j].Pid
 			})
 			pids := make([]string, len(component.Replicas))
-			weaveletIds := make([]string, len(component.Replicas))
+			mxnIds := make([]string, len(component.Replicas))
 			for i, replica := range component.Replicas {
 				pids[i] = fmt.Sprint(replica.Pid)
-				weaveletIds[i] = replica.WeaveletId[0:8]
+				mxnIds[i] = replica.MXNId[0:8]
 			}
-			t.Row(status.App, prefix, c, strings.Join(pids, ", "), strings.Join(weaveletIds, ", "))
+			t.Row(status.App, prefix, c, strings.Join(pids, ", "), strings.Join(mxnIds, ", "))
 		}
 	}
 }

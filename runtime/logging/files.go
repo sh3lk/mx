@@ -27,13 +27,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/internal/cond"
-	"github.com/ServiceWeaver/weaver/internal/heap"
-	"github.com/ServiceWeaver/weaver/runtime/colors"
-	"github.com/ServiceWeaver/weaver/runtime/protomsg"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
 	"github.com/fsnotify/fsnotify"
 	"github.com/google/cel-go/cel"
+	"github.com/sh3lk/mx/internal/cond"
+	"github.com/sh3lk/mx/internal/heap"
+	"github.com/sh3lk/mx/runtime/colors"
+	"github.com/sh3lk/mx/runtime/protomsg"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
 // This file contains code to read and write log entries to and from files.
@@ -117,14 +117,14 @@ func (fs *FileStore) Add(e *protos.LogEntry) {
 	fmt.Fprintln(os.Stderr, fs.pp.Format(e))
 }
 
-// filename returns the log file for the specified (app, deployment, weavelet,
+// filename returns the log file for the specified (app, deployment, mxn,
 // level) tuple.
 //
 // These files are typically stored in DefaultLogDir. The directory contains
-// one log file for every (app, deployment, weavelet, level) tuple. For
+// one log file for every (app, deployment, mxn, level) tuple. For
 // example, the logs directory might look like this:
 //
-//	/tmp/serviceweaver/logs
+//	/tmp/mx/logs
 //	├── collatz.v1.111.info.log
 //	├── collatz.v1.111.error.log
 //	├── collatz.v1.222.log
@@ -133,36 +133,36 @@ func (fs *FileStore) Add(e *protos.LogEntry) {
 //
 // TODO(mwhittaker): Instead of this structure, we could instead have
 // directories for every deployment. For example, we could have
-// /tmp/serviceweaver/logs/todo/v1, /tmp/serviceweaver/logs/todo/v2, and so on. This makes
+// /tmp/mx/logs/todo/v1, /tmp/mx/logs/todo/v2, and so on. This makes
 // catting logs cleaner (we don't have to look through every single log file
 // and filter out the ones we're not interested in), but it makes tailing logs
 // much more complicated. Another extreme is to store all logs in a single
 // database. Reconsider the storage of logs after we have a better sense for
 // the performance.
 //
-// TODO(mwhittaker): We store the application, deployment, weavelet id,
+// TODO(mwhittaker): We store the application, deployment, mxn id,
 // level redundantly in every log entry. Omit them from the log entries and
 // infer them from the log name.
-func filename(app, deployment, weavelet, level string) string {
-	return fmt.Sprintf("%s#%s#%s#%s.log", app, deployment, weavelet, level)
+func filename(app, deployment, mxn, level string) string {
+	return fmt.Sprintf("%s#%s#%s#%s.log", app, deployment, mxn, level)
 }
 
-// logfile represents a log file for a specific (app, deployment, weavelet,
+// logfile represents a log file for a specific (app, deployment, mxn,
 // level) tuple.
 type logfile struct {
 	app        string
 	deployment string
-	weavelet   string
+	mxn        string
 	level      string
 }
 
 // parseLogfile parses a logfile filename.
 func parseLogfile(filename string) (logfile, error) {
-	// TODO(mwhittaker): Ensure that apps, deployments, weavelet ids, levels
+	// TODO(mwhittaker): Ensure that apps, deployments, mxn ids, levels
 	// don't contain a "#". Or, switch to some other delimiter that doesn't
 	// show up.
 
-	const want = "<app>#<deployment>#<weavelet>#<level>.log"
+	const want = "<app>#<deployment>#<mxn>#<level>.log"
 
 	prefix, hasLogSuffix := strings.CutSuffix(filename, ".log")
 
@@ -179,7 +179,7 @@ func parseLogfile(filename string) (logfile, error) {
 	return logfile{
 		app:        parts[0],
 		deployment: parts[1],
-		weavelet:   parts[2],
+		mxn:        parts[2],
 		level:      parts[3],
 	}, nil
 }
@@ -218,8 +218,8 @@ func (l *logfile) matches(prog cel.Program) (bool, error) {
 		"app":          l.app,
 		"version":      Shorten(l.deployment),
 		"full_version": l.deployment,
-		"node":         Shorten(l.weavelet),
-		"full_node":    l.weavelet,
+		"node":         Shorten(l.mxn),
+		"full_node":    l.mxn,
 		"level":        l.level,
 	})
 

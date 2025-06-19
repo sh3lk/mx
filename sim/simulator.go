@@ -17,7 +17,7 @@
 // [Deterministic simulation][1] is a type of randomized testing in which
 // millions of random operations are run against a system (with randomly
 // injected failures) in an attempt to find bugs. See
-// serviceweaver.dev/blog/testing.html for an overview of determistic
+// mx.dev/blog/testing.html for an overview of determistic
 // simulation and its implementation in the sim package.
 //
 // # Generators
@@ -115,9 +115,9 @@
 //		}
 //	}
 //
-// In this trivial example, our workload did not use any Service Weaver
+// In this trivial example, our workload did not use any MX
 // components, but most realistic workloads do. A workload can get a reference
-// to a component using weaver.Ref. See serviceweaver.dev/blog/testing.html for
+// to a component using mx.Ref. See mx.dev/blog/testing.html for
 // a complete example.
 //
 // # Graveyard
@@ -149,7 +149,7 @@
 // Users are responsible for manually deleting graveyard entries when
 // appropriate.
 //
-// TODO(mwhittaker): Move things to the weavertest package.
+// TODO(mwhittaker): Move things to the mxtest package.
 //
 // [1]: https://asatarin.github.io/testing-distributed-systems/#deterministic-simulation
 // [2]: https://go.dev/security/fuzz
@@ -170,29 +170,29 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/internal/reflection"
-	"github.com/ServiceWeaver/weaver/internal/weaver"
-	swruntime "github.com/ServiceWeaver/weaver/runtime"
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
+	"github.com/sh3lk/mx/internal/mx"
+	"github.com/sh3lk/mx/internal/reflection"
+	swruntime "github.com/sh3lk/mx/runtime"
+	"github.com/sh3lk/mx/runtime/codegen"
+	"github.com/sh3lk/mx/runtime/logging"
+	"github.com/sh3lk/mx/runtime/protos"
 	"golang.org/x/exp/maps"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
 
-// FakeComponent is a copy of weavertest.FakeComponent. It's needed to access
+// FakeComponent is a copy of mxtest.FakeComponent. It's needed to access
 // the unexported fields.
 //
-// TODO(mwhittaker): Remove this once we merge with weavertest.
+// TODO(mwhittaker): Remove this once we merge with mxtest.
 type FakeComponent struct {
 	intf reflect.Type
 	impl any
 }
 
-// Fake is a copy of weavertest.Fake.
+// Fake is a copy of mxtest.Fake.
 //
-// TODO(mwhittaker): Remove this once we merge with the weavertest package.
+// TODO(mwhittaker): Remove this once we merge with the mxtest package.
 func Fake[T any](impl any) FakeComponent {
 	t := reflection.Type[T]()
 	if _, ok := impl.(T); !ok {
@@ -274,7 +274,7 @@ type Options struct {
 	Parallelism int
 }
 
-// A Simulator deterministically simulates a Service Weaver application. See
+// A Simulator deterministically simulates a MX application. See
 // the package documentation for instructions on how to use a Simulator.
 type Simulator struct {
 	opts       Options                                // options
@@ -347,9 +347,9 @@ func New(t testing.TB, x Workload, opts Options) *Simulator {
 		x := reflect.New(reg.Impl).Interface()
 		registered[reg.Iface] = struct{}{}
 		regsByIntf[reg.Iface] = reg
-		info.hasRefs[reg.Iface] = weaver.HasRefs(x)
-		info.hasListeners[reg.Iface] = weaver.HasListeners(x)
-		info.hasConfig[reg.Iface] = weaver.HasConfig(x)
+		info.hasRefs[reg.Iface] = mx.HasRefs(x)
+		info.hasListeners[reg.Iface] = mx.HasListeners(x)
+		info.hasConfig[reg.Iface] = mx.HasConfig(x)
 	}
 
 	// Call Init and validate the registered fakes and generators.

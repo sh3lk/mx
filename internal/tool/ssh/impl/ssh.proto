@@ -14,14 +14,14 @@
 
 syntax = "proto3";
 
-option go_package = "github.com/ServiceWeaver/weaver/internal/tool/ssh/impl";
+option go_package = "github.com/sh3lk/mx/internal/tool/ssh/impl";
 
 package impl;
 import "runtime/protos/config.proto";
 import "runtime/protos/runtime.proto";
 
 // SshConfig stores the configuration information for one execution of a
-// Service Weaver application using the SSH deployer.
+// MX application using the SSH deployer.
 message SshConfig {
   // Information about the application deployment.
   runtime.AppConfig app = 1;
@@ -90,10 +90,10 @@ message BabysitterMetrics {
 }
 
 // ReplicaToRegister is a request to the manager to register a replica of
-// a given colocation group (i.e., a weavelet).
+// a given colocation group (i.e., a mxn).
 message ReplicaToRegister {
   string group = 1;
   string address = 2;    // Replica internal address.
   int64 pid = 3;         // Replica pid.
-  string weaveletId = 4; // Replica weavelet id
+  string mxnId = 4; // Replica mxn id
 }

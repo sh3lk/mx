@@ -185,16 +185,16 @@ func TestErrorUnableToDecBytes(t *testing.T) {
 
 type customTestError struct{ f string }
 
-func (c customTestError) Error() string               { return fmt.Sprintf("custom(%s)", c.f) }
-func (c *customTestError) WeaverMarshal(e *Encoder)   { e.String(c.f) }
-func (c *customTestError) WeaverUnmarshal(d *Decoder) { c.f = d.String() }
+func (c customTestError) Error() string           { return fmt.Sprintf("custom(%s)", c.f) }
+func (c *customTestError) MXMarshal(e *Encoder)   { e.String(c.f) }
+func (c *customTestError) MXUnmarshal(d *Decoder) { c.f = d.String() }
 
 // For a change, make the pointer type an error.
 type alternateError struct{ f string }
 
-func (a *alternateError) Error() string              { return fmt.Sprintf("alt(%s)", a.f) }
-func (a *alternateError) WeaverMarshal(e *Encoder)   { e.String(a.f) }
-func (a *alternateError) WeaverUnmarshal(d *Decoder) { a.f = d.String() }
+func (a *alternateError) Error() string          { return fmt.Sprintf("alt(%s)", a.f) }
+func (a *alternateError) MXMarshal(e *Encoder)   { e.String(a.f) }
+func (a *alternateError) MXUnmarshal(d *Decoder) { a.f = d.String() }
 func (a *alternateError) Is(target error) bool {
 	x, ok := target.(*alternateError)
 	return ok && a.f == x.f
@@ -202,10 +202,10 @@ func (a *alternateError) Is(target error) bool {
 
 type cyclicError struct{ msg string }
 
-func (c *cyclicError) Error() string              { return c.msg }
-func (c *cyclicError) Unwrap() error              { return c }
-func (c *cyclicError) WeaverMarshal(e *Encoder)   { e.String(c.msg) }
-func (c *cyclicError) WeaverUnmarshal(d *Decoder) { c.msg = d.String() }
+func (c *cyclicError) Error() string          { return c.msg }
+func (c *cyclicError) Unwrap() error          { return c }
+func (c *cyclicError) MXMarshal(e *Encoder)   { e.String(c.msg) }
+func (c *cyclicError) MXUnmarshal(d *Decoder) { c.msg = d.String() }
 
 func init() {
 	RegisterSerializable[*customTestError]()

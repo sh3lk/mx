@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package status contains code for implementing status related commands like
-// "weaver multi status" and "weaver single dashboard".
+// "mx multi status" and "mx single dashboard".
 package status
 
 import (
@@ -26,13 +26,13 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/ServiceWeaver/weaver/internal/files"
-	"github.com/ServiceWeaver/weaver/runtime/colors"
+	"github.com/sh3lk/mx/internal/files"
+	"github.com/sh3lk/mx/runtime/colors"
 )
 
-// A Registry is a persistent collection of Service Weaver application metadata.
+// A Registry is a persistent collection of MX application metadata.
 //
-// Tools like "weaver multi status" and "weaver multi dashboard" use the registry
+// Tools like "mx multi status" and "mx multi dashboard" use the registry
 // to know which applications are running and to fetch the status of the
 // running applications.
 type Registry struct {
@@ -49,7 +49,7 @@ type Registry struct {
 	newClient func(string) Server
 }
 
-// A Registration contains basic metadata about a Service Weaver application.
+// A Registration contains basic metadata about a MX application.
 type Registration struct {
 	DeploymentId string // deployment id (e.g, "eba18295")
 	App          string // app name (e.g., "todo")
@@ -175,7 +175,7 @@ func (r *Registry) List(ctx context.Context) ([]Registration, error) {
 	}
 	var alive []Registration
 	for _, reg := range regs {
-		// When a Service Weaver application is deployed, it registers itself
+		// When a MX application is deployed, it registers itself
 		// with a registry. Ideally, the deployment would also unregister
 		// itself when it terminates, but this is hard to guarantee. If a
 		// deployment is killed abruptly, via `kill -9` for example, then the

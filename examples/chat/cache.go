@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ServiceWeaver/weaver"
-	"github.com/ServiceWeaver/weaver/metrics"
 	lru "github.com/hashicorp/golang-lru/v2"
+	"github.com/sh3lk/mx"
+	"github.com/sh3lk/mx/metrics"
 )
 
 var (
@@ -44,7 +44,7 @@ type LocalCache interface {
 }
 
 type localCache struct {
-	weaver.Implements[LocalCache]
+	mx.Implements[LocalCache]
 	mu    sync.Mutex
 	cache *lru.Cache[string, string]
 	// TODO: Eviction policy.

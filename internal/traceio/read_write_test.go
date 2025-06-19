@@ -21,10 +21,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/internal/traceio"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
+	"github.com/sh3lk/mx/internal/traceio"
+	"github.com/sh3lk/mx/runtime/protos"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
@@ -126,7 +126,7 @@ func testAttrs() []*protos.Span_Attribute {
 		},
 		{
 			Key:   "non-empty string",
-			Value: str(protos.Span_Attribute_Value_STRING, "serviceweaver"),
+			Value: str(protos.Span_Attribute_Value_STRING, "mx"),
 		},
 		{
 			Key:   "empty bool slice",
@@ -162,9 +162,9 @@ func testAttrs() []*protos.Span_Attribute {
 		{
 			Key: "non-empty string slice",
 			Value: strs(protos.Span_Attribute_Value_STRINGLIST,
-				"serviceweaver",
+				"mx",
 				"",
-				"serviceweaver"),
+				"mx"),
 		},
 	}
 }
@@ -201,13 +201,13 @@ func TestTracesReadWrite(t *testing.T) {
 		},
 		Events: []*protos.Span_Event{
 			{
-				Name:                  "serviceweaver",
+				Name:                  "mx",
 				Attributes:            testAttrs(),
 				DroppedAttributeCount: 5,
 				TimeMicros:            time.Now().UnixMicro(),
 			},
 			{
-				Name:                  "serviceweavers",
+				Name:                  "mxs",
 				Attributes:            testAttrs(),
 				DroppedAttributeCount: 7,
 				TimeMicros:            time.Now().UnixMicro(),
@@ -215,20 +215,20 @@ func TestTracesReadWrite(t *testing.T) {
 		},
 		Status: &protos.Span_Status{
 			Code:  protos.Span_Status_ERROR,
-			Error: "serviceweaver",
+			Error: "mx",
 		},
 		Scope: &protos.Span_Scope{
-			Name:      "serviceweaver",
+			Name:      "mx",
 			Version:   "v2",
-			SchemaUrl: "serviceweaver://service.weaver",
+			SchemaUrl: "mx://service.mx",
 		},
 		Library: &protos.Span_Library{
-			Name:      "serviceweaver",
+			Name:      "mx",
 			Version:   "v2",
-			SchemaUrl: "serviceweaver://service.weaver",
+			SchemaUrl: "mx://service.mx",
 		},
 		Resource: &protos.Span_Resource{
-			SchemaUrl: "serviceweaver://service.weaver",
+			SchemaUrl: "mx://service.mx",
 			// Remove the invalid attribute, which cannot be passed into the
 			// trace.Resource type.
 			Attributes: testAttrs()[1:],

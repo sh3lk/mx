@@ -31,14 +31,14 @@
 // send the service a positive number, and the server replies with that
 // number's hailstone sequence.
 //
-// The service is implemented as an HTTP server that uses two Service Weaver components:
+// The service is implemented as an HTTP server that uses two MX components:
 // Odd and Even. Odd has a method Do that takes in an odd number x and returns
 // 3x+1. Even has a method Do that takes in an even number x and return x/2.
 // When the HTTP server receives a number x, it repeatedly sends x to either
 // Odd or Even---depending on whether x is odd or even---until x equals 1. It
 // then sends back the hailstone sequence.
 //
-// This Service Weaver application is interesting because it demonstrates the benefits
+// This MX application is interesting because it demonstrates the benefits
 // of colocation. Colocating the main component with the Odd and Even
 // components improves performance considerably.
 //
@@ -50,14 +50,14 @@ import (
 	"flag"
 	"log"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
-//go:generate ../../cmd/weaver/weaver generate
+//go:generate ../../cmd/mx/mx generate
 
 func main() {
 	flag.Parse()
-	if err := weaver.Run(context.Background(), serve); err != nil {
+	if err := mx.Run(context.Background(), serve); err != nil {
 		log.Fatal(err)
 	}
 }

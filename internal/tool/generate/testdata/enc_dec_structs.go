@@ -13,30 +13,30 @@
 // limitations under the License.
 
 // EXPECTED
-// func (x *XYZ) WeaverMarshal(enc *codegen.Encoder)
-// func (x *XYZ) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *XY) WeaverMarshal(enc *codegen.Encoder)
-// func (x *XY) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *X) WeaverMarshal(enc *codegen.Encoder)
-// func (x *X) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *Z) WeaverMarshal(enc *codegen.Encoder)
-// func (x *Z) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *XYZ) WeaverMarshal(enc *codegen.Encoder)
-// func (x *XYZ) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *XY) WeaverMarshal(enc *codegen.Encoder)
-// func (x *XY) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *X) WeaverMarshal(enc *codegen.Encoder)
-// func (x *X) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *Z) WeaverMarshal(enc *codegen.Encoder)
-// func (x *Z) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *Y) WeaverMarshal(enc *codegen.Encoder)
-// func (x *Y) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *Y) WeaverMarshal(enc *codegen.Encoder)
-// func (x *Y) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *W) WeaverMarshal(enc *codegen.Encoder)
-// func (x *W) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *W) WeaverMarshal(enc *codegen.Encoder)
-// func (x *W) WeaverUnmarshal(dec *codegen.Decoder)
+// func (x *XYZ) MXMarshal(enc *codegen.Encoder)
+// func (x *XYZ) MXUnmarshal(dec *codegen.Decoder)
+// func (x *XY) MXMarshal(enc *codegen.Encoder)
+// func (x *XY) MXUnmarshal(dec *codegen.Decoder)
+// func (x *X) MXMarshal(enc *codegen.Encoder)
+// func (x *X) MXUnmarshal(dec *codegen.Decoder)
+// func (x *Z) MXMarshal(enc *codegen.Encoder)
+// func (x *Z) MXUnmarshal(dec *codegen.Decoder)
+// func (x *XYZ) MXMarshal(enc *codegen.Encoder)
+// func (x *XYZ) MXUnmarshal(dec *codegen.Decoder)
+// func (x *XY) MXMarshal(enc *codegen.Encoder)
+// func (x *XY) MXUnmarshal(dec *codegen.Decoder)
+// func (x *X) MXMarshal(enc *codegen.Encoder)
+// func (x *X) MXUnmarshal(dec *codegen.Decoder)
+// func (x *Z) MXMarshal(enc *codegen.Encoder)
+// func (x *Z) MXUnmarshal(dec *codegen.Decoder)
+// func (x *Y) MXMarshal(enc *codegen.Encoder)
+// func (x *Y) MXUnmarshal(dec *codegen.Decoder)
+// func (x *Y) MXMarshal(enc *codegen.Encoder)
+// func (x *Y) MXUnmarshal(dec *codegen.Decoder)
+// func (x *W) MXMarshal(enc *codegen.Encoder)
+// func (x *W) MXUnmarshal(dec *codegen.Decoder)
+// func (x *W) MXMarshal(enc *codegen.Encoder)
+// func (x *W) MXUnmarshal(dec *codegen.Decoder)
 // EncodeBinaryMarshaler
 // DecodeBinaryUnmarshaler
 
@@ -52,38 +52,38 @@ import (
 	"context"
 	"time"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type foo interface {
 	M(ctx context.Context, x X, y Y, z Z, w W) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) M(ctx context.Context, x X, y Y, z Z, w W) error {
 	return nil
 }
 
 type X struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	A1 XY
 }
 
 type XY struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	A1 XYZ
 	B1 string
 }
 
 type XYZ struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	A1 int64
 	A2 string
 }
 
 type Y struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	ID    int64
 	Label string
 	When  time.Time
@@ -91,11 +91,11 @@ type Y struct {
 }
 
 type Z struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	id string
 }
 
 type W struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	id time.Time
 }

@@ -15,8 +15,8 @@
 package metrics_test
 
 import (
-	"github.com/ServiceWeaver/weaver/runtime/metrics"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
+	"github.com/sh3lk/mx/runtime/metrics"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
 var (

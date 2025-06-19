@@ -20,8 +20,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ServiceWeaver/weaver/internal/reflection"
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
+	"github.com/sh3lk/mx/internal/reflection"
+	"github.com/sh3lk/mx/runtime/codegen"
 )
 
 // newTestRegistrar[T] returns a new registrar for workload type T.

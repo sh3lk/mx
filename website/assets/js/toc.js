@@ -32,7 +32,7 @@ bind();
 
 function init_toc() {
   const sections = {
-    'what-is-service-weaver': 'OVERVIEW',
+    'what-is-service-mx': 'OVERVIEW',
     'components': 'FUNDAMENTALS',
     'single-process': 'DEPLOYERS',
     'serializable-types': 'REFERENCE',

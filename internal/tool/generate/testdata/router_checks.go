@@ -13,22 +13,22 @@
 // limitations under the License.
 
 // EXPECTED
-// var _ weaver.Unrouted = (*unrouted)(nil)
-// var _ weaver.RoutedBy[router] = (*routed)(nil)
+// var _ mx.Unrouted = (*unrouted)(nil)
+// var _ mx.RoutedBy[router] = (*routed)(nil)
 // var _ func(context.Context) int = (&router{}).A
-// var _ = (&__routed_router_if_youre_seeing_this_you_probably_forgot_to_run_weaver_generate{}).B
+// var _ = (&__routed_router_if_youre_seeing_this_you_probably_forgot_to_run_mx_generate{}).B
 package foo
 
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type Unrouted interface{}
 
 type unrouted struct {
-	weaver.Implements[Unrouted]
+	mx.Implements[Unrouted]
 }
 
 type Routed interface {
@@ -37,8 +37,8 @@ type Routed interface {
 }
 
 type routed struct {
-	weaver.Implements[Routed]
-	weaver.WithRouter[router]
+	mx.Implements[Routed]
+	mx.WithRouter[router]
 }
 
 func (routed) A(context.Context) error { return nil }

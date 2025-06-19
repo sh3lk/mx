@@ -18,8 +18,8 @@
 
 // UNEXPECTED
 // Preallocate
-// func serviceweaver_enc_X
-// func serviceweaver_dec_X
+// func mx_enc_X
+// func mx_dec_X
 
 // Methods with named types that have custom enc/dec functions.
 package foo
@@ -28,7 +28,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 // struct with local implementation of the (Un)marshalBinary interface.
@@ -49,7 +49,7 @@ type foo interface {
 	B(context.Context, []X) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) A(context.Context, []X, time.Time) (X, error) {
 	return X{}, nil

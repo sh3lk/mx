@@ -28,17 +28,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/internal/control"
-	metrics2 "github.com/ServiceWeaver/weaver/internal/metrics"
-	"github.com/ServiceWeaver/weaver/internal/traceio"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
-	"github.com/ServiceWeaver/weaver/runtime/metrics"
-	"github.com/ServiceWeaver/weaver/runtime/perfetto"
-	imetrics "github.com/ServiceWeaver/weaver/runtime/prometheus"
-	protos "github.com/ServiceWeaver/weaver/runtime/protos"
-	dtool "github.com/ServiceWeaver/weaver/runtime/tool"
-	"github.com/ServiceWeaver/weaver/runtime/traces"
 	"github.com/pkg/browser"
+	"github.com/sh3lk/mx/internal/control"
+	metrics2 "github.com/sh3lk/mx/internal/metrics"
+	"github.com/sh3lk/mx/internal/traceio"
+	"github.com/sh3lk/mx/runtime/logging"
+	"github.com/sh3lk/mx/runtime/metrics"
+	"github.com/sh3lk/mx/runtime/perfetto"
+	imetrics "github.com/sh3lk/mx/runtime/prometheus"
+	protos "github.com/sh3lk/mx/runtime/protos"
+	dtool "github.com/sh3lk/mx/runtime/tool"
+	"github.com/sh3lk/mx/runtime/traces"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -65,7 +65,7 @@ var (
 		"widjoin": func(replicas []*Replica) string {
 			s := make([]string, len(replicas))
 			for i, x := range replicas {
-				s[i] = x.WeaveletId[0:8]
+				s[i] = x.MXNId[0:8]
 			}
 			return strings.Join(s, ", ")
 
@@ -94,12 +94,12 @@ var (
 // commands on the dashboard so that users can copy and run them.
 type Command struct {
 	Label   string // e.g., cat logs
-	Command string // e.g., weaver single logs '--version=="12345678"'
+	Command string // e.g., mx single logs '--version=="12345678"'
 }
 
 // DashboardSpec configures the command returned by DashboardCommand.
 type DashboardSpec struct {
-	Tool         string                                   // tool name (e.g., "weaver single")
+	Tool         string                                   // tool name (e.g., "mx single")
 	PerfettoFile string                                   // perfetto database file
 	Registry     func(context.Context) (*Registry, error) // registry of deployments
 	Commands     func(deploymentId string) []Command      // commands for a deployment
@@ -123,7 +123,7 @@ Flags:
 
 	return &dtool.Command{
 		Name:        "dashboard",
-		Description: "Inspect Service Weaver applications",
+		Description: "Inspect MX applications",
 		Help:        b.String(),
 		Flags:       dashboardFlags,
 		Fn: func(ctx context.Context, _ []string) error {
@@ -158,9 +158,9 @@ Flags:
 	}
 }
 
-// dashboard implements the "weaver dashboard" HTTP server.
+// dashboard implements the "mx dashboard" HTTP server.
 type dashboard struct {
-	spec     *DashboardSpec // e.g., "weaver multi" or "weaver single"
+	spec     *DashboardSpec // e.g., "mx multi" or "mx single"
 	registry *Registry      // registry of deployments
 	traceDB  *traces.DB     // database that stores trace data
 }
@@ -267,7 +267,7 @@ func computeTraffic(status *Status, metrics []*protos.MetricSnapshot) []edge {
 		component string
 	}
 	isSystemComponentFn := func(name string) bool {
-		return name == control.WeaveletPath || name == control.DeployerPath
+		return name == control.MXNPath || name == control.DeployerPath
 	}
 	byPair := map[pair]int{}
 	for _, metric := range metrics {
@@ -364,7 +364,7 @@ func (d *dashboard) handleTraces(w http.ResponseWriter, r *http.Request) {
 	}
 	onlyErrors := r.URL.Query().Get("errs") != ""
 
-	// Weavelets export traces every 5 seconds. In order to (semi-)guarantee
+	// MXNs export traces every 5 seconds. In order to (semi-)guarantee
 	// that the database contains all spans for the selected traces, we only
 	// fetch traces that ended more than 5+ seconds ago (all spans for such
 	// traces should have been exported to the database by now).

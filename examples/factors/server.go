@@ -20,17 +20,17 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type server struct {
-	weaver.Implements[weaver.Main]
-	factorer weaver.Ref[Factorer]
-	lis      weaver.Listener `weaver:"factors"`
+	mx.Implements[mx.Main]
+	factorer mx.Ref[Factorer]
+	lis      mx.Listener `mx:"factors"`
 }
 
 func serve(ctx context.Context, s *server) error {
-	http.Handle("/", weaver.InstrumentHandlerFunc("/", s.handleFactors))
+	http.Handle("/", mx.InstrumentHandlerFunc("/", s.handleFactors))
 	s.Logger(ctx).Info("factors server running", "addr", s.lis)
 	return http.Serve(s.lis, nil)
 }

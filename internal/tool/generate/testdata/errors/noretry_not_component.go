@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// ERROR: weaver.NonRetriable
+// ERROR: mx.NonRetriable
 package foo
 
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type Bar interface {
 	A(context.Context) error
 }
 
-var _ weaver.NotRetriable = Bar.A
+var _ mx.NotRetriable = Bar.A

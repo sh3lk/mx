@@ -23,14 +23,14 @@ import (
 	"text/template"
 	"time"
 
-	protos "github.com/ServiceWeaver/weaver/runtime/protos"
-	"github.com/ServiceWeaver/weaver/runtime/tool"
 	pprof "github.com/google/pprof/profile"
+	protos "github.com/sh3lk/mx/runtime/protos"
+	"github.com/sh3lk/mx/runtime/tool"
 )
 
-// TODO(mwhittaker): Right now, a user has to (1) run `weaver profile` to get a
+// TODO(mwhittaker): Right now, a user has to (1) run `mx profile` to get a
 // profile and then (2) pass it to the `go pprof` command. Srdjan suggested we
-// have `weaver profile` wrap `pprof` to make this a single step instead of two.
+// have `mx profile` wrap `pprof` to make this a single step instead of two.
 
 var (
 	profileFlags    = flag.NewFlagSet("profile", flag.ContinueOnError)
@@ -75,7 +75,7 @@ Examples:
 
 	return &tool.Command{
 		Name:        "profile",
-		Description: "Profile a running Service Weaver application",
+		Description: "Profile a running MX application",
 		Help:        b.String(),
 		Flags:       profileFlags,
 		Fn: func(ctx context.Context, args []string) error {
@@ -167,7 +167,7 @@ Examples:
 			}
 
 			// Save the profile in a file.
-			name := fmt.Sprintf("serviceweaver_%s_%s_profile_*.pb.gz", status.App, *profileType)
+			name := fmt.Sprintf("mx_%s_%s_profile_*.pb.gz", status.App, *profileType)
 			f, err := os.CreateTemp(os.TempDir(), name)
 			if err != nil {
 				return fmt.Errorf("saving profile: %w", err)

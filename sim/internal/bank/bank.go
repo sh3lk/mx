@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package bank includes an example of how to test Service Weaver applications
+// Package bank includes an example of how to test MX applications
 // using the sim package.
 //
 // The example involves a bank that incorrectly implements withdrawals.
@@ -35,7 +35,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 // A Bank is a persistent collection of user bank account balances.
@@ -55,8 +55,8 @@ type Bank interface {
 }
 
 type bank struct {
-	weaver.Implements[Bank]
-	store weaver.Ref[Store]
+	mx.Implements[Bank]
+	store mx.Ref[Store]
 }
 
 // Deposit implements the Bank interface.

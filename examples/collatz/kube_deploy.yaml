@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Path to the app config.
-appConfig: weaver.toml
+appConfig: mx.toml
 
 # Registry to upload the app docker image.
 repo: docker.io/my_docker_hub_username/
@@ -22,7 +22,7 @@ listeners:
   - name: collatz
     public: true
 
-# Check `weaver kube deploy -h` to see which other options you can configure.
+# Check `mx kube deploy -h` to see which other options you can configure.
 #
 # E.g., to specify the namespace where your app should run:
 # namespace: your_namespace
@@ -34,9 +34,9 @@ listeners:
 #groups:
 #- name: colocated
 #  components:
-#  - github.com/ServiceWeaver/weaver/Main
-#  - github.com/ServiceWeaver/weaver/examples/collatz/Even
-#  - github.com/ServiceWeaver/weaver/examples/collatz/Odd
+#  - github.com/sh3lk/mx/Main
+#  - github.com/sh3lk/mx/examples/collatz/Even
+#  - github.com/sh3lk/mx/examples/collatz/Odd
 #
 # E.g., to specify the resource requirements for the pods, you can set:
 #resourceSpec:

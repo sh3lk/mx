@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Deployers provides useful utilities for implementing Service Weaver deployers.
+// Deployers provides useful utilities for implementing MX deployers.
 package deployers
 
 import (
@@ -23,7 +23,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/ServiceWeaver/weaver/internal/net/call"
+	"github.com/sh3lk/mx/internal/net/call"
 )
 
 // ServeComponents handles method calls made to the specified listener for the specified

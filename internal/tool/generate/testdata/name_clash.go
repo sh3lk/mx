@@ -29,14 +29,14 @@ import (
 	sub1 "foo/sub1"
 	sub2 "foo/sub2"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type foo interface {
 	A(context.Context, sub1.T, sub2.T) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) A(context.Context, sub1.T, sub2.T) error {
 	return nil

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package bin contains code to extract data from a Service Weaver binary.
+// Package bin contains code to extract data from a MX binary.
 package bin
 
 import (
@@ -26,15 +26,15 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
-	"github.com/ServiceWeaver/weaver/runtime/graph"
-	"github.com/ServiceWeaver/weaver/runtime/version"
+	"github.com/sh3lk/mx/runtime/codegen"
+	"github.com/sh3lk/mx/runtime/graph"
+	"github.com/sh3lk/mx/runtime/version"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
 
-// versionData exists to embed the weaver module version and deployer API
-// version into a Service Weaver binary. We split declaring and assigning
+// versionData exists to embed the mx module version and deployer API
+// version into a MX binary. We split declaring and assigning
 // versionData to prevent the compiler from erasing it.
 //
 //lint:ignore U1000 See comment above.
@@ -44,7 +44,7 @@ func init() {
 	// NOTE that versionData must be assigned a string constant that reflects
 	// the value of version.DeployerVersion. If the string is not a
 	// constant---if we try to use fmt.Sprintf, for example---it will not be
-	// embedded in a Service Weaver binary.
+	// embedded in a MX binary.
 	versionData = "⟦wEaVeRvErSiOn:deployer=v0.24.0⟧"
 }
 
@@ -104,7 +104,7 @@ func ReadComponentGraph(file string) ([]string, graph.Graph, error) {
 	es := codegen.ExtractEdges(data)
 
 	// Assign node numbers to components in some deterministic order.
-	const mainComponent = "github.com/ServiceWeaver/weaver/Main"
+	const mainComponent = "github.com/sh3lk/mx/Main"
 	// NOTE: initially, all node numbers are zero.
 	nodeMap := map[string]graph.Node{mainComponent: 0}
 	for _, e := range es {
@@ -139,7 +139,7 @@ func ReadListeners(file string) ([]codegen.ComponentListeners, error) {
 }
 
 type Versions struct {
-	ModuleVersion   string         // Service Weaver library's module version
+	ModuleVersion   string         // MX library's module version
 	DeployerVersion version.SemVer // see version.DeployerVersion
 }
 
@@ -165,7 +165,7 @@ func ReadVersions(filename string) (Versions, error) {
 	}, nil
 }
 
-// extractModuleVersion returns the version of the Service Weaver library
+// extractModuleVersion returns the version of the MX library
 // embedded in data.
 func extractModuleVersion(filename string) (string, error) {
 	info, err := buildinfo.ReadFile(filename)
@@ -173,14 +173,14 @@ func extractModuleVersion(filename string) (string, error) {
 		return "", err
 	}
 
-	// Find the Service Weaver module.
-	const weaverModule = "github.com/ServiceWeaver/weaver"
+	// Find the MX module.
+	const mxModule = "github.com/sh3lk/mx"
 	for _, m := range append(info.Deps, &info.Main) {
-		if m.Path == weaverModule {
+		if m.Path == mxModule {
 			return m.Version, nil
 		}
 	}
-	return "", fmt.Errorf("Service Weaver module was not linked into the application binary: that's an error")
+	return "", fmt.Errorf("MX module was not linked into the application binary: that's an error")
 }
 
 // extractDeployerVersion returns the deployer API version embedded

@@ -60,31 +60,31 @@ var files = []file{
 	{dst: "contact.html", markdown: "contact.md", template: "contact.html", license: true},
 
 	{dst: "blog/index.html", html: "blog/index.html", template: "blog.html", license: true},
-	{dst: "blog/quick_intro.html", markdown: "blog/quick_intro.md", template: "blog_entry.html", title: "A Quick Introduction to Service Weaver", license: true},
+	{dst: "blog/quick_intro.html", markdown: "blog/quick_intro.md", template: "blog_entry.html", title: "A Quick Introduction to MX", license: true},
 	{dst: "news.html", html: "news.html", template: "news.html", license: true},
 	{dst: "workshops.html", html: "workshops.html", template: "workshops.html", license: true},
 
-	{dst: "blog/deployers.html", markdown: "blog/deployers.md", template: "blog_entry.html", title: "How to Implement a Service Weaver Deployer", license: true},
+	{dst: "blog/deployers.html", markdown: "blog/deployers.md", template: "blog_entry.html", title: "How to Implement a MX Deployer", license: true},
 	staticFile("blog/deployers/assets/overview.svg"),
-	staticFile("blog/deployers/assets/weavelets.svg"),
+	staticFile("blog/deployers/assets/mxns.svg"),
 
 	{dst: "blog/corba.html", markdown: "blog/corba.md", template: "blog_entry.html", title: "CORBA vs the Fallacies of Distributed Computing", license: true},
 	{dst: "blog/vision.html", markdown: "blog/vision.md", template: "blog_entry.html", title: "Monolith or Microservices or Both", license: true},
 	{dst: "blog/metric_labels.html", markdown: "blog/metric_labels.md", template: "blog_entry.html", title: "Strongly Typed Metric Labels Using Generics in Go", license: true},
-	{dst: "blog/weaver_generate.html", markdown: "blog/weaver_generate.md", template: "blog_entry.html", title: "Using Advanced Go Features to Detect Stale Code", license: true},
-	{dst: "blog/history.html", markdown: "blog/history.md", template: "blog_entry.html", title: "A History of Service Weaver's Core API", license: true},
+	{dst: "blog/mx_generate.html", markdown: "blog/mx_generate.md", template: "blog_entry.html", title: "Using Advanced Go Features to Detect Stale Code", license: true},
+	{dst: "blog/history.html", markdown: "blog/history.md", template: "blog_entry.html", title: "A History of MX's Core API", license: true},
 
-	{dst: "blog/kubernetes.html", markdown: "blog/kubernetes.md", template: "blog_entry.html", title: "Service Weaver and Kubernetes", license: true},
+	{dst: "blog/kubernetes.html", markdown: "blog/kubernetes.md", template: "blog_entry.html", title: "MX and Kubernetes", license: true},
 	staticFile("blog/deployers/kube/kube_overview.png"),
 
-	{dst: "blog/improve_cloud_efficiency.html", markdown: "blog/improve_cloud_efficiency.md", template: "blog_entry.html", title: "Improve Cloud Efficiency with Service Weaver", license: true},
+	{dst: "blog/improve_cloud_efficiency.html", markdown: "blog/improve_cloud_efficiency.md", template: "blog_entry.html", title: "Improve Cloud Efficiency with MX", license: true},
 	staticFile("assets/images/cognitive_load.png"),
 	staticFile("assets/images/testing_toil.png"),
 	staticFile("assets/images/integrated.png"),
 	staticFile("assets/images/faster_grpc.png"),
 	staticFile("assets/images/benchmark.png"),
 
-	{dst: "blog/testing.html", markdown: "blog/testing.md", template: "blog_entry.html", title: "Service Weaver and Kubernetes", license: true},
+	{dst: "blog/testing.html", markdown: "blog/testing.md", template: "blog_entry.html", title: "MX and Kubernetes", license: true},
 	staticFile("blog/testing/bank_failure.svg"),
 
 	staticFile("favicon.ico"),
@@ -145,7 +145,7 @@ func main() {
 	flag.Parse()
 
 	if err := os.Chdir("website"); err != nil {
-		fmt.Fprintln(os.Stderr, err, "(make sure you are in the top-level weaver directory)")
+		fmt.Fprintln(os.Stderr, err, "(make sure you are in the top-level mx directory)")
 		os.Exit(1)
 	}
 

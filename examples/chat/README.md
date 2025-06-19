@@ -6,15 +6,15 @@ An example chat application.
 %%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
 graph TD
     %% Nodes.
-    github.com/ServiceWeaver/weaver/Main(weaver.Main)
-    github.com/ServiceWeaver/weaver/examples/chat/ImageScaler(chat.ImageScaler)
-    github.com/ServiceWeaver/weaver/examples/chat/LocalCache(chat.LocalCache)
-    github.com/ServiceWeaver/weaver/examples/chat/SQLStore(chat.SQLStore)
+    github.com/sh3lk/mx/Main(mx.Main)
+    github.com/sh3lk/mx/examples/chat/ImageScaler(chat.ImageScaler)
+    github.com/sh3lk/mx/examples/chat/LocalCache(chat.LocalCache)
+    github.com/sh3lk/mx/examples/chat/SQLStore(chat.SQLStore)
 
     %% Edges.
-    github.com/ServiceWeaver/weaver/Main --> github.com/ServiceWeaver/weaver/examples/chat/ImageScaler
-    github.com/ServiceWeaver/weaver/Main --> github.com/ServiceWeaver/weaver/examples/chat/LocalCache
-    github.com/ServiceWeaver/weaver/Main --> github.com/ServiceWeaver/weaver/examples/chat/SQLStore
+    github.com/sh3lk/mx/Main --> github.com/sh3lk/mx/examples/chat/ImageScaler
+    github.com/sh3lk/mx/Main --> github.com/sh3lk/mx/examples/chat/LocalCache
+    github.com/sh3lk/mx/Main --> github.com/sh3lk/mx/examples/chat/SQLStore
 ```
 
 ## How to Run Locally
@@ -39,7 +39,7 @@ $ docker run \
 $ docker exec mysql sh -c "mysql --password=password < /app/chat.sql"
 ```
 
-Next, update the `db_uri` field in `weaver.toml` to point to your MySQL
+Next, update the `db_uri` field in `mx.toml` to point to your MySQL
 instance. If you used the Docker commands above, the default value of `db_uri`
 should already point to your database. You don't have to change anything.
 
@@ -49,10 +49,10 @@ Finally, run the application.
 $ go build .
 
 # Run the application in a single process.
-$ weaver single deploy weaver.toml
+$ mx single deploy mx.toml
 
 # Run the application in multiple processes.
-$ weaver multi deploy weaver.toml
+$ mx multi deploy mx.toml
 ```
 
 ## How to Run on Kubernetes
@@ -64,12 +64,12 @@ First, run a MySQL instance in your Kubernetes cluster and initialize it with
 $ kubectl apply -f mysql.yaml
 ```
 
-Next, update the `db_uri` field in `weaver.toml` to point to your MySQL
+Next, update the `db_uri` field in `mx.toml` to point to your MySQL
 instance. If you're using `mysql.yaml`, then you should update the `SQLStore`
-section of `weaver.toml` to have the following contents:
+section of `mx.toml` to have the following contents:
 
 ```toml
-["github.com/ServiceWeaver/weaver/examples/chat/SQLStore"]
+["github.com/sh3lk/mx/examples/chat/SQLStore"]
 db_driver = "mysql"
 db_uri = "root:password@tcp(mysql:3306)/chat"
 ```
@@ -86,13 +86,13 @@ listeners:
   public: true
 ```
 
-See `weaver kube deploy --help` for more information on the `repo` field.
+See `mx kube deploy --help` for more information on the `repo` field.
 
-Finally, deploy the application using `weaver kube`.
+Finally, deploy the application using `mx kube`.
 
 ```shell
 $ go build .
-$ kubectl apply -f $(weaver kube deploy kube_deploy.yaml)
+$ kubectl apply -f $(mx kube deploy kube_deploy.yaml)
 ```
 
 ## How to Run on GKE
@@ -102,12 +102,12 @@ the `"No password"` and `"Private IP"` options are checked and the latter is
 configured to use the `"default"` network.
 
 Once the instance is created, copy the IP address from the instance dashboard
-and substitute it for `localhost` in the `weaver.toml` file.
+and substitute it for `localhost` in the `mx.toml` file.
 
 Deploy the app:
 
 ```sh
-$ weaver-gke deploy ./weaver.toml
+$ mx-gke deploy ./mx.toml
 ```
 
 [cloud_sql]: https://cloud.google.com/sql

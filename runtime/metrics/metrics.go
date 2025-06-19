@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package metrics implements Service Weaver metrics.
+// Package metrics implements MX metrics.
 package metrics
 
 import (
@@ -24,8 +24,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/ServiceWeaver/weaver/runtime/protos"
 	"github.com/google/uuid"
+	"github.com/sh3lk/mx/runtime/protos"
 	"golang.org/x/exp/maps"
 )
 

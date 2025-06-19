@@ -33,9 +33,9 @@ var (
 	genFilesStorageDir = flag.String("generated_files_storage_dir", "",
 		"If non-empty, generated files are persisted in the given directory.")
 
-	testDir      string // the directory of this file
-	weaverSrcDir string // the root directory of the Service Weaver repository
-	goModFile    string // the go.mod file used in the tests
+	testDir   string // the directory of this file
+	mxSrcDir  string // the root directory of the MX repository
+	goModFile string // the go.mod file used in the tests
 )
 
 func init() {
@@ -44,30 +44,30 @@ func init() {
 		panic("No caller information")
 	}
 	testDir = filepath.Dir(filename)
-	weaverSrcDir = filepath.Join(testDir, "../../../")
+	mxSrcDir = filepath.Join(testDir, "../../../")
 	goVersion := runtime.Version()[2:]
 	goModFile = fmt.Sprintf(`module "foo"
 
 go %s
 
-require github.com/ServiceWeaver/weaver v0.0.0
-replace github.com/ServiceWeaver/weaver => %s
-`, goVersion, weaverSrcDir)
+require github.com/sh3lk/mx v0.0.0
+replace github.com/sh3lk/mx => %s
+`, goVersion, mxSrcDir)
 }
 
-// runGenerator runs "weaver generate" on the provided file contents---originally
+// runGenerator runs "mx generate" on the provided file contents---originally
 // in a file with the provided filename and directory---and returns the
-// directory in which the code was compiled, the output of "weaver generate",
+// directory in which the code was compiled, the output of "mx generate",
 // and any errors. All provided subdirectories are also included in the call to
-// "weaver generate".
+// "mx generate".
 //
-// If "weaver generate" succeeds, the produced weaver_gen.go file is written in
-// the provided directory with name ${filename}_weaver_gen.go.
+// If "mx generate" succeeds, the produced mx_gen.go file is written in
+// the provided directory with name ${filename}_mx_gen.go.
 func runGenerator(t *testing.T, directory, filename, contents string, subdirs []string,
 	buildTags []string) (string, error) {
 	// runGenerator creates a temporary directory, copies the file and all
 	// subdirs into it, writes a go.mod file, runs "go mod tidy", and finally
-	// runs "weaver generate".
+	// runs "mx generate".
 	//
 	// TODO(mwhittaker): Double check paths are handled properly. What if we
 	// run this test in another directory?
@@ -102,10 +102,10 @@ func runGenerator(t *testing.T, directory, filename, contents string, subdirs []
 		t.Fatalf("go mod tidy: %v", err)
 	}
 
-	// Run "weaver generate".
+	// Run "mx generate".
 	opt := Options{
 		Warn:      func(err error) { t.Log(err) },
-		BuildTags: "ignoreWeaverGen" + "," + strings.Join(buildTags, ","),
+		BuildTags: "ignoreMXGen" + "," + strings.Join(buildTags, ","),
 	}
 	if err := Generate(tmp, []string{tmp}, opt); err != nil {
 		return "", err
@@ -116,8 +116,8 @@ func runGenerator(t *testing.T, directory, filename, contents string, subdirs []
 	}
 
 	if *genFilesStorageDir != "" {
-		// Write the generated weaver_gen.go file to disk. The output for file
-		// x.go is stored as x_weaver_gen.go.
+		// Write the generated mx_gen.go file to disk. The output for file
+		// x.go is stored as x_mx_gen.go.
 		generated := strings.TrimSuffix(filename, ".go") + "_" + generatedCodeFile
 		os.Remove(filepath.Join(directory, generated))
 		if err := os.WriteFile(filepath.Join(*genFilesStorageDir, generated), output, 0600); err != nil {
@@ -125,7 +125,7 @@ func runGenerator(t *testing.T, directory, filename, contents string, subdirs []
 		}
 	}
 
-	// Run "go mod tidy" and "go build" to make sure that weaver_gen.go
+	// Run "go mod tidy" and "go build" to make sure that mx_gen.go
 	// compiles.
 	//
 	// TODO(mwhittaker): Instead of running external commands, can we invoke
@@ -158,7 +158,7 @@ func printOutput(t *testing.T, output []byte) {
 	}
 }
 
-// TestGenerator runs "weaver generate" on all of the files in testdata/. Every
+// TestGenerator runs "mx generate" on all of the files in testdata/. Every
 // file in testdata/ must begin with a header that looks like this:
 //
 //	// EXPECTED
@@ -169,8 +169,8 @@ func printOutput(t *testing.T, output []byte) {
 //	// don't expect this
 //	// what a surprise
 //
-// This test runs "weaver generate" on the file and checks that every expected
-// string appears in the generated weaver_gen.go file and that every unexpected
+// This test runs "mx generate" on the file and checks that every expected
+// string appears in the generated mx_gen.go file and that every unexpected
 // string doesn't.
 func TestGenerator(t *testing.T) {
 	const dir = "testdata"
@@ -220,7 +220,7 @@ func TestGenerator(t *testing.T) {
 				t.Fatalf("error reading %q: %v", filename, err)
 			}
 
-			// Run "weaver generate".
+			// Run "mx generate".
 			output, err := runGenerator(t, dir, filename, contents, []string{"sub1", "sub2"}, nil)
 			if err != nil {
 				t.Fatalf("error running generator: %v", err)
@@ -240,7 +240,7 @@ func TestGenerator(t *testing.T) {
 	}
 }
 
-// TestGeneratorBuildWithTags runs "weaver generate" on all the files in
+// TestGeneratorBuildWithTags runs "mx generate" on all the files in
 // testdata/tags and checks if the command succeeds. Each file should have some build tags.
 func TestGeneratorBuildWithTags(t *testing.T) {
 	const dir = "testdata/tags"
@@ -263,11 +263,11 @@ func TestGeneratorBuildWithTags(t *testing.T) {
 				t.Fatalf("cannot read %q: %v", filename, err)
 			}
 			contents := string(bits)
-			// Run "weaver generate".
+			// Run "mx generate".
 			output, err := runGenerator(t, dir, filename, contents, nil, []string{"good"})
 
 			if filename == "good.go" {
-				// Verify that the error is nil and the weaver_gen.go contains generated code for the good service.
+				// Verify that the error is nil and the mx_gen.go contains generated code for the good service.
 				if err != nil || !strings.Contains(output, "GoodService") {
 					t.Fatalf("expected generated code for the good service")
 				}
@@ -281,14 +281,14 @@ func TestGeneratorBuildWithTags(t *testing.T) {
 	}
 }
 
-// TestGeneratorErrors runs "weaver generate" on all of the files in
+// TestGeneratorErrors runs "mx generate" on all of the files in
 // testdata/errors.
 // Every file in testdata/errors must begin with a single line header that looks
 // like this:
 //
 //	// ERROR: bad file
 //
-// This test runs "weaver generate" on the file and checks that "weaver generate"
+// This test runs "mx generate" on the file and checks that "mx generate"
 // produces an error that contains the provided string.
 func TestGeneratorErrors(t *testing.T) {
 	const dir = "testdata/errors"
@@ -329,7 +329,7 @@ func TestGeneratorErrors(t *testing.T) {
 				t.Fatalf(`"ERROR: " annotation not found`)
 			}
 
-			// Run "weaver generate".
+			// Run "mx generate".
 			output, err := runGenerator(t, dir, filename, contents, nil, nil)
 			errfile := strings.TrimSuffix(filename, ".go") + "_error.txt"
 			if err == nil {
@@ -482,15 +482,15 @@ type target struct{
 
 // TestExampleVersion is designed to make it hard to forget to update the
 // codegen version when changes are made to the codegen API. Concretely,
-// TestExampleVersion detects any changes to example/weaver_gen.go. If the file
+// TestExampleVersion detects any changes to example/mx_gen.go. If the file
 // does change, the test fails and reminds you to update the codegen version.
 //
 // This is tedious, but codegen changes should be rare and should be
 // increasingly rare as time goes on. Plus, forgetting to update the codegen
 // version can be very annoying to users.
 func TestExampleVersion(t *testing.T) {
-	// Compute the SHA-256 hash of example/weaver_gen.go.
-	f, err := os.Open("example/weaver_gen.go")
+	// Compute the SHA-256 hash of example/mx_gen.go.
+	f, err := os.Open("example/mx_gen.go")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -502,9 +502,9 @@ func TestExampleVersion(t *testing.T) {
 	}
 	got := fmt.Sprintf("%x", h.Sum(nil))
 
-	// If weaver_gen.go has changed, the codegen version may need updating.
+	// If mx_gen.go has changed, the codegen version may need updating.
 	const want = "3e626ef7daa6ee0f51bc0aa8a792c5aed5137e53e127b04c41cc47053f437dc3"
 	if got != want {
-		t.Fatalf(`Unexpected SHA-256 hash of examples/weaver_gen.go: got %s, want %s. If this change is meaningful, REMEMBER TO UPDATE THE CODEGEN VERSION in runtime/version/version.go.`, got, want)
+		t.Fatalf(`Unexpected SHA-256 hash of examples/mx_gen.go: got %s, want %s. If this change is meaningful, REMEMBER TO UPDATE THE CODEGEN VERSION in runtime/version/version.go.`, got, want)
 	}
 }

@@ -19,12 +19,12 @@
 // var a1 [2][2][2]float64
 // var a1 [12]int
 // r0, appErr := s.impl.A
-// serviceweaver_enc_array_9123_X
-// serviceweaver_enc_array_12_int
-// serviceweaver_dec_array_2048_string
-// serviceweaver_enc_array_3_array_5_int
-// serviceweaver_enc_array_2_array_2_array_2_float64
-// serviceweaver_size_X_4cd17e8a(x *X)
+// mx_enc_array_9123_X
+// mx_enc_array_12_int
+// mx_dec_array_2048_string
+// mx_enc_array_3_array_5_int
+// mx_enc_array_2_array_2_array_2_float64
+// mx_size_X_4cd17e8a(x *X)
 
 // UNEXPECTED
 // c.Args.Encode
@@ -36,7 +36,7 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 const N = 1024
@@ -47,11 +47,11 @@ type foo interface {
 }
 
 type X struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	a int
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) A(context.Context, [9123]X, [5 + 7]int) ([2 * N]string, error) {
 	return [2 * N]string{}, nil

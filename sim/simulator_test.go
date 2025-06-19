@@ -23,16 +23,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ServiceWeaver/weaver"
-	"github.com/ServiceWeaver/weaver/internal/reflection"
+	"github.com/sh3lk/mx"
+	"github.com/sh3lk/mx/internal/reflection"
 )
 
 var positive = Filter(NonNegativeInt(), func(x int) bool { return x != 0 })
 
 type divModWorkload struct {
-	divmod weaver.Ref[divMod]
-	div    weaver.Ref[div]
-	mod    weaver.Ref[mod]
+	divmod mx.Ref[divMod]
+	div    mx.Ref[div]
+	mod    mx.Ref[mod]
 }
 
 func (d *divModWorkload) Init(r Registrar) error {
@@ -134,7 +134,7 @@ func TestInitByValueSimulation(t *testing.T) {
 }
 
 type divideByZeroWorkload struct {
-	divmod weaver.Ref[divMod]
+	divmod mx.Ref[divMod]
 }
 
 func (d *divideByZeroWorkload) Init(r Registrar) error {
@@ -144,7 +144,7 @@ func (d *divideByZeroWorkload) Init(r Registrar) error {
 
 func (d *divideByZeroWorkload) DivMod(ctx context.Context, x, y int) error {
 	_, _, err := d.divmod.Get().DivMod(ctx, x, y)
-	if errors.Is(err, weaver.RemoteCallError) {
+	if errors.Is(err, mx.RemoteCallError) {
 		// Swallow remote call errors.
 		return nil
 	}

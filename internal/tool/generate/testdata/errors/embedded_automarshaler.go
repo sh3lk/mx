@@ -18,11 +18,11 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type a struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 }
 
 type WeIgnoreEmbeddedAutoMarshalers struct{ a }
@@ -31,6 +31,6 @@ type Foo interface {
 	M(context.Context, WeIgnoreEmbeddedAutoMarshalers) error
 }
 
-type foo struct{ weaver.Implements[Foo] }
+type foo struct{ mx.Implements[Foo] }
 
 func (foo) M(context.Context, WeIgnoreEmbeddedAutoMarshalers) error { return nil }

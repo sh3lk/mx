@@ -20,12 +20,12 @@
 // Preallocate
 
 // UNEXPECTED
-// func serviceweaver_enc_A
-// func serviceweaver_dec_A
-// func serviceweaver_enc_B
-// func serviceweaver_dec_B
-// serviceweaver_size_A(x *A)
-// serviceweaver_size_B(x *B)
+// func mx_enc_A
+// func mx_dec_A
+// func mx_enc_B
+// func mx_dec_B
+// mx_size_A(x *A)
+// mx_size_B(x *B)
 
 // Generate methods for named types that are basic types. Verify that no
 // enc/dec methods are generated for the types, and we rely on basic types
@@ -35,7 +35,7 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type A int
@@ -46,7 +46,7 @@ type foo interface {
 	M(context.Context, A, B) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) M(context.Context, A, B) error {
 	return nil

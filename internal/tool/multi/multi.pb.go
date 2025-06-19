@@ -21,7 +21,7 @@
 package multi
 
 import (
-	protos "github.com/ServiceWeaver/weaver/runtime/protos"
+	protos "github.com/sh3lk/mx/runtime/protos"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -36,7 +36,7 @@ const (
 )
 
 // MultiConfig stores the configuration information for one execution of a
-// Service Weaver application using the multiprocess deployer.
+// MX application using the multiprocess deployer.
 type MultiConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

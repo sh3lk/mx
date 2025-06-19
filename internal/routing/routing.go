@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package routing includes utilities for routing and assignments. See
-// https://serviceweaver.dev/docs.html#routing for more information on routing.
+// https://mx.dev/docs.html#routing for more information on routing.
 package routing
 
 import (
@@ -23,7 +23,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ServiceWeaver/weaver/runtime/protos"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
 // FormatAssignment pretty formats the provided assignment.

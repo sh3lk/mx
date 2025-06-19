@@ -15,8 +15,8 @@
 // Implementation has no methods.
 package foo
 
-import "github.com/ServiceWeaver/weaver"
+import "github.com/sh3lk/mx"
 
 type foo interface{}
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }

@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// ERROR: reference to weaver.Main
+// ERROR: reference to mx.Main
 
 package foo
 
 import (
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type foo interface {
 }
 
 type impl struct {
-	weaver.Implements[foo]
-	main weaver.Ref[weaver.Main]
+	mx.Implements[foo]
+	main mx.Ref[mx.Main]
 }

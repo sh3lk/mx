@@ -13,12 +13,12 @@
 // limitations under the License.
 
 // EXPECTED
-// func (x *A) WeaverMarshal(enc *codegen.Encoder)
-// func (x *A) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *B) WeaverMarshal(enc *codegen.Encoder)
-// func (x *B) WeaverUnmarshal(dec *codegen.Decoder)
-// func (x *customError) WeaverMarshal(enc *codegen.Encoder)
-// func (x *customError) WeaverUnmarshal(dec *codegen.Decoder)
+// func (x *A) MXMarshal(enc *codegen.Encoder)
+// func (x *A) MXUnmarshal(dec *codegen.Decoder)
+// func (x *B) MXMarshal(enc *codegen.Encoder)
+// func (x *B) MXUnmarshal(dec *codegen.Decoder)
+// func (x *customError) MXMarshal(enc *codegen.Encoder)
+// func (x *customError) MXUnmarshal(dec *codegen.Decoder)
 // RegisterSerializable[*customError]()
 
 // UNEXPECTED
@@ -32,20 +32,20 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type A struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	B
 }
 
 type B struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 }
 
 type customError struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 }
 
 func (c customError) Error() string { return "custom" }
@@ -54,6 +54,6 @@ type foo interface {
 	M(context.Context, A, B) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (impl) M(context.Context, A, B) error { return nil }

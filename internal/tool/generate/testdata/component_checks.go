@@ -13,17 +13,17 @@
 // limitations under the License.
 
 // EXPECTED
-// var _ weaver.InstanceOf[foo] = (*impl)(nil)
+// var _ mx.InstanceOf[foo] = (*impl)(nil)
 // var _ foo = (*foo_local_stub)(nil)
 // var _ foo = (*foo_client_stub)(nil)
 // var _ codegen.Server = (*foo_server_stub)(nil)
 
 package foo
 
-import "github.com/ServiceWeaver/weaver"
+import "github.com/sh3lk/mx"
 
 type foo interface{}
 
 type impl struct {
-	weaver.Implements[foo]
+	mx.Implements[foo]
 }

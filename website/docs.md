@@ -2,50 +2,50 @@
 TODO: Link to code snippets to make sure they are compilable and runnable.
 </div>
 
-# What is Service Weaver?
+# What is MX?
 
-Service Weaver is a programming framework for writing, deploying, and managing
-distributed applications. You can run, test, and debug a Service Weaver application
+MX is a programming framework for writing, deploying, and managing
+distributed applications. You can run, test, and debug a MX application
 locally on your machine, and then deploy the application to the cloud with a
 single command.
 
 ```console
 $ go run .                       # Run locally.
-$ weaver ssh deploy weaver.toml  # Run on multiple machines.
-$ weaver gke deploy weaver.toml  # Run on Google Cloud.
-$ weaver kube deploy weaver.toml # Run on Kubernetes.
+$ mx ssh deploy mx.toml  # Run on multiple machines.
+$ mx gke deploy mx.toml  # Run on Google Cloud.
+$ mx kube deploy mx.toml # Run on Kubernetes.
 ```
 
-A Service Weaver application is composed of a number of **components**. A
+A MX application is composed of a number of **components**. A
 component is represented as a regular Go [interface][go_interfaces], and
 components interact with each other by calling the methods defined by these
-interfaces. This makes writing Service Weaver applications easy. You don't have
-to write any networking or serialization code; you just write Go. Service Weaver
+interfaces. This makes writing MX applications easy. You don't have
+to write any networking or serialization code; you just write Go. MX
 also provides libraries for logging, metrics, tracing, routing, testing, and
 more.
 
-You can deploy a Service Weaver application as easily as running a single command. Under
-the covers, Service Weaver will dissect your binary along component boundaries, allowing
-different components to run on different machines. Service Weaver will replicate,
+You can deploy a MX application as easily as running a single command. Under
+the covers, MX will dissect your binary along component boundaries, allowing
+different components to run on different machines. MX will replicate,
 autoscale, and co-locate these distributed components for you. It will also
 manage all the networking details on your behalf, ensuring that different
 components can communicate with each other and that clients can communicate with
 your application.
 
-Refer to the [Installation](#installation) section to install Service Weaver on
+Refer to the [Installation](#installation) section to install MX on
 your machine, or read the [Step by Step Tutorial](#step-by-step-tutorial)
-section for a tutorial on how to write Service Weaver applications.
+section for a tutorial on how to write MX applications.
 
 # Installation
 
 Ensure you have [Go installed][go_install], version 1.21 or higher. Then, run
-the following to install the `weaver` command:
+the following to install the `mx` command:
 
 ```console
-$ go install github.com/ServiceWeaver/weaver/cmd/weaver@latest
+$ go install github.com/sh3lk/mx/cmd/mx@latest
 ```
 
-`go install` installs the `weaver` command to `$GOBIN`, which defaults to
+`go install` installs the `mx` command to `$GOBIN`, which defaults to
 `$HOME/go/bin`. Make sure this directory is included in your `PATH`. You can
 accomplish this, for example, by adding the following to your `.bashrc` and
 running `source ~/.bashrc`:
@@ -54,47 +54,47 @@ running `source ~/.bashrc`:
 $ export PATH="$PATH:$HOME/go/bin"
 ```
 
-If the installation was successful, you should be able to run `weaver --help`:
+If the installation was successful, you should be able to run `mx --help`:
 
 ```console
-$ weaver --help
+$ mx --help
 USAGE
 
-  weaver generate                 // weaver code generator
-  weaver version                  // show weaver version
-  weaver single    <command> ...  // for single process deployments
-  weaver multi     <command> ...  // for multiprocess deployments
-  weaver ssh       <command> ...  // for multimachine deployments
+  mx generate                 // mx code generator
+  mx version                  // show mx version
+  mx single    <command> ...  // for single process deployments
+  mx multi     <command> ...  // for multiprocess deployments
+  mx ssh       <command> ...  // for multimachine deployments
   ...
 ```
 
-**Note**: For cloud deployments you should also install the `weaver gke` or
-`weaver kube` command (see the [GKE](#gke), [Kube](#kube) sections for details):
+**Note**: For cloud deployments you should also install the `mx gke` or
+`mx kube` command (see the [GKE](#gke), [Kube](#kube) sections for details):
 
 ```console
-$ go install github.com/ServiceWeaver/weaver-gke/cmd/weaver-gke@latest
-$ go install github.com/ServiceWeaver/weaver-kube/cmd/weaver-kube@latest
+$ go install github.com/sh3lk/mx-gke/cmd/mx-gke@latest
+$ go install github.com/sh3lk/mx-kube/cmd/mx-kube@latest
 ```
 
-**Note**: If you run into issues installing `weaver`, `weaver gke` or `weaver kube`
+**Note**: If you run into issues installing `mx`, `mx gke` or `mx kube`
 commands on macOS, you may want to prefix the install command with
 `export CGO_ENABLED=1; export CC=gcc`.
 For example:
 ```console
-$ export CGO_ENABLED=1; export CC=gcc; go install github.com/ServiceWeaver/weaver/cmd/weaver@latest
+$ export CGO_ENABLED=1; export CC=gcc; go install github.com/sh3lk/mx/cmd/mx@latest
 ```
 
 # Step by Step Tutorial
 
-In this section, we show you how to write Service Weaver applications. To
-install Service Weaver and follow along, refer to the
+In this section, we show you how to write MX applications. To
+install MX and follow along, refer to the
 [Installation](#installation) section. The full source code presented in this
 tutorial can be found [here][hello_app].
 
 ## Components
 
-Service Weaver's core abstraction is the **component**. A component is like an
-[actor][actors], and a Service Weaver application is implemented as a set of
+MX's core abstraction is the **component**. A component is like an
+[actor][actors], and a MX application is implemented as a set of
 components. Concretely, a component is represented with a regular Go
 [interface][go_interfaces], and components interact with each other by calling
 the methods defined by these interfaces.
@@ -118,63 +118,63 @@ import (
     "fmt"
     "log"
 
-    "github.com/ServiceWeaver/weaver"
+    "github.com/sh3lk/mx"
 )
 
 func main() {
-    if err := weaver.Run(context.Background(), serve); err != nil {
+    if err := mx.Run(context.Background(), serve); err != nil {
         log.Fatal(err)
     }
 }
 
-// app is the main component of the application. weaver.Run creates
+// app is the main component of the application. mx.Run creates
 // it and passes it to serve.
 type app struct{
-    weaver.Implements[weaver.Main]
+    mx.Implements[mx.Main]
 }
 
-// serve is called by weaver.Run and contains the body of the application.
+// serve is called by mx.Run and contains the body of the application.
 func serve(context.Context, *app) error {
     fmt.Println("Hello")
     return nil
 }
 ```
 
-`weaver.Run(...)` initializes and runs the Service Weaver application. In
-particular, `weaver.Run` finds the main component, creates it, and passes it to
+`mx.Run(...)` initializes and runs the MX application. In
+particular, `mx.Run` finds the main component, creates it, and passes it to
 a supplied function. In this example,`app` is the main component since it
-contains a `weaver.Implements[weaver.Main]` field.
+contains a `mx.Implements[mx.Main]` field.
 
-Before we build and run the app, we need to run Service Weaver's code generator,
-called `weaver generate`. `weaver generate` writes a `weaver_gen.go` file that
-contains code needed by the Service Weaver runtime. We'll elaborate on what
-exactly `weaver generate` does and why we need to run it later. Finally, run the
+Before we build and run the app, we need to run MX's code generator,
+called `mx generate`. `mx generate` writes a `mx_gen.go` file that
+contains code needed by the MX runtime. We'll elaborate on what
+exactly `mx generate` does and why we need to run it later. Finally, run the
 app!
 
 ```console
 $ go mod tidy
-$ weaver generate .
+$ mx generate .
 $ go run .
 Hello
 ```
 
-Components are the core abstraction of Service Weaver. All code in a Service
-Weaver application runs as part of some component. The main advantage of
+Components are the core abstraction of MX. All code in a Service
+MX application runs as part of some component. The main advantage of
 components is that they decouple how you *write* your code from how you *run*
 your code. They let you write your application as a monolith, but when you go to
 run your code, you can run components in a separate process or on a different
 machine entirely. Here's a diagram illustrating this concept:
 
-![A diagram showing off various types of Service Weaver deployments](assets/images/components.svg)
+![A diagram showing off various types of MX deployments](assets/images/components.svg)
 
-When we `go run` a Service Weaver application, all components run together in a
+When we `go run` a MX application, all components run together in a
 single process, and method calls between components are executed as regular Go
 method calls. In a moment, we'll describe how to run each component in a
 separate process with method calls between components executed as RPCs.
 
 ## Multiple Components
 
-In a Service Weaver application, any component can call any other component. To
+In a MX application, any component can call any other component. To
 demonstrate this, we introduce a second `Reverser` component. Create a file
 `reverser.go` with the following contents:
 
@@ -184,7 +184,7 @@ package main
 import (
     "context"
 
-    "github.com/ServiceWeaver/weaver"
+    "github.com/sh3lk/mx"
 )
 
 // Reverser component.
@@ -194,7 +194,7 @@ type Reverser interface {
 
 // Implementation of the Reverser component.
 type reverser struct{
-    weaver.Implements[Reverser]
+    mx.Implements[Reverser]
 }
 
 func (r *reverser) Reverse(_ context.Context, s string) (string, error) {
@@ -210,7 +210,7 @@ func (r *reverser) Reverse(_ context.Context, s string) (string, error) {
 The `Reverser` component is represented by a `Reverser` interface with,
 unsurprisingly, a `Reverse` method that reverses strings. The `reverser` struct
 is our implementation of the `Reverser` component (as indicated by the
-`weaver.Implements[Reverser]` field it contains).
+`mx.Implements[Reverser]` field it contains).
 
 Next, edit the app component in `main.go` to use the `Reverser` component:
 
@@ -222,18 +222,18 @@ import (
     "fmt"
     "log"
 
-    "github.com/ServiceWeaver/weaver"
+    "github.com/sh3lk/mx"
 )
 
 func main() {
-    if err := weaver.Run(context.Background(), serve); err != nil {
+    if err := mx.Run(context.Background(), serve); err != nil {
         log.Fatal(err)
     }
 }
 
 type app struct{
-    weaver.Implements[weaver.Main]
-    reverser weaver.Ref[Reverser]
+    mx.Implements[mx.Main]
+    reverser mx.Ref[Reverser]
 }
 
 func serve(ctx context.Context, app *app) error {
@@ -248,14 +248,14 @@ func serve(ctx context.Context, app *app) error {
 }
 ```
 
-The `app` struct has a new field of type `weaver.Ref[Reverser]` that provides
+The `app` struct has a new field of type `mx.Ref[Reverser]` that provides
 access to the `Reverser` component.
 
 In general, if component X uses component Y, the implementation struct for X
-should contain a field of type `weaver.Ref[Y]`. When an X component instance is
-created, Service Weaver will automatically create the Y component as well and
-will fill the `weaver.Ref[Y]` field with a handle to the Y component.  The
-implementation of X can call `Get()` on the `weaver.Ref[Y]` field to get the Y
+should contain a field of type `mx.Ref[Y]`. When an X component instance is
+created, MX will automatically create the Y component as well and
+will fill the `mx.Ref[Y]` field with a handle to the Y component.  The
+implementation of X can call `Get()` on the `mx.Ref[Y]` field to get the Y
 component, as demonstrated by the following lines in the preceding examples:
 
 ```go
@@ -265,7 +265,7 @@ component, as demonstrated by the following lines in the preceding examples:
 
 ## Listeners
 
-Service Weaver is designed for writing serving systems. In this section, we'll
+MX is designed for writing serving systems. In this section, we'll
 augment our app to serve HTTP traffic using a network listener. Rewrite
 `main.go` with the following contents:
 
@@ -278,19 +278,19 @@ import (
     "log"
     "net/http"
 
-    "github.com/ServiceWeaver/weaver"
+    "github.com/sh3lk/mx"
 )
 
 func main() {
-    if err := weaver.Run(context.Background(), serve); err != nil {
+    if err := mx.Run(context.Background(), serve); err != nil {
         log.Fatal(err)
     }
 }
 
 type app struct {
-    weaver.Implements[weaver.Main]
-    reverser weaver.Ref[Reverser]
-    hello    weaver.Listener
+    mx.Implements[mx.Main]
+    reverser mx.Ref[Reverser]
+    hello    mx.Listener
 }
 
 func serve(ctx context.Context, app *app) error {
@@ -327,7 +327,7 @@ Here's an explanation of the code:
 By default, all application listeners listen on a random port chosen by the
 operating system. Here, we want to change this default behavior and assign a
 fixed local listener port for the `hello` listener. To do so, create a
-[TOML](https://toml.io) config file named `weaver.toml` with
+[TOML](https://toml.io) config file named `mx.toml` with
 the following contents:
 
 ```toml
@@ -337,13 +337,13 @@ listeners.hello = {address = "localhost:12345"}
 
 Note that the name of the listener, `hello` in this case, is derived from the
 field name. You can override this behavior and specify a specific listener name
-using a `"weaver"` field tag like this:
+using a `"mx"` field tag like this:
 
 ```go
 type app struct {
-    weaver.Implements[weaver.Main]
-    reverser weaver.Ref[Reverser]
-    hello    weaver.Listener `weaver:"my_custom_listener_name"`
+    mx.Implements[mx.Main]
+    reverser mx.Ref[Reverser]
+    hello    mx.Listener `mx:"my_custom_listener_name"`
 }
 ```
 
@@ -351,13 +351,13 @@ Listener names must be valid [Go identifiers][identifiers]. For example, the
 names `"foo"`, `"bar42"`, and `"_moo"` are legal, while `""`, `"foo bar"`, and
 `"foo-bar"` are illegal.
 
-Run `weaver generate`, then `go mod tidy`, and then
-`SERVICEWEAVER_CONFIG=weaver.toml go run .`.
+Run `mx generate`, then `go mod tidy`, and then
+`MX_CONFIG=mx.toml go run .`.
 The program should print out the name of the application and a unique
 deployment id. It should then block serving HTTP requests on `localhost:12345`.
 
 ```console
-$ weaver generate
+$ mx generate
 $ go mod tidy
 $ go run .
 ╭───────────────────────────────────────────────────╮
@@ -371,15 +371,15 @@ hello listener available on 127.0.0.1:12345
 In a separate terminal, curl the server to receive a reversed greeting:
 
 ```console
-$ curl "localhost:12345/hello?name=Weaver"
+$ curl "localhost:12345/hello?name=MX"
 Hello, revaeW!
 ```
 
-Run `weaver single status` to view the status of the Service Weaver application.
+Run `mx single status` to view the status of the MX application.
 The status shows every deployment, component, and listener.
 
 ```console
-$ weaver single status
+$ mx single status
 ╭────────────────────────────────────────────────────╮
 │ DEPLOYMENTS                                        │
 ├───────┬──────────────────────────────────────┬─────┤
@@ -404,30 +404,30 @@ $ weaver single status
 ╰───────┴────────────┴──────────┴─────────────────╯
 ```
 
-You can also run `weaver single dashboard` to open a dashboard in a web browser.
+You can also run `mx single dashboard` to open a dashboard in a web browser.
 
 ## Multiprocess Execution
 
-We've seen how to run a Service Weaver application in a single process with `go
+We've seen how to run a MX application in a single process with `go
 run`. Now, we'll run our application in multiple processes, with method calls
 between components executed as RPCs. First, create a [TOML](https://toml.io)
-config file named `weaver.toml` with the following contents:
+config file named `mx.toml` with the following contents:
 
 ```toml
-[serviceweaver]
+[mx]
 binary = "./hello"
 
 [multi]
 listeners.hello = {address = "localhost:12345"}
 ```
 
-This config file specifies the binary of the Service Weaver application, as
+This config file specifies the binary of the MX application, as
 well as a fixed address for the hello listener. Next, build and run the app
-using `weaver multi deploy`:
+using `mx multi deploy`:
 
 ```console
 $ go build                        # build the ./hello binary
-$ weaver multi deploy weaver.toml # deploy the application
+$ mx multi deploy mx.toml # deploy the application
 ╭───────────────────────────────────────────────────╮
 │ app        : hello                                │
 │ deployment : 6b285407-423a-46cc-9a18-727b5891fc57 │
@@ -436,30 +436,30 @@ S1205 10:21:15.450917 stdout  26b601c4] hello listener available on 127.0.0.1:12
 S1205 10:21:15.454387 stdout  88639bf8] hello listener available on 127.0.0.1:12345
 ```
 
-**Note**: `weaver multi` replicates every component twice, which is why you see
+**Note**: `mx multi` replicates every component twice, which is why you see
 two log entries. We elaborate on replication more in the
 [Components](#components) section later.
 
 In a separate terminal, curl the server:
 
 ```console
-$ curl "localhost:12345/hello?name=Weaver"
+$ curl "localhost:12345/hello?name=MX"
 Hello, revaeW!
 ```
 
 When the main component receives your `/hello` HTTP request, it calls the
 `reverser.Reverse` method. This method call is executed as an RPC to the
 `Reverser` component running in a different process. Remember earlier when we
-ran `weaver generate`, the Service Weaver code generator? One thing that `weaver
+ran `mx generate`, the MX code generator? One thing that `mx
 generate` does is generate RPC clients and servers for every component to make
 this communication possible.
 
-Run `weaver multi status` to view the status of the Service Weaver application.
+Run `mx multi status` to view the status of the MX application.
 Note that the `main` and `Reverser` components are replicated twice, and every
 replica is run in its own OS process.
 
 ```console
-$ weaver multi status
+$ mx multi status
 ╭────────────────────────────────────────────────────╮
 │ DEPLOYMENTS                                        │
 ├───────┬──────────────────────────────────────┬─────┤
@@ -484,25 +484,25 @@ $ weaver multi status
 ╰───────┴────────────┴──────────┴─────────────────╯
 ```
 
-You can also run `weaver multi dashboard` to open a dashboard in a web browser.
+You can also run `mx multi dashboard` to open a dashboard in a web browser.
 
 ## Deploying to the Cloud
 
-The ability to run Service Weaver applications locally&mdash;either in a single
-process with `go run` or across multiple processes with `weaver multi
+The ability to run MX applications locally&mdash;either in a single
+process with `go run` or across multiple processes with `mx multi
 deploy`&mdash;makes it easy to quickly develop, debug, and test your
 applications. When your application is ready for production, however, you'll
-often want to deploy it to the cloud. Service Weaver makes this easy too.
+often want to deploy it to the cloud. MX makes this easy too.
 
 For example, we can deploy our "Hello, World" application to [Google Kubernetes
 Engine][gke], Google Cloud's hosted Kubernetes offering, as easily as running a
 single command (see the [GKE](#gke) section for details):
 
 ```console
-$ weaver gke deploy weaver.toml
+$ mx gke deploy mx.toml
 ```
 
-When you run this command, Service Weaver will
+When you run this command, MX will
 
 - wrap your application binary into a container;
 - upload the container to the cloud project of your choosing;
@@ -511,7 +511,7 @@ When you run this command, Service Weaver will
 - deploy your application on Kubernetes, with components distributed across
   machines in multiple regions.
 
-Service Weaver also integrates your application with existing cloud tooling.
+MX also integrates your application with existing cloud tooling.
 Logs are uploaded to [Google Cloud Logging][cloud_logging], metrics are uploaded
 to [Google Cloud Monitoring][cloud_metrics], traces are uploaded to [Google
 Cloud Tracing][cloud_trace], etc.
@@ -519,34 +519,34 @@ Cloud Tracing][cloud_trace], etc.
 ## Next Steps
 
 - Work through the exercises in our [codelab](#codelab) to get experience
-  writing Service Weaver apps.
+  writing MX apps.
 - Continue reading the docs to get a better understanding of
   [components](#components) and learn about other fundamental features of
-  Service Weaver like [logging](#logging), [metrics](#metrics),
+  MX like [logging](#logging), [metrics](#metrics),
   [routing](#routing), and so on.
 - Read [our blog](/blog).
-- Read through [example Service Weaver applications][weaver_examples] that
-  demonstrate what Service Weaver has to offer.
-- Dive deeper into the various ways you can deploy a Service Weaver application,
+- Read through [example MX applications][mx_examples] that
+  demonstrate what MX has to offer.
+- Dive deeper into the various ways you can deploy a MX application,
   including [single process](#single-process), [multiprocess](#multiprocess),
   [SSH](#ssh), [GKE](#gke), [Kube](#kube), and [Cloud Run](#cloud-run) deployers.
-- Check out [Service Weaver's source code on GitHub][weaver_github].
+- Check out [MX's source code on GitHub][mx_github].
 - Chat with us on [Discord](https://discord.gg/FzbQ3SM8R5) or send us an
-  [email](serviceweaver@google.com).
+  [email](mx@google.com).
 
 # Codelab
 
-Check out the [Service Weaver codelab][workshop] hosted on GitHub. The codelab
+Check out the [MX codelab][workshop] hosted on GitHub. The codelab
 includes a set of exercises (with solutions) that walk you through the
 implementation of [an emoji search engine application][emojis] backed by
 ChatGPT. The [Step by Step Tutorial](#step-by-step-tutorial) section walked you
-through the fundamentals of Service Weaver, and the codelab puts these
+through the fundamentals of MX, and the codelab puts these
 fundamentals to practice, giving you hands-on experience writing fully fledged
-Service Weaver applications.
+MX applications.
 
 # Components
 
-**Components** are Service Weaver's core abstraction. A component is a
+**Components** are MX's core abstraction. A component is a
 long-lived, possibly replicated entity that exposes a set of methods.
 Concretely, a component is represented as a Go interface and corresponding
 implementation of that interface. Consider the following `Adder` component for
@@ -558,7 +558,7 @@ type Adder interface {
 }
 
 type adder struct {
-    weaver.Implements[Adder]
+    mx.Implements[Adder]
 }
 
 func (*adder) Add(_ context.Context, x, y int) (int, error) {
@@ -567,16 +567,16 @@ func (*adder) Add(_ context.Context, x, y int) (int, error) {
 ```
 
 `Adder` defines the component's interface, and `adder` defines the component's
-implementation. The two are linked with the embedded `weaver.Implements[Adder]`
-field. You can call `weaver.Ref[Adder].Get()` to get a client to the `Adder`
+implementation. The two are linked with the embedded `mx.Implements[Adder]`
+field. You can call `mx.Ref[Adder].Get()` to get a client to the `Adder`
 component. The returned client implements the component's interface, so you can
 invoke the component's methods as you would any regular Go method. When you
 invoke a component's method, the method call is performed by one of the possibly
 many component replicas.
 
-Components are generally long-lived, but the Service Weaver runtime may scale up
+Components are generally long-lived, but the MX runtime may scale up
 or scale down the number of replicas of a component over time based on load.
-Similarly, component replicas may fail and get restarted. Service Weaver may
+Similarly, component replicas may fail and get restarted. MX may
 also move component replicas around, co-locating two chatty components in the
 same OS process, for example, so that communication between the components is
 done locally rather than over the network.
@@ -618,13 +618,13 @@ A component implementation must be a struct that looks like:
 
 ```go
 type foo struct{
-    weaver.Implements[Foo]
+    mx.Implements[Foo]
     // ...
 }
 ```
 
 -   It must be a struct.
--   It must embed a `weaver.Implements[T]` field where `T` is the component
+-   It must embed a `mx.Implements[T]` field where `T` is the component
     interface it implements.
 
 If a component implementation implements an `Init(context.Context) error`
@@ -701,12 +701,12 @@ Noting the points above:
 
 If a remote method call fails to execute properly&mdash;because of a machine
 crash or a network partition, for example&mdash;it returns an error with an
-embedded `weaver.RemoteCallError`. Here's an illustrative example:
+embedded `mx.RemoteCallError`. Here's an illustrative example:
 
 ```go
 // Call the cache.Get method.
 value, err := cache.Get(ctx, "key")
-if errors.Is(err, weaver.RemoteCallError) {
+if errors.Is(err, mx.RemoteCallError) {
     // cache.Get did not execute properly.
 } else if err != nil {
     // cache.Get executed properly, but returned an error.
@@ -716,12 +716,12 @@ if errors.Is(err, weaver.RemoteCallError) {
 ```
 
 Note that if a method call returns an error with an embedded
-`weaver.RemoteCallError`, it does *not* mean that the method never executed. The
+`mx.RemoteCallError`, it does *not* mean that the method never executed. The
 method may have executed partially, or fully, or multiple times due to automatic
 retries.
 
 On network errors, a component method call may be retried automatically by
-Service Weaver. This may cause a single method call to turn into multiple
+MX. This may cause a single method call to turn into multiple
 executions of that method. In practice, many methods (e.g., read-only or
 idempotent methods) work correctly even when executed more than once per call,
 and this automatic retrying can help make the application more robust in the
@@ -739,41 +739,41 @@ type Cache interface{
 }
 
 // Do not retry Cache.Append.
-var _ weaver.NotRetriable = Cache.Append
+var _ mx.NotRetriable = Cache.Append
 ```
 
 ## Listeners
 
 A component implementation may wish to use one or more network listeners, e.g.,
-to serve HTTP network traffic. To do so, named `weaver.Listener` fields must
+to serve HTTP network traffic. To do so, named `mx.Listener` fields must
 be added to the implementation struct. For example, the following component
 implementation creates two network listeners:
 
 ```go
 type impl struct{
-    weaver.Implements[MyComponent]
-    foo weaver.Listener
-    Bar weaver.Listener
+    mx.Implements[MyComponent]
+    foo mx.Listener
+    Bar mx.Listener
 }
 ```
 
-With Service Weaver, listeners are named. By default, listeners are named
+With MX, listeners are named. By default, listeners are named
 after their corresponding struct fields (e.g., `"foo"` and `"bar"` in the
-above example). Alternatively, a special ````weaver:"name"```` struct tag
+above example). Alternatively, a special ````mx:"name"```` struct tag
 can be added to the struct field to specify the listener name explicitly:
 
 ```go
 type impl struct{
-    weaver.Implements[MyComponent]
-    foo weaver.Listener
-    lis weaver.Listener `weaver:"bar"`
+    mx.Implements[MyComponent]
+    foo mx.Listener
+    lis mx.Listener `mx:"bar"`
 }
 ```
 
 Listener names must be unique inside a given application binary, regardless of
 which components they are specified in. For example, it is illegal to declare a
 Listener field `"foo"` in two different component implementations structs,
-unless one is renamed using the ````weaver:"name"```` struct tag.
+unless one is renamed using the ````mx:"name"```` struct tag.
 
 By default, all application listeners will listen on a random port chosen
 by the operating system. This behavior, as well as other customization options,
@@ -790,12 +790,12 @@ listeners.bar = {address = "localhost:12346"}
 
 ## Config
 
-Service Weaver uses [config files](#config-files), written in [TOML](#toml), to
+MX uses [config files](#config-files), written in [TOML](#toml), to
 configure how applications are run. A minimal config file, for example, simply
 lists the application binary:
 
 ```toml
-[serviceweaver]
+[mx]
 binary = "./hello"
 ```
 
@@ -820,7 +820,7 @@ type Greeter interface {
 }
 
 type greeter struct {
-    weaver.Implements[Greeter]
+    mx.Implements[Greeter]
 }
 
 func (g *greeter) Greet(_ context.Context, name string) (string, error) {
@@ -838,12 +838,12 @@ type greeterOptions struct {
 ```
 
 Next, we associate the options struct with the `greeter` implementation by
-embedding the `weaver.WithConfig[T]` struct.
+embedding the `mx.WithConfig[T]` struct.
 
 ```go
 type greeter struct {
-    weaver.Implements[Greeter]
-    weaver.WithConfig[greeterOptions]
+    mx.Implements[Greeter]
+    mx.WithConfig[greeterOptions]
 }
 ```
 
@@ -855,7 +855,7 @@ the full path-prefixed name of the component.
 Greeting = "Bonjour"
 ```
 
-When the `Greeter` component is created, Service Weaver will automatically parse
+When the `Greeter` component is created, MX will automatically parse
 the `Greeter` section of the config file into a `greeterOptions` struct. You can
 access the populated struct via the `Config` method of the embedded `WithConfig`
 struct. For example:
@@ -888,16 +888,16 @@ my_custom_name = "Bonjour"
 ```
 
 If you run an application directly (i.e. using `go run`), you can pass the
-config file using the `SERVICEWEAVER_CONFIG` environment variable:
+config file using the `MX_CONFIG` environment variable:
 
 ```console
-$ SERVICEWEAVER_CONFIG=weaver.toml go run .
+$ MX_CONFIG=mx.toml go run .
 ```
 
-Or, use `weaver single deploy`:
+Or, use `mx single deploy`:
 
 ```console
-$ weaver single deploy weaver.toml
+$ mx single deploy mx.toml
 ```
 
 ## Context Propagation
@@ -935,11 +935,11 @@ func (*adder) Add(ctx context.Context, x, y int) (int, error) {
 TODO(mwhittaker): Pick a better name for node ids?
 </div>
 
-Service Weaver provides a logging API, `weaver.Logger`. By using Service
-Weaver's logging API, you can cat, tail, search, and filter logs from every one
-of your Service Weaver applications (past or present). Service Weaver also
+MX provides a logging API, `mx.Logger`. By using Service
+MX's logging API, you can cat, tail, search, and filter logs from every one
+of your MX applications (past or present). MX also
 integrates the logs into the environment where your application is deployed. If
-you [deploy a Service Weaver application to Google Cloud](#gke), for example,
+you [deploy a MX application to Google Cloud](#gke), for example,
 logs are automatically exported to [Google Cloud Logging][cloud_logging].
 
 Use the `Logger` method of a component implementation to get a logger scoped to
@@ -951,11 +951,11 @@ type Adder interface {
 }
 
 type adder struct {
-    weaver.Implements[Adder]
+    mx.Implements[Adder]
 }
 
 func (a *adder) Add(ctx context.Context, x, y int) (int, error) {
-    // adder embeds weaver.Implements[Adder] which provides the Logger method.
+    // adder embeds mx.Implements[Adder] which provides the Logger method.
     logger := a.Logger(ctx)
     logger.Debug("A debug log.")
     logger.Info("An info log.")
@@ -979,7 +979,7 @@ components are co-located in the same OS process, they are given the same node
 id. Then comes the file and line where the log was produced, followed finally by
 the contents of the log.
 
-Service Weaver also allows you to attach key-value attributes to log entries.
+MX also allows you to attach key-value attributes to log entries.
 These attributes can be useful when searching and filtering logs.
 
 ```go
@@ -995,9 +995,9 @@ fooLogger.Info("A log with attributes.")  // adds foo="bar"
 ```
 
 **Note**: You can also add normal print statements to your code. These prints
-will be captured and logged by Service Weaver, but they won't be associated with
+will be captured and logged by MX, but they won't be associated with
 a particular component, they won't have `file:line` information, and they won't
-have any attributes, so we recommend you use a `weaver.Logger` whenever
+have any attributes, so we recommend you use a `mx.Logger` whenever
 possible.
 
 ```console
@@ -1010,7 +1010,7 @@ logs for [single process](#single-process-logging),
 
 # Metrics
 
-Service Weaver provides an API for [metrics][metric_types]; specifically
+MX provides an API for [metrics][metric_types]; specifically
 [counters][prometheus_counter], [gauges][prometheus_gauge], and
 [histograms][prometheus_histogram].
 
@@ -1024,8 +1024,8 @@ Service Weaver provides an API for [metrics][metric_types]; specifically
   can use a histogram to measure things like the latency of every HTTP request
   your program has received so far.
 
-Service Weaver integrates these metrics into the environment where your application is
-deployed. If you [deploy a Service Weaver application to Google Cloud](#gke), for
+MX integrates these metrics into the environment where your application is
+deployed. If you [deploy a MX application to Google Cloud](#gke), for
 example, metrics are automatically exported to the [Google Cloud Metrics
 Explorer][metrics_explorer] where they can be queried, aggregated, and graphed.
 
@@ -1053,7 +1053,7 @@ type Adder interface {
 }
 
 type adder struct {
-    weaver.Implements[Adder]
+    mx.Implements[Adder]
 }
 
 func (*adder) Add(_ context.Context, x, y int) (int, error) {
@@ -1071,7 +1071,7 @@ and [GKE](#gke-metrics) deployments.
 
 ## Labels
 
-Metrics can also have a set of key-value labels. Service Weaver represents
+Metrics can also have a set of key-value labels. MX represents
 labels using structs. Here's an example of how to declare and use a labeled
 counter to count the parity of the argument to a `Halve` method.
 
@@ -1094,7 +1094,7 @@ type Halver interface {
 }
 
 type halver struct {
-    weaver.Implements[Halver]
+    mx.Implements[Halver]
 }
 
 func (halver) Halve(_ context.Context, val int) (int, error) {
@@ -1108,51 +1108,51 @@ func (halver) Halve(_ context.Context, val int) (int, error) {
 ```
 
 To adhere to [popular metric naming conventions][prometheus_naming], Service
-Weaver lowercases the first letter of every label by default. The `Parity` field
+MX lowercases the first letter of every label by default. The `Parity` field
 for example is exported as `parity`. You can override this behavior and provide
-a custom label name using a `weaver` annotation.
+a custom label name using a `mx` annotation.
 
 ```go
 type labels struct {
     Foo string                           // exported as "foo"
-    Bar string `weaver:"my_custom_name"` // exported as "my_custom_name"
+    Bar string `mx:"my_custom_name"` // exported as "my_custom_name"
 }
 ```
 
 ## Auto-Generated Metrics
 
-Service Weaver automatically creates and maintains the following set of metrics,
+MX automatically creates and maintains the following set of metrics,
 which measure the count, latency, and chattiness of every component method
 invocation. Every metric is labeled by the calling component as well as the
 invoked component and method, and whether or not the call was local or remote.
 
--   `serviceweaver_method_count`: Count of Service Weaver component
+-   `mx_method_count`: Count of MX component
     method invocations.
--   `serviceweaver_method_error_count`: Count of Service Weaver component
+-   `mx_method_error_count`: Count of MX component
     method invocations that result in an error.
--   `serviceweaver_method_latency_micros`: Duration, in microseconds, of
-    Service Weaver component method execution.
--   `serviceweaver_method_bytes_request`: Number of bytes in Service
-    Weaver remote component method requests.
--   `serviceweaver_method_bytes_reply`: Number of bytes in Service Weaver
+-   `mx_method_latency_micros`: Duration, in microseconds, of
+    MX component method execution.
+-   `mx_method_bytes_request`: Number of bytes in Service
+    MX remote component method requests.
+-   `mx_method_bytes_reply`: Number of bytes in MX
     remote component method replies.
 
 ## HTTP Metrics
 
-Service Weaver declares the following set of HTTP related metrics.
+MX declares the following set of HTTP related metrics.
 
--   `serviceweaver_http_request_count`: Count of HTTP requests.
--   `serviceweaver_http_error_count`: Count of HTTP requests resulting in a 4XX or 5XX
+-   `mx_http_request_count`: Count of HTTP requests.
+-   `mx_http_error_count`: Count of HTTP requests resulting in a 4XX or 5XX
     response. This metric is also labeled with the returned status code.
--   `serviceweaver_http_request_latency_micros`: Duration, in microseconds, of HTTP
+-   `mx_http_request_latency_micros`: Duration, in microseconds, of HTTP
     request execution.
--   `serviceweaver_http_request_bytes_received`: Estimated number of bytes *received* by
+-   `mx_http_request_bytes_received`: Estimated number of bytes *received* by
     an HTTP handler.
--   `serviceweaver_http_request_bytes_returned`: Estimated number of bytes *returned* by
+-   `mx_http_request_bytes_returned`: Estimated number of bytes *returned* by
     an HTTP handler.
 
 If you pass an [`http.Handler`](https://pkg.go.dev/net/http#Handler) to the
-`weaver.InstrumentHandler` function, it will return a new `http.Handler` that
+`mx.InstrumentHandler` function, it will return a new `http.Handler` that
 updates these metrics automatically, labeled with the provided label. For
 example:
 
@@ -1160,26 +1160,26 @@ example:
 // Metrics are recorded for fooHandler with label "foo".
 var mux http.ServeMux
 var fooHandler http.Handler = ...
-mux.Handle("/foo", weaver.InstrumentHandler("foo", fooHandler))
+mux.Handle("/foo", mx.InstrumentHandler("foo", fooHandler))
 ```
 
 # Tracing
 
-Service Weaver relies on [OpenTelemetry][otel] to trace your application.
-Service Weaver exports these traces into the environment where your application
-is deployed. If you [deploy a Service Weaver application to Google Cloud](#gke),
+MX relies on [OpenTelemetry][otel] to trace your application.
+MX exports these traces into the environment where your application
+is deployed. If you [deploy a MX application to Google Cloud](#gke),
 for example, traces are automatically exported to
 [Google Cloud Trace][cloud_trace].
 
 If you pass an [`http.Handler`](https://pkg.go.dev/net/http#Handler) to the
-`weaver.InstrumentHandler` function, it will return a new `http.Handler` that
+`mx.InstrumentHandler` function, it will return a new `http.Handler` that
 traces an HTTP request every second.
 
 ```go
 // Tracing is enabled for one request every second.
 var mux http.ServeMux
 var fooHandler http.Handler = ...
-mux.Handle("/foo", weaver.InstrumentHandler("foo", fooHandler))
+mux.Handle("/foo", mx.InstrumentHandler("foo", fooHandler))
 ```
 
 Alternatively, you can enable tracing manually using the [OpenTelemetry][otel]
@@ -1193,18 +1193,18 @@ import (
     "net/http"
 
     "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-    "github.com/ServiceWeaver/weaver"
+    "github.com/sh3lk/mx"
 )
 
 func main() {
-    if err := weaver.Run(context.Background(), serve); err != nil {
+    if err := mx.Run(context.Background(), serve); err != nil {
         log.Fatal(err)
     }
 }
 
 type app struct {
-    weaver.Implements[weaver.Main]
-    lis weaver.Listener
+    mx.Implements[mx.Main]
+    lis mx.Listener
 }
 
 func serve(ctx context.Context, app *app) error {
@@ -1221,10 +1221,10 @@ func serve(ctx context.Context, app *app) error {
 }
 ```
 
-Regardless of whether you use `weaver.InstrumentHandler` or you manually enable
+Regardless of whether you use `mx.InstrumentHandler` or you manually enable
 tracing, once tracing is enabled for a given HTTP request, that request
 and the resulting component method calls will be automatically traced. Service
-Weaver will collect and export the traces for you. Refer to the
+MX will collect and export the traces for you. Refer to the
 deployer-specific documentation for [single process](#single-process-tracing),
 [multiprocess](#multiprocess-tracing), and [GKE](#gke-tracing) to learn about
 deployer-specific exporters.
@@ -1251,9 +1251,9 @@ more about how to add more application-specific details to your traces.
 
 # Profiling
 
-Service Weaver allows you to profile an entire Service Weaver application, even
+MX allows you to profile an entire MX application, even
 one that is deployed in multiple processes across multiple machines. Service
-Weaver profiles every individual binary and aggregates them into a single
+MX profiles every individual binary and aggregates them into a single
 profile that captures the performance of the application as a whole. Refer to
 the deployer-specific documentation for details on how to collect profiles for
 [single process](#single-process-profiling),
@@ -1275,13 +1275,13 @@ type Cache interface {
 }
 
 type cache struct {
-    weaver.Implements[Cache]
+    mx.Implements[Cache]
     // ...
 }
 ```
 
 To increase the cache hit ratio, we may want to route every request for a given
-key to the same replica. Service Weaver supports this affinity based routing by allowing
+key to the same replica. MX supports this affinity based routing by allowing
 the application to specify a router type associated with the component
 implementation. For example:
 
@@ -1302,9 +1302,9 @@ A routing key can be
 
 -   any integer (e.g., `int`, `int32`), float (i.e. `float32`, `float64`), or
     string; or
--   a struct that may optionally embed `weaver.AutoMarshal`, and all remaining
+-   a struct that may optionally embed `mx.AutoMarshal`, and all remaining
     fields must be either integers, floats, or strings. (e.g.
-    `struct{weaver.AutoMarshal; x int; y string}`, `struct{x int; y string}`, etc )
+    `struct{mx.AutoMarshal; x int; y string}`, `struct{x int; y string}`, etc )
 
 Every router method must return the same routing key type. The following, for
 example, is invalid:
@@ -1315,18 +1315,18 @@ func (cacheRouter) Get(_ context.Context, key string) string { return key }
 func (cacheRouter) Put(_ context.Context, key, value string) int { return 42 }
 ```
 
-To associate a router with its component, embed a `weaver.WithRouter[T]` field in
+To associate a router with its component, embed a `mx.WithRouter[T]` field in
 the component implementation where `T` is the type of the router.
 
 ```go
 type cache struct {
-    weaver.Implements[Cache]
-    weaver.WithRouter[cacheRouter]
+    mx.Implements[Cache]
+    mx.WithRouter[cacheRouter]
     // ...
 }
 ```
 
-**NOTE**: Routing is done on a best-effort basis. Service Weaver will try to route
+**NOTE**: Routing is done on a best-effort basis. MX will try to route
 method invocations with the same key to the same replica, but this is *not*
 guaranteed. As a corollary, you should *never* depend on routing for
 correctness. Only use routing to increase performance in the common case.
@@ -1337,14 +1337,14 @@ routed.
 
 # Storage
 
-We expect most Service Weaver applications to persist their data in some way. For
+We expect most MX applications to persist their data in some way. For
 example, an e-commerce application may store its products catalog and user
 information in a database and access them while serving user requests.
 
-By default, Service Weaver leaves the storage and retrieval of application data
+By default, MX leaves the storage and retrieval of application data
 up to the developer. If you're using a database, for example, you have to create
 the database, pre-populate it with data, and write the code to access the
-database from your Service Weaver application.
+database from your MX application.
 
 Below is an example of how database information can be passed to a simple
 `Adder` component using a [config file](#components-config). First, the config
@@ -1364,8 +1364,8 @@ type Adder interface {
 }
 
 type adder struct {
-    weaver.Implements[Adder]
-    weaver.WithConfig[config]
+    mx.Implements[Adder]
+    mx.WithConfig[config]
 
     db *sql.DB
 }
@@ -1401,9 +1401,9 @@ environment variables.
 
 # Testing
 
-Service Weaver includes a `weavertest` package that you can use to test your
-Service Weaver applications. The package provides a `Runner` type with `Test`
-and `Bench` methods. Tests use `Runner.Test` instead of `weaver.Run`. To test an
+MX includes a `mxtest` package that you can use to test your
+MX applications. The package provides a `Runner` type with `Test`
+and `Bench` methods. Tests use `Runner.Test` instead of `mx.Run`. To test an
 `Adder` component with an `Add` method, for example, create an `adder_test.go`
 file with the following contents.
 
@@ -1414,12 +1414,12 @@ import (
     "context"
     "testing"
 
-    "github.com/ServiceWeaver/weaver"
-    "github.com/ServiceWeaver/weaver/weavertest"
+    "github.com/sh3lk/mx"
+    "github.com/sh3lk/mx/mxtest"
 )
 
 func TestAdd(t *testing.T) {
-     runner := weavertest.Local  // A runner that runs components in a single process
+     runner := mxtest.Local  // A runner that runs components in a single process
      runner.Test(t, func(t *testing.T, adder Adder) {
          ctx := context.Background()
          got, err := adder.Add(ctx, 1, 2)
@@ -1452,7 +1452,7 @@ to a component implementation.
 
 ```go
 func TestArithmetic(t *testing.T) {
-    weavertest.Local.Test(t, func(t *testing.T, adder *adderImpl, multiplier Multiplier) {
+    mxtest.Local.Test(t, func(t *testing.T, adder *adderImpl, multiplier Multiplier) {
         // ...
     })
 }
@@ -1460,26 +1460,26 @@ func TestArithmetic(t *testing.T) {
 
 ## Runners
 
-`weavertest` provides a set of builtin Runners that differ in how they partition
+`mxtest` provides a set of builtin Runners that differ in how they partition
 components across processes and how the components communicate with each other:
 
-1. **weavertest.Local**: Every component will be placed in the test process, and
+1. **mxtest.Local**: Every component will be placed in the test process, and
    all component method calls will use local procedure calls, happens when you
-   `go run` a Service Weaver application.
-2. **weavertest.Multi**: Every component will be placed in a
-   different process. This is similar to what happens when you run `weaver multi
+   `go run` a MX application.
+2. **mxtest.Multi**: Every component will be placed in a
+   different process. This is similar to what happens when you run `mx multi
    deploy`.
-3. **weavertest.RPC**: Every component will be placed in the test process, but
+3. **mxtest.RPC**: Every component will be placed in the test process, but
    all component method calls will use remote even though the callee is
    local. This mode is most useful when collecting profiles or coverage data.
 
-Tests run using `weavertest.Local` are easier to debug and troubleshoot, but do
+Tests run using `mxtest.Local` are easier to debug and troubleshoot, but do
 not test distributed execution. You should test with different runners to get
 the best of both worlds (each Runner.Test call will create a new sub-test):
 
 ```go
 func TestAdd(t *testing.T) {
-    for _, runner := range weavertest.AllRunners() {
+    for _, runner := range mxtest.AllRunners() {
         runner.Test(t, func(t *testing.T, adder Adder) {
             // ...
         })
@@ -1490,7 +1490,7 @@ func TestAdd(t *testing.T) {
 ## Fakes
 
 You can replace a component implementation with a fake implementation in a test
-using [`weavertest.Fake`][weavertest.Fake]. Here's an example where we replace
+using [`mxtest.Fake`][mxtest.Fake]. Here's an example where we replace
 the real implementation of a `Clock` component with a fake implementation that
 always returns a fixed time.
 
@@ -1507,10 +1507,10 @@ func (f *fakeClock) Now(context.Context) (int64, error) {
 }
 
 func TestClock(t *testing.T) {
-    for _, runner := range weavertest.AllRunners() {
+    for _, runner := range mxtest.AllRunners() {
         // Register a fake Clock implementation with the runner.
         fake := &fakeClock{100}
-        runner.Fakes = append(runner.Fakes, weavertest.Fake[Clock](fake))
+        runner.Fakes = append(runner.Fakes, mxtest.Fake[Clock](fake))
 
         // When a fake is registered for a component, all instances of that
         // component dispatch to the fake.
@@ -1543,9 +1543,9 @@ by setting the `Runner.Config` field:
 
 ```go
 func TestArithmetic(t *testing.T) {
-    runner := weavertest.Local()
+    runner := mxtest.Local()
     runner.Name = "Custom"
-    runner.Config = `[serviceweaver] ...`
+    runner.Config = `[mx] ...`
     runner.Test(t, func(t *testing.T, adder Adder, multiplier Multiplier) {
         // ...
     })
@@ -1574,28 +1574,28 @@ interactions between multiple versions of a system:
 >    assumption._
 
 
-Service Weaver takes a different approach to rollouts and sidesteps these
-complex cross-version interactions. Service Weaver ensures that client requests
+MX takes a different approach to rollouts and sidesteps these
+complex cross-version interactions. MX ensures that client requests
 are executed entirely within a single version of a system. A component in one
 version will *never* communicate with a component in a different version. This
 eliminates the leading cause of update failures, allowing you to roll out new
-versions of your Service Weaver application safely and with less headache.
+versions of your MX application safely and with less headache.
 
 Avoiding cross-version communication is trivial for applications deployed using
-[`go run`](#single-process) or [`weaver multi deploy`](#multiprocess) because
+[`go run`](#single-process) or [`mx multi deploy`](#multiprocess) because
 every deployment runs independently from one another. Refer to the
 [GKE Deployments](#gke-multi-region) and
-[GKE Versioning](#gke-versioning) sections to learn how Service Weaver uses a combination
+[GKE Versioning](#gke-versioning) sections to learn how MX uses a combination
 of [blue/green deployments][blue_green] and autoscaling to slowly shift traffic
-from an old version of a Service Weaver application running on GKE to a new version,
+from an old version of a MX application running on GKE to a new version,
 avoiding cross-version communication in a resource-efficient manner.
 
 # Single Process
 
 ## Getting Started
 
-The simplest and easiest way to deploy a Service Weaver application is to run it
-directly via `go run`. When you `go run` a Service Weaver application, every
+The simplest and easiest way to deploy a MX application is to run it
+directly via `go run`. When you `go run` a MX application, every
 component is co-located in a single process, and method calls between components
 are executed as regular Go method calls. Refer to the [Step by Step
 Tutorial](#step-by-step-tutorial) section for a full example.
@@ -1605,25 +1605,25 @@ $ go run .
 ```
 
 If you run an application using `go run`, you can provide a config file using
-the `SERVICEWEAVER_CONFIG` environment variable:
+the `MX_CONFIG` environment variable:
 
 ```console
-$ SERVICEWEAVER_CONFIG=weaver.toml go run .
+$ MX_CONFIG=mx.toml go run .
 ```
 
-Or, you can use the `weaver single deploy` command. `weaver single deploy` is
+Or, you can use the `mx single deploy` command. `mx single deploy` is
 practically identical to `go run .`, but it makes it easier to provide a config
 file.
 
 ```console
-$ weaver single deploy weaver.toml
+$ mx single deploy mx.toml
 ```
 
-You can run `weaver single status` to view the status of all active Service
-Weaver applications deployed using `go run`.
+You can run `mx single status` to view the status of all active Service
+MX applications deployed using `go run`.
 
 ```console
-$ weaver single status
+$ mx single status
 ╭────────────────────────────────────────────────────╮
 │ DEPLOYMENTS                                        │
 ├───────┬──────────────────────────────────────┬─────┤
@@ -1656,23 +1656,23 @@ $ weaver single status
 ╰───────┴────────────┴──────────┴────────────╯
 ```
 
-You can also run `weaver single dashboard` to open a dashboard in a web browser.
+You can also run `mx single dashboard` to open a dashboard in a web browser.
 
 ## Listeners
 
-You can add `weaver.Listener` fields to the component implementation to trigger
+You can add `mx.Listener` fields to the component implementation to trigger
 creation of network listeners (see the
 [Step by Step Tutorial](#step-by-step-tutorial) section for context).
 
 ```go
 type app struct {
-    weaver.Implements[weaver.Main]
-    hello    weaver.Listener
+    mx.Implements[mx.Main]
+    hello    mx.Listener
 }
 ```
 
 When you deploy an application using `go run`, the network listeners will be
-automatically created by the Service Weaver runtime. Each listener will listen
+automatically created by the MX runtime. Each listener will listen
 on a random port chosen by the operating system, unless a concrete address
 has been specified in the singleprocess section of the
 [config file](#components-config), e.g.:
@@ -1684,7 +1684,7 @@ listeners.hello = { address = "localhost:12345" }
 
 ## Logging
 
-When you deploy a Service Weaver application with `go run`, [logs](#logging) are
+When you deploy a MX application with `go run`, [logs](#logging) are
 printed to standard out. These logs are not persisted. You can optionally save
 the logs for later analysis using basic shell constructs:
 
@@ -1694,8 +1694,8 @@ $ go run . | tee mylogs.txt
 
 ## Metrics
 
-Run `weaver single dashboard` to open a dashboard in a web browser. The
-dashboard has a page for every Service Weaver application deployed via `go run
+Run `mx single dashboard` to open a dashboard in a web browser. The
+dashboard has a page for every MX application deployed via `go run
 .`.  Every deployment's page has a link to the deployment's [metrics](#metrics).
 The metrics are exported in [Prometheus format][prometheus] and looks something
 like this:
@@ -1708,9 +1708,9 @@ like this:
 # config file:
 #
 # scrape_configs:
-# - job_name: 'prometheus-serviceweaver-scraper'
+# - job_name: 'prometheus-mx-scraper'
 #   scrape_interval: 5s
-#   metrics_path: /debug/serviceweaver/prometheus
+#   metrics_path: /debug/mx/prometheus
 #   static_configs:
 #     - targets: ['127.0.0.1:43087']
 #
@@ -1718,32 +1718,32 @@ like this:
 
 # HELP example_count An example counter.
 # TYPE example_count counter
-example_count{serviceweaver_node="bbc9beb5"} 42
-example_count{serviceweaver_node="00555c38"} 9001
+example_count{mx_node="bbc9beb5"} 42
+example_count{mx_node="00555c38"} 9001
 
 # ┌─────────────────────────────────────┐
-# │ SERVICEWEAVER AUTOGENERATED METRICS │
+# │ MX AUTOGENERATED METRICS │
 # └─────────────────────────────────────┘
-# HELP serviceweaver_method_count Count of Service Weaver component method invocations
-# TYPE serviceweaver_method_count counter
-serviceweaver_method_count{caller="main",component="main.Example",serviceweaver_node="9fa07495",method="Foo"} 0
-serviceweaver_method_count{caller="main",component="main.Example",serviceweaver_node="ee76816d",method="Foo"} 1
+# HELP mx_method_count Count of MX component method invocations
+# TYPE mx_method_count counter
+mx_method_count{caller="main",component="main.Example",mx_node="9fa07495",method="Foo"} 0
+mx_method_count{caller="main",component="main.Example",mx_node="ee76816d",method="Foo"} 1
 ...
 ```
 
 As the header explains, you can visualize and query the metrics by installing
 Prometheus and configuring it, using the provided stanza, to periodically scrape
-the `/debug/serviceweaver/prometheus` endpoint of the provided target
+the `/debug/mx/prometheus` endpoint of the provided target
 (`127.0.0.1:43087` in the example above). You can also inspect the metrics
 manually. The metrics page shows the latest value of every metric in your
-application followed by [the metrics that Service Weaver automatically creates
+application followed by [the metrics that MX automatically creates
 for you](#metrics-auto-generated-metrics).
 
 ## Profiling
 
-Use the `weaver single profile` command to collect a profile of your Service Weaver
+Use the `mx single profile` command to collect a profile of your MX
 application. Invoke the command with the id of your deployment. For example,
-imagine you `go run` your Service Weaver application and it gets a deployment id
+imagine you `go run` your MX application and it gets a deployment id
 `28807368-1101-41a3-bdcb-9625e0f02ca0`.
 
 ```console
@@ -1754,31 +1754,31 @@ $ go run .
 ╰───────────────────────────────────────────────────╯
 ```
 
-In a separate terminal, you can run the `weaver single profile` command.
+In a separate terminal, you can run the `mx single profile` command.
 
 ```console
-$ weaver single profile 28807368               # Collect a CPU profile.
-$ weaver single profile --duration=1m 28807368 # Adjust the duration of the profile.
-$ weaver single profile --type=heap 28807368   # Collect a heap profile.
+$ mx single profile 28807368               # Collect a CPU profile.
+$ mx single profile --duration=1m 28807368 # Adjust the duration of the profile.
+$ mx single profile --type=heap 28807368   # Collect a heap profile.
 ```
 
-`weaver single profile` prints out the filename of the collected profile. You can
+`mx single profile` prints out the filename of the collected profile. You can
 use the `go tool pprof` command to visualize and analyze the profile. For
 example:
 
 ```console
-$ profile=$(weaver single profile <deployment>) # Collect the profile.
+$ profile=$(mx single profile <deployment>) # Collect the profile.
 $ go tool pprof -http=localhost:9000 $profile   # Visualize the profile.
 ```
 
-Refer to `weaver single profile --help` for more details. Refer to `go tool pprof
+Refer to `mx single profile --help` for more details. Refer to `go tool pprof
 --help` for more information on how to use pprof to analyze your profiles. Refer
 to [*Profiling Go Programs*][pprof_blog] for a tutorial.
 
 ## Tracing
 
-Run `weaver single dashboard` to open a dashboard in a web browser. The
-dashboard has a page for every Service Weaver application deployed via `go run
+Run `mx single dashboard` to open a dashboard in a web browser. The
+dashboard has a page for every MX application deployed via `go run
 .`.  Every deployment's page has a link to the deployment's [traces](#tracing)
 accessible via [Perfetto][perfetto]. Here's an example of what the tracing page
 looks like:
@@ -1792,33 +1792,33 @@ to learn more about how to use the tracing UI.
 
 ## Getting Started
 
-You can use `weaver multi` to deploy a Service Weaver application across
+You can use `mx multi` to deploy a MX application across
 multiple processes on your local machine, with each component replica running in
-a separate OS process. Create [a config file](#config-files), say `weaver.toml`,
-that points to your compiled Service Weaver application.
+a separate OS process. Create [a config file](#config-files), say `mx.toml`,
+that points to your compiled MX application.
 
 ```toml
-[serviceweaver]
-binary = "./your_compiled_serviceweaver_binary"
+[mx]
+binary = "./your_compiled_mx_binary"
 ```
 
-Deploy the application using `weaver multi deploy`:
+Deploy the application using `mx multi deploy`:
 
 ```console
-$ weaver multi deploy weaver.toml
+$ mx multi deploy mx.toml
 ```
 
 Refer to the [Step by Step Tutorial](#step-by-step-tutorial) section for a full
 example.
 
-When `weaver multi deploy` terminates (e.g., when you press `ctrl+c`), the
+When `mx multi deploy` terminates (e.g., when you press `ctrl+c`), the
 application is destroyed and all processes are terminated.
 
-You can run `weaver multi status` to view the status of all active Service Weaver
-applications deployed using `weaver multi`.
+You can run `mx multi status` to view the status of all active MX
+applications deployed using `mx multi`.
 
 ```console
-$ weaver multi status
+$ mx multi status
 ╭────────────────────────────────────────────────────╮
 │ DEPLOYMENTS                                        │
 ├───────┬──────────────────────────────────────┬─────┤
@@ -1851,23 +1851,23 @@ $ weaver multi status
 ╰───────┴────────────┴──────────┴────────────╯
 ```
 
-You can also run `weaver multi dashboard` to open a dashboard in a web browser.
+You can also run `mx multi dashboard` to open a dashboard in a web browser.
 
 ## Listeners
 
-You can add `weaver.Listener` fields to the component implementation to trigger
+You can add `mx.Listener` fields to the component implementation to trigger
 creation of network listeners (see the
 [Step by Step Tutorial](#step-by-step-tutorial) section for context).
 
 ```go
 type app struct {
-    weaver.Implements[weaver.Main]
-    hello    weaver.Listener
+    mx.Implements[mx.Main]
+    hello    mx.Listener
 }
 ```
 
-When you deploy an application using `weaver multi deploy`, the network
-listeners will be automatically created by the Service Weaver runtime.
+When you deploy an application using `mx multi deploy`, the network
+listeners will be automatically created by the MX runtime.
 In particular, for each listener specified in the application binary,
 the runtime:
 
@@ -1889,52 +1889,52 @@ listeners.hello = { address = "localhost:12345" }
 
 ## Logging
 
-`weaver multi deploy` logs to stdout. It additionally persists all log entries in
-a set of files in `/tmp/serviceweaver/logs/weaver-multi`. Every file contains a stream of
+`mx multi deploy` logs to stdout. It additionally persists all log entries in
+a set of files in `/tmp/mx/logs/mx-multi`. Every file contains a stream of
 log entries encoded as protocol buffers. You can cat, follow, and filter these
-logs using `weaver multi logs`. For example:
+logs using `mx multi logs`. For example:
 
 ```shell
 # Display all of the application logs
-weaver multi logs
+mx multi logs
 
 # Follow all of the logs (similar to tail -f).
-weaver multi logs --follow
+mx multi logs --follow
 
 # Display all of the logs for the "todo" app.
-weaver multi logs 'app == "todo"'
+mx multi logs 'app == "todo"'
 
 # Display all of the debug logs for the "todo" app.
-weaver multi logs 'app=="todo" && level=="debug"'
+mx multi logs 'app=="todo" && level=="debug"'
 
 # Display all of the logs for the "todo" app in files called foo.go.
-weaver multi logs 'app=="todo" && source.contains("foo.go")'
+mx multi logs 'app=="todo" && source.contains("foo.go")'
 
 # Display all of the logs that contain the string "error".
-weaver multi logs 'msg.contains("error")'
+mx multi logs 'msg.contains("error")'
 
 # Display all of the logs that match a regex.
-weaver multi logs 'msg.matches("error: file .* already closed")'
+mx multi logs 'msg.matches("error: file .* already closed")'
 
 # Display all of the logs that have an attribute "foo" with value "bar".
-weaver multi logs 'attrs["foo"] == "bar"'
+mx multi logs 'attrs["foo"] == "bar"'
 
 # Display all of the logs in JSON format. This is useful if you want to
 # perform some sort of post-processing on the logs.
-weaver multi logs --format=json
+mx multi logs --format=json
 
 # Display all of the logs, including internal system logs that are hidden by
 # default.
-weaver multi logs --system
+mx multi logs --system
 ```
 
-Refer to `weaver multi logs --help` for a full explanation of the query language,
+Refer to `mx multi logs --help` for a full explanation of the query language,
 along with many more examples.
 
 ## Metrics
 
-Run `weaver multi dashboard` to open a dashboard in a web browser. The dashboard
-has a page for every Service Weaver application deployed via `weaver muli
+Run `mx multi dashboard` to open a dashboard in a web browser. The dashboard
+has a page for every MX application deployed via `mx muli
 deploy`.  Every deployment's page has a link to the deployment's
 [metrics](#metrics). The metrics are exported in [Prometheus
 format][prometheus] and looks something like this:
@@ -1947,9 +1947,9 @@ format][prometheus] and looks something like this:
 # config file:
 #
 # scrape_configs:
-# - job_name: 'prometheus-serviceweaver-scraper'
+# - job_name: 'prometheus-mx-scraper'
 #   scrape_interval: 5s
-#   metrics_path: /debug/serviceweaver/prometheus
+#   metrics_path: /debug/mx/prometheus
 #   static_configs:
 #     - targets: ['127.0.0.1:43087']
 #
@@ -1958,68 +1958,68 @@ format][prometheus] and looks something like this:
 
 # HELP example_count An example counter.
 # TYPE example_count counter
-example_count{serviceweaver_node="bbc9beb5"} 42
-example_count{serviceweaver_node="00555c38"} 9001
+example_count{mx_node="bbc9beb5"} 42
+example_count{mx_node="00555c38"} 9001
 
 # ┌─────────────────────────────────────┐
-# │ SERVICEWEAVER AUTOGENERATED METRICS │
+# │ MX AUTOGENERATED METRICS │
 # └─────────────────────────────────────┘
-# HELP serviceweaver_method_count Count of Service Weaver component method invocations
-# TYPE serviceweaver_method_count counter
-serviceweaver_method_count{caller="main",component="main.Example",serviceweaver_node="9fa07495",method="Foo"} 0
-serviceweaver_method_count{caller="main",component="main.Example",serviceweaver_node="ee76816d",method="Foo"} 1
+# HELP mx_method_count Count of MX component method invocations
+# TYPE mx_method_count counter
+mx_method_count{caller="main",component="main.Example",mx_node="9fa07495",method="Foo"} 0
+mx_method_count{caller="main",component="main.Example",mx_node="ee76816d",method="Foo"} 1
 ...
 ```
 
 As the header explains, you can visualize and query the metrics by installing
 Prometheus and configuring it, using the provided stanza, to periodically scrape
-the `/debug/serviceweaver/prometheus` endpoint of the provided target (e.g.,
+the `/debug/mx/prometheus` endpoint of the provided target (e.g.,
 `127.0.0.1:43087`). You can also inspect the metrics manually. The metrics page
 shows the latest value of every metric in your application followed by [the
-metrics that Service Weaver automatically creates for
+metrics that MX automatically creates for
 you](#metrics-auto-generated-metrics).
 
 ## Profiling
 
-Use the `weaver multi profile` command to collect a profile of your Service Weaver
+Use the `mx multi profile` command to collect a profile of your MX
 application. Invoke the command with the id of your deployment. For example,
-imagine you `weaver multi deploy` your Service Weaver application and it gets a deployment
+imagine you `mx multi deploy` your MX application and it gets a deployment
 id `28807368-1101-41a3-bdcb-9625e0f02ca0`.
 
 ```console
-$ weaver multi deploy weaver.toml
+$ mx multi deploy mx.toml
 ╭───────────────────────────────────────────────────╮
 │ app        : hello                                │
 │ deployment : 28807368-1101-41a3-bdcb-9625e0f02ca0 │
 ╰───────────────────────────────────────────────────╯
 ```
 
-In a separate terminal, you can run the `weaver multi profile` command.
+In a separate terminal, you can run the `mx multi profile` command.
 
 ```console
-$ weaver multi profile 28807368               # Collect a CPU profile.
-$ weaver multi profile --duration=1m 28807368 # Adjust the duration of the profile.
-$ weaver multi profile --type=heap 28807368   # Collect a heap profile.
+$ mx multi profile 28807368               # Collect a CPU profile.
+$ mx multi profile --duration=1m 28807368 # Adjust the duration of the profile.
+$ mx multi profile --type=heap 28807368   # Collect a heap profile.
 ```
 
-`weaver multi profile` prints out the filename of the collected profile. You can
+`mx multi profile` prints out the filename of the collected profile. You can
 use the `go tool pprof` command to visualize and analyze the profile. For
 example:
 
 ```console
-$ profile=$(weaver multi profile <deployment>) # Collect the profile.
+$ profile=$(mx multi profile <deployment>) # Collect the profile.
 $ go tool pprof -http=localhost:9000 $profile # Visualize the profile.
 ```
 
-Refer to `weaver multi profile --help` for more details. Refer to `go tool pprof
+Refer to `mx multi profile --help` for more details. Refer to `go tool pprof
 --help` for more information on how to use pprof to analyze your profiles. Refer
 to [*Profiling Go Programs*][pprof_blog] for a tutorial.
 
 ## Tracing
 
-Run `weaver multi dashboard` to open a dashboard in a web browser. The
-dashboard has a page for every Service Weaver application deployed via
-`weaver multi deploy`. Every deployment's page has a link to the deployment's
+Run `mx multi dashboard` to open a dashboard in a web browser. The
+dashboard has a page for every MX application deployed via
+`mx multi deploy`. Every deployment's page has a link to the deployment's
 [traces](#tracing) accessible via [Perfetto][perfetto]. Here's an example of
 what the tracing page looks like:
 
@@ -2036,7 +2036,7 @@ to learn more about how to use the tracing UI.
 
 # Kube
 
-[Kube][kube] is a deployer that allows you to run Service Weaver applications in
+[Kube][kube] is a deployer that allows you to run MX applications in
 any [Kubernetes][kubernetes] environment, i.e. [GKE][gke], [EKS][eks], [AKS][aks],
 [minikube][minikube], etc.
 
@@ -2075,16 +2075,16 @@ implementations on how to export logs, metrics, and traces. [Here][kube_telemetr
 is an example of how to export metrics to [Prometheus][prometheus] and traces to
 [Jaeger][jaeger]. More details on how to write plugins [here](#kube-telemetry).
 
-**Note** that the `Kube` deployer allows you to deploy a Service Weaver application
+**Note** that the `Kube` deployer allows you to deploy a MX application
 in a single region.
 
 ## Installation
 
-First, [ensure you have Service Weaver installed](#installation). Next, install
-[Docker][docker] and [kubectl][kubectl]. Finally, install the `weaver-kube` command:
+First, [ensure you have MX installed](#installation). Next, install
+[Docker][docker] and [kubectl][kubectl]. Finally, install the `mx-kube` command:
 
 ```console
-$ go install github.com/ServiceWeaver/weaver-kube/cmd/weaver-kube@latest
+$ go install github.com/sh3lk/mx-kube/cmd/mx-kube@latest
 ```
 
 **Note**: Make sure you've created a Kubernetes cluster before you attempt to
@@ -2092,26 +2092,26 @@ deploy using the `Kube` deployer.
 
 ## Getting Started
 
-Consider again the "Hello, World!" Service Weaver application from the [Step by
+Consider again the "Hello, World!" MX application from the [Step by
 Step Tutorial](#step-by-step-tutorial) section. The application runs an HTTP
 server on a listener named `hello` with a `/hello?name=<name>` endpoint that
 returns a `Hello, <name>!` greeting. To deploy this application on Kubernetes, first
-create a [Service Weaver application config file](#config-files), say `weaver.toml`,
+create a [MX application config file](#config-files), say `mx.toml`,
 with the following contents:
 
 ```toml
-[serviceweaver]
+[mx]
 binary = "./hello"
 ```
 
-The `[serviceweaver]` section of the config file specifies the compiled Service
-Weaver binary.
+The `[mx]` section of the config file specifies the compiled Service
+MX binary.
 
 Then, create a `Kube` configuration file say `config.yaml`, with the following
 contents:
 
 ```yaml
-appConfig: weaver.toml
+appConfig: mx.toml
 repo: docker.io/mydockerid
 
 listeners:
@@ -2126,11 +2126,11 @@ from the public internet. By default, all listeners are **private**, i.e.,
 accessible only from the cluster's internal network. In our example, we declare
 that the`hello` listener is public.
 
-Deploy the application using `weaver kube deploy`:
+Deploy the application using `mx kube deploy`:
 
 ```console
 $ go build .
-$ weaver kube deploy config.yaml
+$ mx kube deploy config.yaml
 ...
 Building image hello:ffa65856...
 ...
@@ -2146,7 +2146,7 @@ kube deployment information successfully generated
 "Hello, World!" application.
 
 ```yaml
-# Listener Service for group github.com/ServiceWeaver/weaver/Main
+# Listener Service for group github.com/sh3lk/mx/Main
 apiVersion: v1
 kind: Service
 spec:
@@ -2154,25 +2154,25 @@ spec:
 ...
 
 ---
-# Deployment for group github.com/ServiceWeaver/weaver/Main
+# Deployment for group github.com/sh3lk/mx/Main
 apiVersion: apps/v1
 kind: Deployment
 ...
 
 ---
-# Autoscaler for group github.com/ServiceWeaver/weaver/Main
+# Autoscaler for group github.com/sh3lk/mx/Main
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 ...
 
 ---
-# Deployment for group github.com/ServiceWeaver/weaver/examples/hello/Reverser
+# Deployment for group github.com/sh3lk/mx/examples/hello/Reverser
 apiVersion: apps/v1
 kind: Deployment
 ...
 
 ---
-# Autoscaler for group github.com/ServiceWeaver/weaver/examples/hello/Reverser
+# Autoscaler for group github.com/sh3lk/mx/examples/hello/Reverser
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 ...
@@ -2187,8 +2187,8 @@ role.rbac.authorization.k8s.io/pods-getter created
 rolebinding.rbac.authorization.k8s.io/default-pods-getter created
 configmap/config-ffa65856 created
 service/hello-ffa65856 created
-deployment.apps/weaver-main-ffa65856-acfd658f created
-horizontalpodautoscaler.autoscaling/weaver-main-ffa65856-acfd658f created
+deployment.apps/mx-main-ffa65856-acfd658f created
+horizontalpodautoscaler.autoscaling/mx-main-ffa65856-acfd658f created
 deployment.apps/hello-reverser-ffa65856-58d0b71e created
 horizontalpodautoscaler.autoscaling/hello-reverser-ffa65856-58d0b71e created
 ```
@@ -2200,22 +2200,22 @@ $ kubectl get all
 
 NAME                                                   READY   STATUS    RESTARTS   AGE
 pod/hello-reverser-ffa65856-58d0b71e-5c96fb875-zsjrb   1/1     Running   0          4m
-pod/weaver-main-ffa65856-acfd658f-86684754b-w94vc      1/1     Running   0          4m
+pod/mx-main-ffa65856-acfd658f-86684754b-w94vc      1/1     Running   0          4m
 
 NAME                     TYPE           CLUSTER-IP       EXTERNAL-IP      PORT(S)        AGE
 service/hello-ffa65856   LoadBalancer   10.103.133.111   10.103.133.111   80:30410/TCP   4m1s
 
 NAME                                               READY   UP-TO-DATE   AVAILABLE   AGE
 deployment.apps/hello-reverser-ffa65856-58d0b71e   1/1     1            1           4m1s
-deployment.apps/weaver-main-ffa65856-acfd658f      1/1     1            1           4m1s
+deployment.apps/mx-main-ffa65856-acfd658f      1/1     1            1           4m1s
 
 NAME                                                         DESIRED   CURRENT   READY   AGE
 replicaset.apps/hello-reverser-ffa65856-58d0b71e-5c96fb875   1         1         1       4m1s
-replicaset.apps/weaver-main-ffa65856-acfd658f-86684754b      1         1         1       4m1s
+replicaset.apps/mx-main-ffa65856-acfd658f-86684754b      1         1         1       4m1s
 
 NAME                                                                   REFERENCE                                     TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
 horizontalpodautoscaler.autoscaling/hello-reverser-ffa65856-58d0b71e   Deployment/hello-reverser-ffa65856-58d0b71e    1%/80%     1         10        1        4m
-horizontalpodautoscaler.autoscaling/weaver-main-ffa65856-acfd658f      Deployment/weaver-main-ffa65856-acfd658f       2%/80%     1         10        1        4m
+horizontalpodautoscaler.autoscaling/mx-main-ffa65856-acfd658f      Deployment/mx-main-ffa65856-acfd658f       2%/80%     1         10        1        4m
 ```
 
 Note that by default, the `Kube` deployer generates a deployment for each
@@ -2224,7 +2224,7 @@ component; in this example, deployments for the `Main` and `Reverser` components
 `Kube` configures your application to autoscale using the [Kubernetes Horizontal Pod Autoscaler][hpa].
 As the load on your application increases, the number of replicas of the
 overloaded components will increase. Conversely, as the load on your application
-decreases, the number of replicas decreases. Service Weaver can independently
+decreases, the number of replicas decreases. MX can independently
 scale the different components of your application, meaning that heavily loaded
 components can be scaled up while lesser loaded components can simultaneously be
 scaled down.
@@ -2235,8 +2235,8 @@ to map your domain name (e.g. `hello.com`), to the address of the load balancer
 we can also simply curl the load balancer. For example:
 
 ```console
-$ curl "http://10.103.133.111/hello?name=Weaver"
-Hello, Weaver!
+$ curl "http://10.103.133.111/hello?name=MX"
+Hello, MX!
 ```
 
 The `/tmp/kube_ffa65856.yaml` header contains more details on the generated
@@ -2244,29 +2244,29 @@ Kubernetes resources and how to view/delete resources. For example, to delete
 the resources associated with this deployment, you can run:
 
 ```console
-$ kubectl delete all,configmaps --selector=serviceweaver/version=ffa65856
+$ kubectl delete all,configmaps --selector=mx/version=ffa65856
 ```
 
 To view the application logs, you can run:
 
 ```console
-$ kubectl logs -l serviceweaver/app=hello --all-containers=true
+$ kubectl logs -l mx/app=hello --all-containers=true
 
-D1107 23:39:38.096525 weavelet             643fc8a3 remoteweavelet.go:231                │ 🧶 weavelet started addr="tcp://[::]:10000"
-D1107 23:39:38.097369 weavelet             643fc8a3 remoteweavelet.go:485                │ Updating components="hello.Reverser"
-D1107 23:39:38.097398 weavelet             643fc8a3 remoteweavelet.go:330                │ Constructing component="hello.Reverser"
-D1107 23:39:38.097438 weavelet             643fc8a3 remoteweavelet.go:336                │ Constructed component="hello.Reverser"
-D1107 23:39:38.097443 weavelet             643fc8a3 remoteweavelet.go:491                │ Updated component="hello.Reverser"
-D1107 23:39:37.295945 weavelet             49c6e04e remoteweavelet.go:273                │ Activated component="hello.Reverser"
-D1107 23:39:38.349496 weavelet             49c6e04e remoteweavelet.go:415                │ Connecting to remote component="hello.Reverser"
-D1107 23:39:38.349587 weavelet             49c6e04e remoteweavelet.go:515                │ Updated routing info addr="[tcp://10.244.2.74:10000]" component="hello.Reverser"
-I1107 23:39:38.349646 weavelet             49c6e04e call.go:690                        │ connection addr="tcp://10.244.2.74:10000" from="missing" to="disconnected"
-I1107 23:39:38.350108 weavelet             49c6e04e call.go:690                        │ connection addr="tcp://10.244.2.74:10000" from="disconnected" to="checking"
-I1107 23:39:38.350252 weavelet             49c6e04e call.go:690                        │ connection addr="tcp://10.244.2.74:10000" from="checking" to="idle"
-D1107 23:39:38.358632 weavelet             49c6e04e remoteweavelet.go:429                │ Connected to remote component="hello.Reverser"
+D1107 23:39:38.096525 mxn             643fc8a3 remotemxn.go:231                │ 🧶 mxn started addr="tcp://[::]:10000"
+D1107 23:39:38.097369 mxn             643fc8a3 remotemxn.go:485                │ Updating components="hello.Reverser"
+D1107 23:39:38.097398 mxn             643fc8a3 remotemxn.go:330                │ Constructing component="hello.Reverser"
+D1107 23:39:38.097438 mxn             643fc8a3 remotemxn.go:336                │ Constructed component="hello.Reverser"
+D1107 23:39:38.097443 mxn             643fc8a3 remotemxn.go:491                │ Updated component="hello.Reverser"
+D1107 23:39:37.295945 mxn             49c6e04e remotemxn.go:273                │ Activated component="hello.Reverser"
+D1107 23:39:38.349496 mxn             49c6e04e remotemxn.go:415                │ Connecting to remote component="hello.Reverser"
+D1107 23:39:38.349587 mxn             49c6e04e remotemxn.go:515                │ Updated routing info addr="[tcp://10.244.2.74:10000]" component="hello.Reverser"
+I1107 23:39:38.349646 mxn             49c6e04e call.go:690                        │ connection addr="tcp://10.244.2.74:10000" from="missing" to="disconnected"
+I1107 23:39:38.350108 mxn             49c6e04e call.go:690                        │ connection addr="tcp://10.244.2.74:10000" from="disconnected" to="checking"
+I1107 23:39:38.350252 mxn             49c6e04e call.go:690                        │ connection addr="tcp://10.244.2.74:10000" from="checking" to="idle"
+D1107 23:39:38.358632 mxn             49c6e04e remotemxn.go:429                │ Connected to remote component="hello.Reverser"
 S0101 00:00:00.000000 stdout               49c6e04e                       │ hello listener available on [::]:20000
-D1107 23:39:38.360294 weavelet             49c6e04e remoteweavelet.go:336                │ Constructed component="weaver.Main"
-D1107 23:39:38.360337 weavelet             49c6e04e remoteweavelet.go:491                │ Updated component="weaver.Main"
+D1107 23:39:38.360294 mxn             49c6e04e remotemxn.go:336                │ Constructed component="mx.Main"
+D1107 23:39:38.360337 mxn             49c6e04e remotemxn.go:491                │ Updated component="mx.Main"
 ```
 
 ## Config
@@ -2275,7 +2275,7 @@ You can configure the `Kube` deployer using the knobs exported in the [config fi
 
 | Field          | Required? | Description                                                                                                                                                                                                                                                                              |
 |----------------|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| appConfig      | required  | Path to the Service Weaver application config file.                                                                                                                                                                                                                                      |
+| appConfig      | required  | Path to the MX application config file.                                                                                                                                                                                                                                      |
 | baseImage      | optional  | Name of the base image used to build the application container image. If absent, the base image is `ubuntu:rolling`.                                                                                                                                                                     |
 | image          | optional  | Name of the container image `Kube` creates. If absent, the image name defaults to `<app_name>:<app_version>`.                                                                                                                                                                            |
 | buildTool      | optional  | Name of the tool used to build the image `Kube` creates. If absent, the build tool name defaults to `docker`.                                                                                                                                                                            |
@@ -2305,7 +2305,7 @@ the `Kube` deployer will run two colocation groups, where the pods that run the
 `Main` component require at least `64Mi` memory.
 
 ```yaml
-appConfig: weaver.toml
+appConfig: mx.toml
 repo: docker.io/mydockerid
 
 listeners:
@@ -2319,7 +2319,7 @@ resourceSpec:
 groups:
   - name: reverser-group
     components:
-      -  github.com/ServiceWeaver/weaver/examples/hello/Reverser
+      -  github.com/sh3lk/mx/examples/hello/Reverser
     resourceSpec:
       requests:
         memory: "256Mi"
@@ -2373,7 +2373,7 @@ func main() {
 $ go build
 $ kubectl apply -f $(customkube deploy config.yaml)
 ```
-4. You can access the Jaeger UI to see the Service Weaver traces for your application.
+4. You can access the Jaeger UI to see the MX traces for your application.
 
 ## CI/CD Pipelines
 
@@ -2387,7 +2387,7 @@ your own CI/CD pipeline.
 ## Versioning
 
 To roll out a new version of your application, simply rebuild your application and
-run `weaver kube deploy` again. Once you deploy the newly generated Kubernetes resources,
+run `mx kube deploy` again. Once you deploy the newly generated Kubernetes resources,
 it will start a new tree that runs the new application version.
 
 **Note** that it is the responsibility of the user to make sure that the new
@@ -2404,7 +2404,7 @@ For example, if you want to do atomic rollouts across multiple versions of the
 listener as follows:
 
 ```yaml
-appConfig: weaver.toml
+appConfig: mx.toml
 repo: docker.io/mydockerid
 
 listeners:
@@ -2424,23 +2424,23 @@ implements the full [Kubernetes][kubernetes] API. It supports autoscaling and
 multi-cluster development, and allows you to run containerized applications in
 the cloud.
 
-You can use `weaver gke` to deploy a Service Weaver application to GKE, with components
-running on different machines across multiple cloud regions. The `weaver gke`
+You can use `mx gke` to deploy a MX application to GKE, with components
+running on different machines across multiple cloud regions. The `mx gke`
 command does a lot of the heavy lifting to set up GKE on your behalf. It
 containerizes your application; it creates the appropriate GKE clusters; it
 plumbs together all the networking infrastructure; and so on. This makes
-deploying your Service Weaver application to the cloud as easy as running `weaver gke
+deploying your MX application to the cloud as easy as running `mx gke
 deploy`. In this section, we show you how to deploy your application using
-`weaver gke`. Refer to the [Local GKE](#local-gke) section to see how to simulate
+`mx gke`. Refer to the [Local GKE](#local-gke) section to see how to simulate
 a GKE deployment locally on your machine.
 
 ## Installation
 
-First, [ensure you have Service Weaver installed](#installation). Next, install
-the `weaver-gke` command:
+First, [ensure you have MX installed](#installation). Next, install
+the `mx-gke` command:
 
 ```console
-$ go install github.com/ServiceWeaver/weaver-gke/cmd/weaver-gke@latest
+$ go install github.com/sh3lk/mx-gke/cmd/mx-gke@latest
 ```
 
 Install the `gcloud` command to your local machine. To do so, follow [these
@@ -2480,15 +2480,15 @@ cloud project.
 
 ## Getting Started
 
-Consider again the "Hello, World!" Service Weaver application from the [Step by
+Consider again the "Hello, World!" MX application from the [Step by
 Step Tutorial](#step-by-step-tutorial) section. The application runs an HTTP
 server on a listener named `hello` with a `/hello?name=<name>` endpoint that
 returns a `Hello, <name>!` greeting. To deploy this application to GKE, first
-create a [Service Weaver config file](#config-files), say `weaver.toml`, with
+create a [MX config file](#config-files), say `mx.toml`, with
 the following contents:
 
 ```toml
-[serviceweaver]
+[mx]
 binary = "./hello"
 
 [gke]
@@ -2496,8 +2496,8 @@ regions = ["us-west1"]
 listeners.hello = {is_public = true, hostname = "hello.com"}
 ```
 
-The `[serviceweaver]` section of the config file specifies the compiled Service
-Weaver binary. The `[gke]` section configures the regions where the application
+The `[mx]` section of the config file specifies the compiled Service
+MX binary. The `[gke]` section configures the regions where the application
 is deployed (`us-west1` in this example). It also declares which listeners
 should be **public**, i.e., which listeners should be accessible from the public
 internet. By default, all listeners are **private**, i.e., accessible only from
@@ -2510,15 +2510,15 @@ Listener names must consist of lower case alphanumeric characters or '-', and
 must start and end with an alphanumeric character. No other punctuation is allowed.
 
 All listeners deployed to GKE are configured to be health-checked by GKE
-load-balancers on the `/debug/weaver/healthz` URL path. ServiceWeaver
+load-balancers on the `/debug/mx/healthz` URL path. MX
 automatically registers a health-check handler under this URL path in the
 default ServerMux, so the `hello` application requires no changes.
 
-Deploy the application using `weaver gke deploy`:
+Deploy the application using `mx gke deploy`:
 
 ```console
 $ GOOS=linux GOARCH=amd64 go build
-$ weaver gke deploy weaver.toml
+$ mx gke deploy mx.toml
 ...
 Deploying the application... Done
 Version "8e1c640a-d87b-4020-b3dd-4efc1850756c" of app "hello" started successfully.
@@ -2527,19 +2527,19 @@ Tailing the logs...
 ...
 ```
 
-The first time you deploy a Service Weaver application to a cloud project, the process
-may be slow, since Service Weaver needs to configure your cloud project, create the
+The first time you deploy a MX application to a cloud project, the process
+may be slow, since MX needs to configure your cloud project, create the
 appropriate GKE clusters, etc. Subsequent deployments should be significantly
 faster.
 
-When `weaver gke` deploys your application, it creates a global, externally
+When `mx gke` deploys your application, it creates a global, externally
 accessibly load balancer that forwards traffic to the public listeners in your
-application. `weaver gke deploy` prints out the IP address of this load balancer
+application. `mx gke deploy` prints out the IP address of this load balancer
 as well as instructions on how to interact with it:
 
 ```text
 NOTE: The applications' public listeners will be accessible via an
-L7 load-balancer managed by Service Weaver running at the public IP address:
+L7 load-balancer managed by MX running at the public IP address:
 
     http://34.149.225.62
 
@@ -2558,15 +2558,15 @@ header. Since we configured our application to associate host name `hello.com`
 with the `hello` listener, we use the following command:
 
 ```console
-$ curl --header 'Host: hello.com' "http://34.149.225.63/hello?name=Weaver"
-Hello, Weaver!
+$ curl --header 'Host: hello.com' "http://34.149.225.63/hello?name=MX"
+Hello, MX!
 ```
 
-We can inspect the Service Weaver applications running on GKE using the `weaver gke
+We can inspect the MX applications running on GKE using the `mx gke
 status` command.
 
 ```console
-$ weaver gke status
+$ mx gke status
 ╭───────────────────────────────────────────────────────────────╮
 │ Deployments                                                   │
 ├───────┬──────────────────────────────────────┬───────┬────────┤
@@ -2601,7 +2601,7 @@ $ weaver gke status
 ╰─────────────────┴──────────╯
 ```
 
-`weaver gke status` reports information about every app, deployment, component,
+`mx gke status` reports information about every app, deployment, component,
 and listener in your cloud project. In this example, we have a single deployment
 (with id `20c1d756`) of the `hello` app. Our app has two components (`main` and
 `hello.Reverser`) each with two healthy replicas running in the `us-west1`
@@ -2609,24 +2609,24 @@ region. The two replicas of the `main` component each export a `hello` listener.
 The global load balancer that we curled earlier balances traffic evenly across
 these two listeners. The final section of the output details the rollout
 schedule of the application. We'll discuss rollouts later in the
-[Rollouts](#gke-multi-region) section. You can also run `weaver gke dashboard`
+[Rollouts](#gke-multi-region) section. You can also run `mx gke dashboard`
 to open a dashboard in a web browser.
 
 <div hidden class="todo">
 TODO(mwhittaker): Remove rollout section?
 </div>
 
-**Note**: `weaver gke` configures GKE to autoscale your application. As the load
+**Note**: `mx gke` configures GKE to autoscale your application. As the load
 on your application increases, the number of replicas of the overloaded
 components will increase. Conversely, as the load on your application decreases,
-the number of replicas decreases. Service Weaver can independently scale the different
+the number of replicas decreases. MX can independently scale the different
 components of your application, meaning that heavily loaded components can be
 scaled up while lesser loaded components can simultaneously be scaled down.
 
-You can use the `weaver gke kill` command to kill your deployed application.
+You can use the `mx gke kill` command to kill your deployed application.
 
 ```console
-$ weaver gke kill hello
+$ mx gke kill hello
 WARNING: You are about to kill every active deployment of the "hello" app.
 The deployments will be killed immediately and irrevocably. Are you sure you
 want to proceed?
@@ -2636,65 +2636,65 @@ Enter (y)es to continue: y
 
 ## Logging
 
-`weaver gke deploy` logs to stdout. It additionally exports all log entries to
+`mx gke deploy` logs to stdout. It additionally exports all log entries to
 [Cloud Logging][cloud_logging].  You can cat, follow, and filter these logs from
-the command line using `weaver gke logs`. For example:
+the command line using `mx gke logs`. For example:
 
 ```shell
 # Display all of the application logs
-weaver gke logs
+mx gke logs
 
 # Follow all of the logs (similar to tail -f).
-weaver gke logs --follow
+mx gke logs --follow
 
 # Display all of the logs for the "todo" app.
-weaver gke logs 'app == "todo"'
+mx gke logs 'app == "todo"'
 
 # Display all of the debug logs for the "todo" app.
-weaver gke logs 'app=="todo" && level=="debug"'
+mx gke logs 'app=="todo" && level=="debug"'
 
 # Display all of the logs for the "todo" app in files called foo.go.
-weaver gke logs 'app=="todo" && source.contains("foo.go")'
+mx gke logs 'app=="todo" && source.contains("foo.go")'
 
 # Display all of the logs that contain the string "error".
-weaver gke logs 'msg.contains("error")'
+mx gke logs 'msg.contains("error")'
 
 # Display all of the logs that match a regex.
-weaver gke logs 'msg.matches("error: file .* already closed")'
+mx gke logs 'msg.matches("error: file .* already closed")'
 
 # Display all of the logs that have an attribute "foo" with value "bar".
-weaver gke logs 'attrs["foo"] == "bar"'
+mx gke logs 'attrs["foo"] == "bar"'
 
 # Display all of the logs in JSON format. This is useful if you want to
 # perform some sort of post-processing on the logs.
-weaver gke logs --format=json
+mx gke logs --format=json
 
 # Display all of the logs, including internal system logs that are hidden by
 # default.
-weaver gke logs --system
+mx gke logs --system
 ```
 
-Refer to `weaver gke logs --help` for a full explanation of the query language,
+Refer to `mx gke logs --help` for a full explanation of the query language,
 along with many more examples.
 
-You can also run `weaver gke dashboard` to open a dashboard in a web browser.
-The dashboard has a page for every Service Weaver application deployed via
-`weaver gke deploy`. Every deployment's page has a link to the deployment's logs
+You can also run `mx gke dashboard` to open a dashboard in a web browser.
+The dashboard has a page for every MX application deployed via
+`mx gke deploy`. Every deployment's page has a link to the deployment's logs
 on [Google Cloud's Logs Explorer][logs_explorer] as shown below.
 
-![A screenshot of Service Weaver logs in the Logs Explorer](assets/images/logs_explorer.png)
+![A screenshot of MX logs in the Logs Explorer](assets/images/logs_explorer.png)
 
 ## Metrics
 
-`weaver gke` exports metrics to the
+`mx gke` exports metrics to the
 [Google Cloud Monitoring console][cloud_metrics]. You can view and graph these
 metrics using the [Cloud Metrics Explorer][metrics_explorer]. When you open the
 Metrics Explorer, click `SELECT A METRIC`.
 
 ![A screenshot of the Metrics Explorer](assets/images/cloud_metrics_1.png)
 
-All Service Weaver metrics are exported under the `custom.googleapis.com` domain. Query
-for `serviceweaver` to view these metrics and select the metric you're interested in.
+All MX metrics are exported under the `custom.googleapis.com` domain. Query
+for `mx` to view these metrics and select the metric you're interested in.
 
 ![A screenshot of selecting a metric in Metrics Explorer](assets/images/cloud_metrics_2.png)
 
@@ -2706,40 +2706,40 @@ Refer to the [Cloud Metrics][cloud_metrics] documentation for more information.
 
 ## Profiling
 
-Use the `weaver gke profile` command to collect a profile of your Service Weaver
+Use the `mx gke profile` command to collect a profile of your MX
 application. Invoke the command with the name (and optionally version) of the
 app you wish to profile. For example:
 
 ```console
 # Collect a CPU profile of the latest version of the hello app.
-$ weaver gke profile hello
+$ mx gke profile hello
 
 # Collect a CPU profile of a specific version of the hello app.
-$ weaver gke profile --version=8e1c640a-d87b-4020-b3dd-4efc1850756c hello
+$ mx gke profile --version=8e1c640a-d87b-4020-b3dd-4efc1850756c hello
 
 # Adjust the duration of a CPU profile.
-$ weaver gke profile --duration=1m hello
+$ mx gke profile --duration=1m hello
 
 # Collect a heap profile.
-$ weaver gke profile --type=heap hello
+$ mx gke profile --type=heap hello
 ```
 
-`weaver gke profile` prints out the filename of the collected profile. You can
+`mx gke profile` prints out the filename of the collected profile. You can
 use the `go tool pprof` command to visualize and analyze the profile. For
 example:
 
 ```console
-$ profile=$(weaver gke profile <app>)         # Collect the profile.
+$ profile=$(mx gke profile <app>)         # Collect the profile.
 $ go tool pprof -http=localhost:9000 $profile # Visualize the profile.
 ```
 
-Refer to `weaver gke profile --help` for more details.
+Refer to `mx gke profile --help` for more details.
 
 ## Tracing
 
-Run `weaver gke dashboard` to open a dashboard in a web browser. The
-dashboard has a page for every Service Weaver application deployed via
-`weaver gke deploy`. Every deployment's page has a link to the deployment's
+Run `mx gke dashboard` to open a dashboard in a web browser. The
+dashboard has a page for every MX application deployed via
+`mx gke deploy`. Every deployment's page has a link to the deployment's
 [traces](#tracing) accessible via [Google Cloud Trace][trace_service] as shown
 below.
 
@@ -2747,7 +2747,7 @@ below.
 
 ## Multi-Region
 
-`weaver gke` allows you to deploy a Service Weaver application to multiple
+`mx gke` allows you to deploy a MX application to multiple
 [cloud regions](https://cloud.google.com/compute/docs/regions-zones). Simply
 include the regions where you want to deploy in your config file. For example:
 
@@ -2756,25 +2756,25 @@ include the regions where you want to deploy in your config file. For example:
 regions = ["us-west1", "us-east1", "asia-east2", "europe-north1"]
 ```
 
-When `weaver gke` deploys an application to multiple regions, it intentionally
+When `mx gke` deploys an application to multiple regions, it intentionally
 does not deploy the application to every region right away. Instead, it performs
-a **slow rollout** of the application. `weaver gke` first deploys the application
+a **slow rollout** of the application. `mx gke` first deploys the application
 to a small subset of the regions, which act as [canaries][canary]. The
 application runs in the canary clusters for some time before being rolled out to
-a larger subset of regions. `weaver gke` continues this incremental
+a larger subset of regions. `mx gke` continues this incremental
 rollout---iteratively increasing the number of regions where the application is
 deployed---until the application has been rolled out to every region specified
-in the config file. Within each region, `weaver gke` also slowly shifts traffic
+in the config file. Within each region, `mx gke` also slowly shifts traffic
 from old application versions to new versions. We discuss this in
 [the next section](#versioning).
 
-By slowly rolling out an application across regions, `weaver gke` allows you to
+By slowly rolling out an application across regions, `mx gke` allows you to
 catch buggy releases early and mitigate the amount of damage they can cause. The
 `rollout` field in a [config file](#config-files) determines the length of a
 slow rollout. For example:
 
 ```toml
-[serviceweaver]
+[mx]
 rollout = "1h" # Perform a one hour slow rollout.
 ...
 ```
@@ -2783,8 +2783,8 @@ rollout = "1h" # Perform a one hour slow rollout.
 TODO(mwhittaker): Remove this part?
 </div>
 
-You can monitor the rollout of an application using `weaver gke status`. For
-example, here is the rollout schedule produced by `weaver gke status` for a one
+You can monitor the rollout of an application using `mx gke status`. For
+example, here is the rollout schedule produced by `mx gke status` for a one
 hour deployment of the `hello` app across the us-central1, us-west1, us-south1,
 and us-east1 regions.
 
@@ -2815,11 +2815,11 @@ misbehaving application.
 ## Versioning
 
 To roll out a new version of your application as a replacement of an existing
-version, simply rebuild your application and run `weaver gke deploy` again.
-`weaver gke` will slowly roll out the new version of the application to the
+version, simply rebuild your application and run `mx gke deploy` again.
+`mx gke` will slowly roll out the new version of the application to the
 regions provided in the config file, as described in the previous section. In
-addition to slowly rolling out *across* regions, `weaver gke` also slowly rolls
-out *within* regions. Within each region, `weaver gke` updates the global load
+addition to slowly rolling out *across* regions, `mx gke` also slowly rolls
+out *within* regions. Within each region, `mx gke` updates the global load
 balancer to slowly shift traffic from the old version of the application to the
 new version.
 
@@ -2827,8 +2827,8 @@ new version.
 TODO(mwhittaker): Remove this part?
 </div>
 
-We can again use `weaver gke status` to monitor the rollout of a new application
-version. For example, here is the rollout schedule produced by `weaver gke
+We can again use `mx gke status` to monitor the rollout of a new application
+version. For example, here is the rollout schedule produced by `mx gke
 status` for a one hour update of the `hello` app across the us-west1 and
 us-east1 regions. The new version of the app `45a521a3` is replacing the old
 version `def1f485`.
@@ -2864,9 +2864,9 @@ deleted automatically.
 once a request is received, it is processed entirely by the version that
 received it. There is no cross-version communication.
 
-Superficially, `weaver gke`'s rollout scheme seems to require a lot of resources
+Superficially, `mx gke`'s rollout scheme seems to require a lot of resources
 because it runs two copies of the application side-by-side. In reality,
-`weaver gke`'s use of autoscaling makes this type of
+`mx gke`'s use of autoscaling makes this type of
 [blue/green rollout][blue_green] resource efficient. As traffic is shifted away
 from the old version, its load decreases, and the autoscaler reduces its
 resource allocation. Simultaneously, as the new version receives more traffic,
@@ -2881,7 +2881,7 @@ the old version? Explain what happens in this case.
 
 ## Config
 
-You can configure `weaver gke` using the `[gke]` section of a
+You can configure `mx gke` using the `[gke]` section of a
 [config file](#config-files).
 
 ```toml
@@ -2893,13 +2893,13 @@ listeners.hat = {is_public = true, hostname = "hat.gg"}
 
 | Field       | Required? | Description                                                                                                            |
 |-------------|-----------|------------------------------------------------------------------------------------------------------------------------|
-| regions     | yes       | Regions in which the Service Weaver application should be deployed. Note that at least one region should be specified. |
+| regions     | yes       | Regions in which the MX application should be deployed. Note that at least one region should be specified. |
 | image       | optional      | Base image used to build the application container image. If not specified, `image = ubuntu:rolling`.                  |
 | minreplicas | optional      | Minimum number of running pods for each component. If not specified, `minreplicas = 1`.                                |
 | listeners   | optional  | The application's listener options, e.g., the listeners' hostnames.                                                    |
 | telemetry   | optional  | Various options how to export telemetry.                                                                               |
 
-**Note** that by default, your Service Weaver application will be deployed in the
+**Note** that by default, your MX application will be deployed in the
 currently active project using the currently active account; i.e., in the project
 returned by running the `gcloud config get-value project` command, and using the
 account returned by running the `gcloud config get-value account` command.
@@ -2908,14 +2908,14 @@ If you want to deploy in a different project then you should pass the name of th
 new Google Cloud project as a flag when deploying your application:
 
 ```console
-$ weaver gke deploy --project=new_project_name weaver.toml
+$ mx gke deploy --project=new_project_name mx.toml
 ```
 
 If you want to deploy using a different account then you should pass the name of the
 new Google Cloud Account as a flag when deploying your application:
 
 ```console
-$ weaver gke deploy --account=new_account_name weaver.toml
+$ mx gke deploy --account=new_account_name mx.toml
 ```
 
 ### Telemetry
@@ -2933,7 +2933,7 @@ regions = ["us-west1", "us-east1"]
 telemetry.metrics = {export_interval = "1h", auto_generate_metrics = true}
 ```
 
-By default, Service Weaver doesn't export the auto-generated metrics, and it exports
+By default, MX doesn't export the auto-generated metrics, and it exports
 the user defined metrics every `30 seconds`.
 
 You can also configure the minimum log level for a log entry to be exported to the
@@ -2948,46 +2948,46 @@ telemetry.logging = {min_export_level = "WARN"}
 ```
 
 **Note** that `min_export_level` takes log level values defined by [slog][slog_levels].
-If not specified, Service Weaver exports all logs (`min_export_level = "DEBUG"`).
+If not specified, MX exports all logs (`min_export_level = "DEBUG"`).
 
 ## Local GKE
 
-[`weaver gke`](#gke) lets you deploy Service Weaver applications to GKE. `weaver gke-local`
-is a drop-in replacement for `weaver gke` that allows you to simulate GKE
-deployments locally on your machine. Every `weaver gke` command can be replaced
-with an equivalent `weaver gke-local` command. `weaver gke deploy` becomes
-`weaver gke-local deploy`; `weaver gke status` becomes `weaver gke-local status`;
-and so on. `weaver gke-local` runs your components in simulated GKE clusters and
-launches a local proxy to emulate GKE's global load balancer. `weaver gke-local`
-also uses [the same config as a `weaver gke`](#gke-config), meaning that after you
-test your application locally using `weaver gke-local`, you can deploy the same
+[`mx gke`](#gke) lets you deploy MX applications to GKE. `mx gke-local`
+is a drop-in replacement for `mx gke` that allows you to simulate GKE
+deployments locally on your machine. Every `mx gke` command can be replaced
+with an equivalent `mx gke-local` command. `mx gke deploy` becomes
+`mx gke-local deploy`; `mx gke status` becomes `mx gke-local status`;
+and so on. `mx gke-local` runs your components in simulated GKE clusters and
+launches a local proxy to emulate GKE's global load balancer. `mx gke-local`
+also uses [the same config as a `mx gke`](#gke-config), meaning that after you
+test your application locally using `mx gke-local`, you can deploy the same
 application to GKE without any code *or* config changes.
 
 ### Installation
 
-First, [ensure you have Service Weaver installed](#installation). Next, install
-the `weaver-gke-local` command:
+First, [ensure you have MX installed](#installation). Next, install
+the `mx-gke-local` command:
 
 ```console
-$ go install github.com/ServiceWeaver/weaver-gke/cmd/weaver-gke-local@latest
+$ go install github.com/sh3lk/mx-gke/cmd/mx-gke-local@latest
 ```
 
 ### Getting Started
 
-In the [`weaver gke`](#gke-getting-started) section, we deployed a "Hello,
-World!" application to GKE using `weaver gke deploy`. We can deploy the same app
-locally using `weaver gke-local deploy`:
+In the [`mx gke`](#gke-getting-started) section, we deployed a "Hello,
+World!" application to GKE using `mx gke deploy`. We can deploy the same app
+locally using `mx gke-local deploy`:
 
 ```console
-$ cat weaver.toml
-[serviceweaver]
+$ cat mx.toml
+[mx]
 binary = "./hello"
 
 [gke]
 regions = ["us-west1"]
 listeners.hello = {is_public = true, hostname = "hello.com"}
 
-$ weaver gke-local deploy weaver.toml
+$ mx gke-local deploy mx.toml
 Deploying the application... Done
 Version "a2bc7a7a-fcf6-45df-91fe-6e6af171885d" of app "hello" started successfully.
 Note that stopping this binary will not affect the app in any way.
@@ -2995,11 +2995,11 @@ Tailing the logs...
 ...
 ```
 
-You can run `weaver gke-local status` to check the status of all the applications
-deployed using `weaver gke-local`.
+You can run `mx gke-local status` to check the status of all the applications
+deployed using `mx gke-local`.
 
 ```console
-$ weaver gke-local status
+$ mx gke-local status
 ╭─────────────────────────────────────────────────────────────╮
 │ Deployments                                                 │
 ├───────┬──────────────────────────────────────┬─────┬────────┤
@@ -3033,26 +3033,26 @@ $ weaver gke-local status
 ╰─────────────────┴──────────╯
 ```
 
-The output is, unsurprisingly, identical to that of `weaver gke status`. There is
+The output is, unsurprisingly, identical to that of `mx gke status`. There is
 information about every app, component, and listener. Note that for this
-example, `weaver gke-local` is running the "Hello, World!" application in a fake
-us-west1 "region", as specified in the `weaver.toml` config file.
+example, `mx gke-local` is running the "Hello, World!" application in a fake
+us-west1 "region", as specified in the `mx.toml` config file.
 
-`weaver gke-local` runs a proxy on port 8000 that simulates the global load
-balancer used by `weaver gke`. We can curl the proxy in the same way we curled
+`mx gke-local` runs a proxy on port 8000 that simulates the global load
+balancer used by `mx gke`. We can curl the proxy in the same way we curled
 the global load balancer. Since we configured our application to associate host
 name `hello.com` with the `hello` listener, we use the following command:
 
 ```console
-$ curl --header 'Host: hello.com' "localhost:8000/hello?name=Weaver"
-Hello, Weaver!
+$ curl --header 'Host: hello.com' "localhost:8000/hello?name=MX"
+Hello, MX!
 ```
 
-You can use the `weaver gke-local kill` command to kill your deployed
+You can use the `mx gke-local kill` command to kill your deployed
 application.
 
 ```console
-$ weaver gke-local kill hello
+$ mx gke-local kill hello
 WARNING: You are about to kill every active deployment of the "hello" app.
 The deployments will be killed immediately and irrevocably. Are you sure you
 want to proceed?
@@ -3061,67 +3061,67 @@ Enter (y)es to continue: y
 ```
 
 <div hidden class="todo">
-TODO(mwhittaker): Have `weaver gke-local` print instructions on how to curl the
+TODO(mwhittaker): Have `mx gke-local` print instructions on how to curl the
 proxy.
 </div>
 
 ### Logging
 
-`weaver gke-local deploy` logs to stdout. It additionally persists all log
-entries in a set of files in `/tmp/serviceweaver/logs/weaver-gke-local`. Every file
+`mx gke-local deploy` logs to stdout. It additionally persists all log
+entries in a set of files in `/tmp/mx/logs/mx-gke-local`. Every file
 contains a stream of log entries encoded as protocol buffers. You can cat,
-follow, and filter these logs using `weaver gke-local logs`. For example:
+follow, and filter these logs using `mx gke-local logs`. For example:
 
 ```shell
 # Display all of the application logs
-weaver gke-local logs
+mx gke-local logs
 
 # Follow all of the logs (similar to tail -f).
-weaver gke-local logs --follow
+mx gke-local logs --follow
 
 # Display all of the logs for the "todo" app.
-weaver gke-local logs 'app == "todo"'
+mx gke-local logs 'app == "todo"'
 
 # Display all of the debug logs for the "todo" app.
-weaver gke-local logs 'app=="todo" && level=="debug"'
+mx gke-local logs 'app=="todo" && level=="debug"'
 
 # Display all of the logs for the "todo" app in files called foo.go.
-weaver gke-local logs 'app=="todo" && source.contains("foo.go")'
+mx gke-local logs 'app=="todo" && source.contains("foo.go")'
 
 # Display all of the logs that contain the string "error".
-weaver gke-local logs 'msg.contains("error")'
+mx gke-local logs 'msg.contains("error")'
 
 # Display all of the logs that match a regex.
-weaver gke-local logs 'msg.matches("error: file .* already closed")'
+mx gke-local logs 'msg.matches("error: file .* already closed")'
 
 # Display all of the logs that have an attribute "foo" with value "bar".
-weaver gke-local logs 'attrs["foo"] == "bar"'
+mx gke-local logs 'attrs["foo"] == "bar"'
 
 # Display all of the logs in JSON format. This is useful if you want to
 # perform some sort of post-processing on the logs.
-weaver gke-local logs --format=json
+mx gke-local logs --format=json
 
 # Display all of the logs, including internal system logs that are hidden by
 # default.
-weaver gke-local logs --system
+mx gke-local logs --system
 ```
 
-Refer to `weaver gke-local logs --help` for a full explanation of the query
+Refer to `mx gke-local logs --help` for a full explanation of the query
 language, along with many more examples.
 
 ### Metrics
 
 In addition to running the proxy on port 8000 (see the [Getting
-Started](#local-gke-getting-started)), `weaver gke-local` also runs a status
+Started](#local-gke-getting-started)), `mx gke-local` also runs a status
 server on port 8001. This server's `/metrics` endpoint exports the metrics of
-all running Service Weaver applications in [Prometheus format][prometheus],
+all running MX applications in [Prometheus format][prometheus],
 which looks like this:
 
 ```console
 # HELP example_count An example counter.
 # TYPE example_count counter
-example_count{serviceweaver_node="bbc9beb5"} 42
-example_count{serviceweaver_node="00555c38"} 9001
+example_count{mx_node="bbc9beb5"} 42
+example_count{mx_node="00555c38"} 9001
 ```
 
 To visualize and query the metrics, make sure Prometheus is installed on your
@@ -3130,7 +3130,7 @@ file:
 
 ```yaml
 scrape_configs:
-- job_name: 'prometheus-serviceweaver-scraper'
+- job_name: 'prometheus-mx-scraper'
   scrape_interval: 5s
   metrics_path: /metrics
   static_configs:
@@ -3139,40 +3139,40 @@ scrape_configs:
 
 ### Profiling
 
-Use the `weaver gke-local profile` command to collect a profile of your Service Weaver
+Use the `mx gke-local profile` command to collect a profile of your MX
 application. Invoke the command with the name (and optionally version) of the
 app you wish to profile. For example:
 
 ```shell
 # Collect a CPU profile of the latest version of the hello app.
-$ weaver gke-local profile hello
+$ mx gke-local profile hello
 
 # Collect a CPU profile of a specific version of the hello app.
-$ weaver gke-local profile --version=8e1c640a-d87b-4020-b3dd-4efc1850756c hello
+$ mx gke-local profile --version=8e1c640a-d87b-4020-b3dd-4efc1850756c hello
 
 # Adjust the duration of a CPU profile.
-$ weaver gke-local profile --duration=1m hello
+$ mx gke-local profile --duration=1m hello
 
 # Collect a heap profile.
-$ weaver gke-local profile --type=heap hello
+$ mx gke-local profile --type=heap hello
 ```
 
-`weaver gke-local profile` prints out the filename of the collected profile. You
+`mx gke-local profile` prints out the filename of the collected profile. You
 can use the `go tool pprof` command to visualize and analyze the profile. For
 example:
 
 ```console
-$ profile=$(weaver gke-local profile <app>)    # Collect the profile.
+$ profile=$(mx gke-local profile <app>)    # Collect the profile.
 $ go tool pprof -http=localhost:9000 $profile # Visualize the profile.
 ```
 
-Refer to `weaver gke-local profile --help` for more details.
+Refer to `mx gke-local profile --help` for more details.
 
 ### Tracing
 
-Run `weaver gke-local dashboard` to open a dashboard in a web browser. The
-dashboard has a page for every Service Weaver application deployed via
-`weaver gke-local deploy`. Every deployment's page has a link to the
+Run `mx gke-local dashboard` to open a dashboard in a web browser. The
+dashboard has a page for every MX application deployed via
+`mx gke-local deploy`. Every deployment's page has a link to the
 deployment's [traces](#tracing) accessible via [Perfetto][perfetto]. Here's an
 example of what the tracing page looks like:
 
@@ -3183,22 +3183,22 @@ to learn more about how to use the tracing UI.
 
 ### Versioning
 
-Recall that `weaver gke` performs slow rollouts
+Recall that `mx gke` performs slow rollouts
 [across regions](#gke-multi-region) and
-[across application versions](#versioning). `weaver gke-local` simulates this
-behavior locally. When you `weaver gke-local deploy` an application, the
+[across application versions](#versioning). `mx gke-local` simulates this
+behavior locally. When you `mx gke-local deploy` an application, the
 application is first rolled out to a number of canary regions before being
 slowly rolled out to all regions. And within a region, the locally running proxy
 slowly shifts traffic from old versions of the application to the new version of
-the application. You can use `weaver gke-local status`, exactly like how you use
-`weaver gke status`, to monitor the rollouts of your applications.
+the application. You can use `mx gke-local status`, exactly like how you use
+`mx gke status`, to monitor the rollouts of your applications.
 
 # Cloud Run
 
 [Cloud Run][cloud_run] is a Google Cloud managed compute platform that enables
 you to run stateless containers that are invocable via HTTP requests.
 
-We provide instructions on how to run a Service Weaver application in a single
+We provide instructions on how to run a MX application in a single
 container on Cloud Run.
 
 ## Build and upload a Docker Container
@@ -3229,12 +3229,12 @@ you can curl the service from the command line:
 $ curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" URL
 ```
 
-[This][cloud_run_repository] repository contains an example of a Service Weaver
+[This][cloud_run_repository] repository contains an example of a MX
 application that can run on [Cloud Run][cloud_run].
 
 # SSH [experimental]
 
-[SSH][ssh] is a deployer that allows you to run Service Weaver applications on
+[SSH][ssh] is a deployer that allows you to run MX applications on
 a set of machines reachable via `ssh`. Note that the `SSH` deployer runs your
 application's components as standalone OS processes, so you don't need
 [Kubernetes][kubernetes], [Docker][docker], etc.
@@ -3246,15 +3246,15 @@ Prerequisites:
 * You may want to set up passwordless `ssh` between your machines, otherwise you
 will have to type the password for each machine when you deploy/stop an application.
 
-Consider again the "Hello, World!" Service Weaver application from the [Step by
+Consider again the "Hello, World!" MX application from the [Step by
 Step Tutorial](#step-by-step-tutorial) section. The application runs an HTTP
 server on a listener named `hello` with a `/hello?name=<name>` endpoint that
 returns a `Hello, <name>!` greeting. To deploy this application using the `SSH`
-deployer, first create a [Service Weaver application config file](#config-files),
-say `weaver.toml`, with the following contents:
+deployer, first create a [MX application config file](#config-files),
+say `mx.toml`, with the following contents:
 
 ```toml
-[serviceweaver]
+[mx]
 binary = "./hello"
 
 [ssh]
@@ -3262,8 +3262,8 @@ listeners.hello = {address = "localhost:9000"}
 locations = "./ssh_locations.txt"
 ```
 
-The `[serviceweaver]` section of the config file specifies the compiled Service
-Weaver binary. The `[ssh]` section contains the set of machines where your
+The `[mx]` section of the config file specifies the compiled Service
+MX binary. The `[ssh]` section contains the set of machines where your
 application should be deployed, as well as per listener configuration. The set of
 machines is specified as follows in `ssh_locations.txt`:
 
@@ -3274,23 +3274,23 @@ machines is specified as follows in `ssh_locations.txt`:
 ...
 ```
 
-Deploy the application using `weaver ssh deploy`:
+Deploy the application using `mx ssh deploy`:
 
 ```console
-$ weaver ssh deploy weaver.toml
+$ mx ssh deploy mx.toml
 ```
 
-When `weaver ssh deploy` terminates (e.g., when you press `ctrl+c`), the
+When `mx ssh deploy` terminates (e.g., when you press `ctrl+c`), the
 application is destroyed and all processes are terminated.
 
 ## Logging
 
-`weaver ssh logs` logs to stdout. Refer to `weaver ssh logs --help` for details.
+`mx ssh logs` logs to stdout. Refer to `mx ssh logs --help` for details.
 
 ## Metrics
 
-Run `weaver ssh dashboard` to open a dashboard in a web browser. The
-dashboard has a page for every Service Weaver application deployed via `weaver ssh deploy`.
+Run `mx ssh dashboard` to open a dashboard in a web browser. The
+dashboard has a page for every MX application deployed via `mx ssh deploy`.
 Every deployment's page has a link to the deployment's [metrics](#metrics).
 The metrics are exported in [Prometheus format][prometheus] and looks something
 like this:
@@ -3303,9 +3303,9 @@ like this:
 # config file:
 #
 # scrape_configs:
-# - job_name: 'prometheus-serviceweaver-scraper'
+# - job_name: 'prometheus-mx-scraper'
 #   scrape_interval: 5s
-#   metrics_path: /debug/serviceweaver/prometheus
+#   metrics_path: /debug/mx/prometheus
 #   static_configs:
 #     - targets: ['127.0.0.1:43087']
 #
@@ -3313,31 +3313,31 @@ like this:
 
 # HELP example_count An example counter.
 # TYPE example_count counter
-example_count{serviceweaver_node="bbc9beb5"} 42
-example_count{serviceweaver_node="00555c38"} 9001
+example_count{mx_node="bbc9beb5"} 42
+example_count{mx_node="00555c38"} 9001
 
 # ┌─────────────────────────────────────┐
-# │ SERVICEWEAVER AUTOGENERATED METRICS │
+# │ MX AUTOGENERATED METRICS │
 # └─────────────────────────────────────┘
-# HELP serviceweaver_method_count Count of Service Weaver component method invocations
-# TYPE serviceweaver_method_count counter
-serviceweaver_method_count{caller="main",component="main.Example",serviceweaver_node="9fa07495",method="Foo"} 0
-serviceweaver_method_count{caller="main",component="main.Example",serviceweaver_node="ee76816d",method="Foo"} 1
+# HELP mx_method_count Count of MX component method invocations
+# TYPE mx_method_count counter
+mx_method_count{caller="main",component="main.Example",mx_node="9fa07495",method="Foo"} 0
+mx_method_count{caller="main",component="main.Example",mx_node="ee76816d",method="Foo"} 1
 ...
 ```
 
 As the header explains, you can visualize and query the metrics by installing
 Prometheus and configuring it, using the provided stanza, to periodically scrape
-the `/debug/serviceweaver/prometheus` endpoint of the provided target
+the `/debug/mx/prometheus` endpoint of the provided target
 (`127.0.0.1:43087` in the example above). You can also inspect the metrics
 manually. The metrics page shows the latest value of every metric in your
-application followed by [the metrics that Service Weaver automatically creates
+application followed by [the metrics that MX automatically creates
 for you](#metrics-auto-generated-metrics).
 
 ## Tracing
 
-Run `weaver ssh dashboard` to open a dashboard in a web browser. The
-dashboard has a page for every Service Weaver application deployed via `weaver ssh deploy`.
+Run `mx ssh dashboard` to open a dashboard in a web browser. The
+dashboard has a page for every MX application deployed via `mx ssh deploy`.
 Every deployment's page has a link to the deployment's [traces](#tracing)
 accessible via [Perfetto][perfetto]. This is similar to how you access the traces
 when using the [single process](#single-process) or the [multiprocess](#multiprocess) deployer.
@@ -3348,13 +3348,13 @@ to learn more about how to use the tracing UI.
 ## Limitations
 
 **Note** that the `SSH` deployer is not production ready yet, but rather it serves
-as a playground to deploy a Service Weaver application on a set of machines. We
+as a playground to deploy a MX application on a set of machines. We
 welcome contributions to make it production ready. Some limitations:
 
 * Each component is deployed on all the machines.
 * No scale up/down mechanism based on health/load signals.
 * Slow rollouts not supported.
-* `weaver ssh profile` command not implemented.
+* `mx ssh profile` command not implemented.
 * No integration with existing frameworks to export logs, metrics and traces.
 
 # Serializable Types
@@ -3362,8 +3362,8 @@ welcome contributions to make it production ready. Some limitations:
 When you invoke a component's method, the arguments to the method (and the
 results returned by the method) may be serialized and sent over the network.
 Thus, a component's methods may only receive and return types that Service
-Weaver knows how to serialize, types we call **serializable**. If a component
-method receives or returns a type that isn't serializable, `weaver generate`
+MX knows how to serialize, types we call **serializable**. If a component
+method receives or returns a type that isn't serializable, `mx generate`
 will raise an error during code generation time. The following types are
 serializable:
 
@@ -3378,7 +3378,7 @@ serializable:
     -   `t` implements [`encoding.BinaryMarshaler`][binary_marshaler] and
         [`encoding.BinaryUnmarshaler`][binary_unmarshaler];
     -   `u` is serializable; or
-    -   `u` is a struct type that embeds `weaver.AutoMarshal` (see below).
+    -   `u` is a struct type that embeds `mx.AutoMarshal` (see below).
 
 The following types are not serializable:
 
@@ -3390,36 +3390,36 @@ The following types are not serializable:
 **Note**: Named struct types that don't implement `proto.Message` or
 `BinaryMarshaler` and `BinaryUnmarshaler` are *not* serializable by default.
 However, they can trivially be made serializable by embedding
-`weaver.AutoMarshal`.
+`mx.AutoMarshal`.
 
 ```go
 type Pair struct {
-    weaver.AutoMarshal
+    mx.AutoMarshal
     x, y int
 }
 ```
 
-The `weaver.AutoMarshal` embedding instructs `weaver generate` to generate
-serialization methods for the struct. Note, however, that `weaver.AutoMarshal`
-cannot magically make *any type* serializable. For example, `weaver generate`
+The `mx.AutoMarshal` embedding instructs `mx generate` to generate
+serialization methods for the struct. Note, however, that `mx.AutoMarshal`
+cannot magically make *any type* serializable. For example, `mx generate`
 will raise an error for the following code because the `NotSerializable` struct
 is fundamentally not serializable.
 
 ```go
 // ERROR: NotSerializable cannot be made serializable.
 type NotSerializable struct {
-    weaver.AutoMarshal
+    mx.AutoMarshal
     f func()   // functions are not serializable
     c chan int // chans are not serializable
 }
 ```
 
-Also note that `weaver.AutoMarshal` can *not* be embedded in generic structs.
+Also note that `mx.AutoMarshal` can *not* be embedded in generic structs.
 
 ```go
-// ERROR: Cannot embed weaver.AutoMarshal in a generic struct.
+// ERROR: Cannot embed mx.AutoMarshal in a generic struct.
 type Pair[A any] struct {
-    weaver.AutoMarshal
+    mx.AutoMarshal
     x A
     y A
 }
@@ -3430,50 +3430,50 @@ To serialize generic structs, implement `BinaryMarshaler` and
 
 ## Errors
 
-Service Weaver requires every component method to [return an
-error](#components-interfaces).  If a non-nil error is returned, Service Weaver
+MX requires every component method to [return an
+error](#components-interfaces).  If a non-nil error is returned, MX
 by default transmits the textual representation of the error. Therefore any
 custom information stored in the error value, or custom `Is` or `As` methods,
 are not available to the caller.
 
-Applications that need custom error information can embed a `weaver.AutoMarshal`
-in their custom error type. Service Weaver will then serialize and deserialize
+Applications that need custom error information can embed a `mx.AutoMarshal`
+in their custom error type. MX will then serialize and deserialize
 such errors properly and make them available to the caller.
 
-# weaver generate
+# mx generate
 
-`weaver generate` is Service Weaver's code generator. Before you compile and run a Service Weaver
-application, you should run `weaver generate` to generate the code Service Weaver needs
-to run an application. For example, `weaver generate` generates code to marshal
+`mx generate` is MX's code generator. Before you compile and run a MX
+application, you should run `mx generate` to generate the code MX needs
+to run an application. For example, `mx generate` generates code to marshal
 and unmarshal any types that may be sent over the network.
 
-From the command line, `weaver generate` accepts a list of package paths. For
-example, `weaver generate . ./foo` will generate code for the Service Weaver applications
+From the command line, `mx generate` accepts a list of package paths. For
+example, `mx generate . ./foo` will generate code for the MX applications
 in the current directory and in the `./foo` directory. For every package, the
-generated code is placed in a `weaver_gen.go` file in the package's directory.
-Running `weaver generate .  ./foo`, for example, will create `./weaver_gen.go`
-and `./foo/weaver_gen.go`. You specify packages for `weaver generate` in the same
+generated code is placed in a `mx_gen.go` file in the package's directory.
+Running `mx generate .  ./foo`, for example, will create `./mx_gen.go`
+and `./foo/mx_gen.go`. You specify packages for `mx generate` in the same
 way you specify packages for `go build`, `go test`, `go vet`, etc. Run `go help
 packages` for more information.
 
-While you can invoke `weaver generate` directly, we recommend that you instead
+While you can invoke `mx generate` directly, we recommend that you instead
 place a line of the following form in one of the `.go` files in the root of
 your module:
 
 ```go
-//go:generate weaver generate ./...
+//go:generate mx generate ./...
 ```
 
 Then, you can use the [`go generate`][go_generate] command to generate all of
-the `weaver_gen.go` files in your module.
+the `mx_gen.go` files in your module.
 
 # Config Files
 
-Service Weaver config files are written in [TOML](https://toml.io/en/) and look
+MX config files are written in [TOML](https://toml.io/en/) and look
 something like this:
 
 ```toml
-[serviceweaver]
+[mx]
 name = "hello"
 binary = "./hello"
 args = ["these", "are", "command", "line", "arguments"]
@@ -3485,13 +3485,13 @@ colocate = [
 rollout = "1m"
 ```
 
-A config file includes a `[serviceweaver]` section followed by a subset of the
+A config file includes a `[mx]` section followed by a subset of the
 following fields:
 
 | Field | Required? | Description |
 | --- | --- | --- |
-| name | optional | Name of the Service Weaver application. If absent, the name of the app is derived from the name of the binary. |
-| binary | required | Compiled Service Weaver application. The binary path, if not absolute, should be relative to the directory that contains the config file. |
+| name | optional | Name of the MX application. If absent, the name of the app is derived from the name of the binary. |
+| binary | required | Compiled MX application. The binary path, if not absolute, should be relative to the directory that contains the config file. |
 | args | optional | Command line arguments passed to the binary. |
 | env | optional | Environment variables that are set before the binary executes. |
 | colocate | optional | List of colocation groups. When two components in the same colocation group are deployed, they are deployed in the same OS process, where all method calls between them are performed as regular Go method calls. To avoid ambiguity, components must be prefixed by their full package path (e.g., `github.com/example/sandy/`). Note that the full package path of the main package in an executable is `main`. |
@@ -3503,14 +3503,14 @@ for details.
 
 <div hidden class="todo">
 Architecture
-TODO: Explain the internals of Service Weaver.
+TODO: Explain the internals of MX.
 </div>
 
 # FAQ
 
-### Do I need to worry about network errors when using Service Weaver?
+### Do I need to worry about network errors when using MX?
 
-Yes. While Service Weaver allows you to *write* your application as a single
+Yes. While MX allows you to *write* your application as a single
 binary, a distributed deployer (e.g., [multiprocess](#multiprocess),
 [gke](#gke)), may place your components on separate processes/machines.
 This means that method calls between those components will be executed as remote
@@ -3523,15 +3523,15 @@ overly burdensome, you can explicitly place relevant components in the same
 [colocation group](#config-files), ensuring that they always run in the same OS
 process.
 
-**Note**: Service Weaver guarantees that all system errors are surfaced to the
-application code as `weaver.RemoteCallError`, which can be handled as described
+**Note**: MX guarantees that all system errors are surfaced to the
+application code as `mx.RemoteCallError`, which can be handled as described
 in an [earlier section](#components-semantics).
 
-### What types of distributed applications does Service Weaver target?
+### What types of distributed applications does MX target?
 
-Service Weaver primarily targets distributed serving systems. These are online
+MX primarily targets distributed serving systems. These are online
 systems that need to handle user requests as they arrive. A web application or
-an API server are serving systems, for example. Service Weaver tailors its
+an API server are serving systems, for example. MX tailors its
 feature set and runtime assumptions towards serving systems in the following
 ways:
 
@@ -3544,20 +3544,20 @@ version to the new.
 of its replicas. Replicas may automatically be scaled up and down depending on
 the load.
 
-### What about data-processing applications? Can I use Service Weaver for those?
+### What about data-processing applications? Can I use MX for those?
 
-In theory, you may be able to use Service Weaver for data-processing
+In theory, you may be able to use MX for data-processing
 applications, though you will find that it provides little support for some of
 the common data-processing features such as checkpointing, failure recovery,
 restarts etc.
 
-Additionally, Service Weaver's replication model means that component replicas
+Additionally, MX's replication model means that component replicas
 may automatically be scaled up and down depending on the load. This is likely
 something that you wouldn't want in your data-processing application. This
 scale-up/scale-down behavior translates even to the application's `main()`
 function and may cause your data-processing program to run multiple times.
 
-### Why doesn't Service Weaver provide its own data storage?
+### Why doesn't MX provide its own data storage?
 
 Different applications have different storage needs (e.g., global replication,
 performance, SQL/NoSQL). There are also a [myriad][db_engines] of storage
@@ -3569,7 +3569,7 @@ into the application's data model. We also didn't want to restrict how
 applications interact with their data (e.g., offline DB updates). For those
 reasons, we left the choice of data storage up to the application.
 
-### Doesn't the lack of data storage integration limit the portability of Service Weaver applications?
+### Doesn't the lack of data storage integration limit the portability of MX applications?
 
 Yes, to a degree. If you use a globally reachable data storage system, then you
 can truly run your application anywhere, removing any portability concerns.
@@ -3579,15 +3579,15 @@ If, however, you run your storage system inside your deployment environment
 application in a different environment (e.g., your desktop), it may not have
 access to the storage system. In such cases, we generally recommend that you
 create different storage systems for different application environments, and
-use Service Weaver [config files](#config-files) to point your application to
+use MX [config files](#config-files) to point your application to
 the right storage system for the given execution environment.
 
 If you're using SQL, Go's [sql package][sql_package] helps isolate your
 code from some differences in the underlying storage systems. See the
-Service Weaver's [chat application example][chat_example] for how to setup
+MX's [chat application example][chat_example] for how to setup
 your application to use the environment-local storage systems.
 
-### Does the Service Weaver versioning approach mean I will end up running multiple instances of my app during a rollout? Isn't that expensive?
+### Does the MX versioning approach mean I will end up running multiple instances of my app during a rollout? Isn't that expensive?
 
 As we described in the GKE [versioning](#versioning) section, we utilize the
 combination of auto-scaling and blue/green deployment to minimize the cost
@@ -3599,28 +3599,28 @@ similar technique to GKE to minimize their rollout costs. Other deployers
 may choose to simply run full per-version serving trees, like the
 [multiprocess](#multiprocess) deployer.
 
-### Service Weaver's microservice development model is quite unique. Is it making a stand against traditional microservices development?
+### MX's microservice development model is quite unique. Is it making a stand against traditional microservices development?
 
 No. We acknowledge that there are still valid reasons why developers may
 choose to run separate binaries for different microservices (e.g.,
 different teams controlling their own binaries). We believe, however,
-that Service Weaver's *modular monolith* model is applicable to a lot of
+that MX's *modular monolith* model is applicable to a lot of
 common use-cases and can be used in conjunction with the traditional
 microservices model.
 
 For example, a team may decide to unify all of the services in their control
-into a single Service Weaver application. Cross-team interactions will still
+into a single MX application. Cross-team interactions will still
 be handled in the traditional model, with all of the versioning and development
 implications that come with that model.
 
 ### Isn't writing "monoliths" a step in the wrong direction for distributed application development?
 
-Service Weaver is trying to encourage a *modular monolith* model, where
+MX is trying to encourage a *modular monolith* model, where
 the application is written as a single modularized binary that runs as separate
 microservices. This is different from the monolith model, where the binary runs
 as a single (replicated) service.
 
-We believe that the Service Weaver's *modular monolith* model has the best of
+We believe that the MX's *modular monolith* model has the best of
 both worlds: the ease of development of monolithic applications, with the
 runtime benefits of microservices.
 
@@ -3632,7 +3632,7 @@ runtime benefits of microservices.
 [binary_unmarshaler]: https://pkg.go.dev/encoding#BinaryUnmarshaler
 [blue_green]: https://docs.aws.amazon.com/whitepapers/latest/overview-deployment-options/bluegreen-deployments.html
 [canary]: https://sre.google/workbook/canarying-releases/
-[chat_example]: https://github.com/ServiceWeaver/weaver/tree/main/examples/chat/
+[chat_example]: https://github.com/sh3lk/mx/tree/main/examples/chat/
 [chrome_tracing]: https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview
 [cloud_logging]: https://cloud.google.com/logging
 [cloud_metrics]: https://cloud.google.com/monitoring/api/metrics_gcp
@@ -3642,7 +3642,7 @@ runtime benefits of microservices.
 [cloud_run_repository]: https://github.com/mwhittaker/cloudrun
 [db_engines]: https://db-engines.com/en/ranking
 [docker]: https://docs.docker.com/engine/install/
-[emojis]: https://emojis.serviceweaver.dev/
+[emojis]: https://emojis.mx.dev/
 [eks]: https://aws.amazon.com/eks/
 [gcloud_billing]: https://console.cloud.google.com/billing
 [gcloud_billing_projects]: https://console.cloud.google.com/billing/projects
@@ -3654,19 +3654,19 @@ runtime benefits of microservices.
 [go_generate]: https://pkg.go.dev/cmd/go/internal/generate
 [go_install]: https://go.dev/doc/install
 [go_interfaces]: https://go.dev/tour/methods/9
-[hello_app]: https://github.com/ServiceWeaver/weaver/tree/main/examples/hello
+[hello_app]: https://github.com/sh3lk/mx/tree/main/examples/hello
 [hpa]: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
 [http_pprof]: https://pkg.go.dev/net/http/pprof
 [identifiers]: https://go.dev/ref/spec#Identifiers
 [isolation]: https://sre.google/workbook/canarying-releases/#dependencies-and-isolation
 [jaeger]: https://www.jaegertracing.io/
-[kube]: https://github.com/ServiceWeaver/weaver-kube
+[kube]: https://github.com/sh3lk/mx-kube
 [kubectl]: https://kubernetes.io/docs/reference/kubectl/
 [kubernetes]: https://kubernetes.io/
-[kube_telemetry]: https://github.com/ServiceWeaver/weaver-kube/tree/main/examples/telemetry
-[kube_telemetry_api]: https://github.com/ServiceWeaver/weaver-kube/blob/main/tool/tool.go
-[kube_github_actions]: https://github.com/ServiceWeaver/weaver-kube/blob/main/.github/workflows/integration.yml
-[kube_config_file]: https://github.com/ServiceWeaver/weaver-kube/blob/main/internal/impl/config.go
+[kube_telemetry]: https://github.com/sh3lk/mx-kube/tree/main/examples/telemetry
+[kube_telemetry_api]: https://github.com/sh3lk/mx-kube/blob/main/tool/tool.go
+[kube_github_actions]: https://github.com/sh3lk/mx-kube/blob/main/.github/workflows/integration.yml
+[kube_config_file]: https://github.com/sh3lk/mx-kube/blob/main/internal/impl/config.go
 [kubernetes_resources]: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 [kubernetes_volumes]: https://kubernetes.io/docs/concepts/storage/volumes/
 [kubernetes_affinity]: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
@@ -3689,13 +3689,13 @@ runtime benefits of microservices.
 [prometheus_histogram]: https://prometheus.io/docs/concepts/metric_types/#histogram
 [prometheus_naming]: https://prometheus.io/docs/practices/naming/
 [sql_package]: https://pkg.go.dev/database/sql
-[ssh]: https://github.com/ServiceWeaver/weaver/tree/main/internal/tool/ssh
+[ssh]: https://github.com/sh3lk/mx/tree/main/internal/tool/ssh
 [slog_levels]: https://pkg.go.dev/log/slog#Level
 [trace_service]: https://cloud.google.com/trace
 [update_failures_paper]: https://scholar.google.com/scholar?cluster=4116586908204898847
 [weak_consistency]: https://mwhittaker.github.io/consistency_in_distributed_systems/1_baseball.html
-[weaver_examples]: https://github.com/ServiceWeaver/weaver/tree/main/examples
-[weaver_github]: https://github.com/ServiceWeaver/weaver
-[weavertest.Fake]: https://pkg.go.dev/github.com/ServiceWeaver/weaver/weavertest#Fake
-[workshop]: https://github.com/serviceweaver/workshops
+[mx_examples]: https://github.com/sh3lk/mx/tree/main/examples
+[mx_github]: https://github.com/sh3lk/mx
+[mxtest.Fake]: https://pkg.go.dev/github.com/sh3lk/mx/mxtest#Fake
+[workshop]: https://github.com/mx/workshops
 [xdg]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html

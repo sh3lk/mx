@@ -17,8 +17,8 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
+	"github.com/sh3lk/mx"
+	"github.com/sh3lk/mx/runtime/codegen"
 )
 
 type byValue struct{ notSerializable chan int }
@@ -26,19 +26,19 @@ type byPointer struct{ notSerializable chan int }
 type mixed1 struct{ notSerializable chan int }
 type mixed2 struct{ notSerializable chan int }
 
-func (byValue) WeaverMarshal(enc *codegen.Encoder)      {}
-func (byValue) WeaverUnmarshal(dec *codegen.Decoder)    {}
-func (*byPointer) WeaverMarshal(enc *codegen.Encoder)   {}
-func (*byPointer) WeaverUnmarshal(dec *codegen.Decoder) {}
-func (mixed1) WeaverMarshal(enc *codegen.Encoder)       {}
-func (*mixed1) WeaverUnmarshal(dec *codegen.Decoder)    {}
-func (*mixed2) WeaverMarshal(enc *codegen.Encoder)      {}
-func (mixed2) WeaverUnmarshal(dec *codegen.Decoder)     {}
+func (byValue) MXMarshal(enc *codegen.Encoder)      {}
+func (byValue) MXUnmarshal(dec *codegen.Decoder)    {}
+func (*byPointer) MXMarshal(enc *codegen.Encoder)   {}
+func (*byPointer) MXUnmarshal(dec *codegen.Decoder) {}
+func (mixed1) MXMarshal(enc *codegen.Encoder)       {}
+func (*mixed1) MXUnmarshal(dec *codegen.Decoder)    {}
+func (*mixed2) MXMarshal(enc *codegen.Encoder)      {}
+func (mixed2) MXUnmarshal(dec *codegen.Decoder)     {}
 
 type foo interface {
 	M(context.Context, byValue, byPointer, mixed1, mixed2) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (impl) M(context.Context, byValue, byPointer, mixed1, mixed2) error { return nil }

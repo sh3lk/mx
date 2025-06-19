@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/runtime/retry"
+	"github.com/sh3lk/mx/runtime/retry"
 )
 
 type test struct {
@@ -34,9 +34,9 @@ type test struct {
 }
 
 func TestExamples(t *testing.T) {
-	// Build the weaver binary.
+	// Build the mx binary.
 	cmd := exec.Command("go", "build")
-	cmd.Dir = "../cmd/weaver"
+	cmd.Dir = "../cmd/mx"
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		t.Fatal(err)
@@ -92,22 +92,22 @@ func TestExamples(t *testing.T) {
 
 			// Run the application directly.
 			t.Run("single", func(t *testing.T) {
-				env := []string{"SERVICEWEAVER_CONFIG=weaver.toml"}
+				env := []string{"MX_CONFIG=mx.toml"}
 				cmd := startCmd(ctx, t, env, "./"+name)
 				t.Cleanup(terminateCmdAndWait(t, cmd))
 				run(t, test)
 			})
 
-			// "weaver single deploy" the application.
-			t.Run("weaver-single", func(t *testing.T) {
-				cmd := startCmd(ctx, t, nil, "../../cmd/weaver/weaver", "single", "deploy", "weaver.toml")
+			// "mx single deploy" the application.
+			t.Run("mx-single", func(t *testing.T) {
+				cmd := startCmd(ctx, t, nil, "../../cmd/mx/mx", "single", "deploy", "mx.toml")
 				t.Cleanup(terminateCmdAndWait(t, cmd))
 				run(t, test)
 			})
 
-			// "weaver multi deploy" the application.
-			t.Run("weaver-multi-nomtls", func(t *testing.T) {
-				cmd := startCmd(ctx, t, nil, "../../cmd/weaver/weaver", "multi", "deploy", "weaver.toml")
+			// "mx multi deploy" the application.
+			t.Run("mx-multi-nomtls", func(t *testing.T) {
+				cmd := startCmd(ctx, t, nil, "../../cmd/mx/mx", "multi", "deploy", "mx.toml")
 				t.Cleanup(terminateCmdAndWait(t, cmd))
 				run(t, test)
 
@@ -122,13 +122,13 @@ func TestExamples(t *testing.T) {
 				}
 			})
 
-			// "weaver multi deploy" the application with MTLS.
+			// "mx multi deploy" the application with MTLS.
 			if name == "collatz" {
-				t.Run("weaver-multi-mtls", func(t *testing.T) {
+				t.Run("mx-multi-mtls", func(t *testing.T) {
 					if os.Getenv("GITHUB_RUN_ID") != "" {
 						t.Skip("test takes too long (over 30s) on github")
 					}
-					cmd := startCmd(ctx, t, nil, "../../cmd/weaver/weaver", "multi", "deploy", "weaver_mtls.toml")
+					cmd := startCmd(ctx, t, nil, "../../cmd/mx/mx", "multi", "deploy", "mx_mtls.toml")
 					t.Cleanup(terminateCmdAndWait(t, cmd))
 					run(t, test)
 				})

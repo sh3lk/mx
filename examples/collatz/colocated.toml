@@ -1,12 +1,12 @@
-[serviceweaver]
+[mx]
 binary = "./collatz"
 args = ["--local_addr=localhost:10000"]
 rollout = "5m"
 colocate = [
   [
     "main",
-    "github.com/ServiceWeaver/weaver/examples/collatz/Even",
-    "github.com/ServiceWeaver/weaver/examples/collatz/Odd"
+    "github.com/sh3lk/mx/examples/collatz/Even",
+    "github.com/sh3lk/mx/examples/collatz/Odd"
   ]
 ]
 

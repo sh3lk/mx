@@ -3,7 +3,7 @@
 <div class="blog-author">Michael Whittaker</div>
 <div class="blog-date">August 1, 2023</div>
 
-Service Weaver is a programming framework for writing distributed systems. An
+MX is a programming framework for writing distributed systems. An
 essential part of building distributed systems is monitoring a system's behavior
 with [metrics][what_are_metrics]. For a system that serves HTTP traffic, for
 example, you likely want to export an `http_requests` metric that counts the
@@ -76,17 +76,17 @@ disadvantages.
 - **Too few labels.** You can forget to pass a label. If we add a new label to a
   metric, for example, we again have to carefully update our code to use it.
 
-## Service Weaver's Approach
+## MX's Approach
 
-Service Weaver avoids these drawbacks by integrating metric labels with Go's
-type system. Specifically, Service Weaver represents metric labels as structs
+MX avoids these drawbacks by integrating metric labels with Go's
+type system. Specifically, MX represents metric labels as structs
 and uses generics to instantiate metrics. Here's how to declare the
-`http_requests` metric using [Service Weaver's API][weaver_api]:
+`http_requests` metric using [MX's API][mx_api]:
 
 ```go
 type labels struct {
-    Path       string `weaver:"path"`
-    StatusCode int    `weaver:"status_code"`
+    Path       string `mx:"path"`
+    StatusCode int    `mx:"status_code"`
 }
 
 var requests = metrics.NewCounterMap[labels](
@@ -103,7 +103,7 @@ requests.Get(labels{Path: "/foo", StatusCode: 404}).Inc()
 
 Labels can be any struct where every field is a string, bool, or integer.
 `NewCounterMap` panics if you call it with an invalid label struct. By
-leveraging Go's type system, Service Weaver's API avoids the disadvantages of
+leveraging Go's type system, MX's API avoids the disadvantages of
 key-value labels described above.
 
 - **Misspelling.** If you misspell a field name, your code will not compile
@@ -119,8 +119,8 @@ key-value labels described above.
   struct literal, you must provide every field or your code will not compile
   (e.g., `labels{"/foo"}`).
 
-These strongly typed metric labels are just one of the ways that Service Weaver
-makes it easier to write distributed systems. Read [the Service Weaver
+These strongly typed metric labels are just one of the ways that MX
+makes it easier to write distributed systems. Read [the MX
 documentation][docs] to learn about more about [metrics][metrics] (including
 counters, gauges, and histograms) as well as other useful features.
 
@@ -128,5 +128,5 @@ counters, gauges, and histograms) as well as other useful features.
 [metrics]: ../docs.html#metrics
 [otel_api]: https://pkg.go.dev/go.opentelemetry.io/otel/metric
 [prometheus_api]: https://pkg.go.dev/github.com/prometheus/client_golang/prometheus
-[weaver_api]: https://pkg.go.dev/github.com/ServiceWeaver/weaver/metrics
+[mx_api]: https://pkg.go.dev/github.com/sh3lk/mx/metrics
 [what_are_metrics]: https://prometheus.io/docs/introduction/overview/#what-are-metrics

@@ -21,13 +21,13 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/ServiceWeaver/weaver/internal/env"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
+	"github.com/sh3lk/mx/internal/env"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
 // ParseConfig parses the specified configuration input, which should
 // hold a set of sections in TOML format from the specified file.
-// The section corresponding to the common Service Weaver application
+// The section corresponding to the common MX application
 // configuration is parsed and returned as a *AppConfig.
 //
 // sectionValidator(key, val) is used to validate every section config entry.
@@ -97,8 +97,8 @@ func ParseConfigSection(key, shortKey string, sections map[string]string, dst an
 }
 
 func extractApp(file string, config *protos.AppConfig) error {
-	const appKey = "github.com/ServiceWeaver/weaver"
-	const shortAppKey = "serviceweaver"
+	const appKey = "github.com/sh3lk/mx"
+	const shortAppKey = "mx"
 
 	// appConfig holds the data from under appKey in the TOML config.
 	// It matches the contents of the Config proto.

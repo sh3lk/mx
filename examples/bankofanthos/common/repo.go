@@ -15,7 +15,7 @@
 package common
 
 import (
-	"github.com/ServiceWeaver/weaver/examples/bankofanthos/model"
+	"github.com/sh3lk/mx/examples/bankofanthos/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

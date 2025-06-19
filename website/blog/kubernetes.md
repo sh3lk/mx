@@ -1,10 +1,10 @@
-# Service Weaver and Kubernetes
+# MX and Kubernetes
 
 <div class="blog-author">Robert Grandl</div>
 <div class="blog-date">November 9, 2023</div>
 
 In this blog post we introduce [`Kube`][kube_doc], a deployer that allows you to
-deploy Service Weaver applications in any [Kubernetes][kubernetes] environment,
+deploy MX applications in any [Kubernetes][kubernetes] environment,
 i.e. [GKE][gke], [EKS][eks], [AKS][aks], [minikube][minikube].
 
 With `Kube`, the user provides an application binary and a configuration file
@@ -28,12 +28,12 @@ generated.
 
 <h3 class="emphasize-title">Hello World!</h3>
 
-To deploy a "Hello, World!" Service Weaver application with the `Kube` deployer,
+To deploy a "Hello, World!" MX application with the `Kube` deployer,
 the user has to write an application config and a deployment config:
 
 ```toml
 # app_config.toml
-[serviceweaver]
+[mx]
 binary = "./hello"
 
 # Per component config.
@@ -50,12 +50,12 @@ listeners:
     public: true
 ```
 
-Then use `weaver kube deploy` to generate the Kubernetes resources needed to
+Then use `mx kube deploy` to generate the Kubernetes resources needed to
 run your application:
 
 ```console
 $ go build .
-$ weaver kube deploy dep_config.yaml
+$ mx kube deploy dep_config.yaml
 ...
 Building image hello:ffa65856...
 ...
@@ -92,7 +92,7 @@ For example, if the user wants to configure the memory limits for all the runnin
 it can be configured as follows:
 
 ```yaml
-appConfig: weaver.toml
+appConfig: mx.toml
 repo: docker.io/mydockerid
 
 listeners:
@@ -125,18 +125,18 @@ pipeline. [Here][github_actions] is an example on how to integrate with the
 
 <h3 class="emphasize-title">Final Thoughts</h3>
 
-To learn more on how to use the `Kube` deployer to run your Service Weaver application
+To learn more on how to use the `Kube` deployer to run your MX application
 on Kubernetes, check the [`Kube` deployer][kube_doc] documentation. We are eager
 to hear your feedback and help us enhance the deployer or, perhaps, contribute
-new deployers that can benefit the entire Service Weaver community.
+new deployers that can benefit the entire MX community.
 
 [aks]: https://azure.microsoft.com/en-us/products/kubernetes-service
 [argocd]: https://argoproj.github.io/cd/
-[component]: https://serviceweaver.dev/docs.html#components
+[component]: https://mx.dev/docs.html#components
 [eks]: https://aws.amazon.com/eks/
 [github_actions]: https://github.com/features/actions
 [gke]: https://cloud.google.com/kubernetes-engine
-[gke_doc]: https://serviceweaver.dev/docs.html#gke
+[gke_doc]: https://mx.dev/docs.html#gke
 [gha]: https://github.com/features/actions
 [grafana]: https://grafana.com/
 [jaeger]: https://www.jaegertracing.io/
@@ -147,8 +147,8 @@ new deployers that can benefit the entire Service Weaver community.
 [kubernetes_probes]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 [kubernetes_volumes]: https://kubernetes.io/docs/concepts/storage/volumes/
 [kubectl]: https://kubernetes.io/docs/reference/kubectl/
-[kube_doc]: https://serviceweaver.dev/docs.html#kube
-[kube_doc_telemetry]: https://serviceweaver.dev/docs.html#kube-telemetry
-[kube_telemetry_api]: https://github.com/ServiceWeaver/weaver-kube/blob/main/tool/tool.go
+[kube_doc]: https://mx.dev/docs.html#kube
+[kube_doc_telemetry]: https://mx.dev/docs.html#kube-telemetry
+[kube_telemetry_api]: https://github.com/sh3lk/mx-kube/blob/main/tool/tool.go
 [minikube]: https://minikube.sigs.k8s.io/docs/
 [prometheus]: https://prometheus.io

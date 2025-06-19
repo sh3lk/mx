@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/runtime/metrics"
+	"github.com/sh3lk/mx/runtime/metrics"
 )
 
 // TODO(rgrandl): Right now we aggregate local and remote metrics. Show them separately.
@@ -145,7 +145,7 @@ func (s *StatsProcessor) getSnapshot(snapshot []*metrics.MetricSnapshot) {
 	// Compute a new set of stats, keyed by component and method.
 	newStats := map[string]map[string]*statsBucket{}
 	for _, m := range snapshot {
-		if !strings.HasPrefix(m.Name, "serviceweaver_") { // Ignore non-generated Service Weaver metrics
+		if !strings.HasPrefix(m.Name, "mx_") { // Ignore non-generated MX metrics
 			continue
 		}
 
@@ -159,7 +159,7 @@ func (s *StatsProcessor) getSnapshot(snapshot []*metrics.MetricSnapshot) {
 			}
 		}
 		if comp == "" || method == "" {
-			// Ignore any Service Weaver generated metric that doesn't have a
+			// Ignore any MX generated metric that doesn't have a
 			// component and a method label set. E.g., http metrics.
 			continue
 		}

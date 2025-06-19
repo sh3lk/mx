@@ -24,17 +24,17 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ServiceWeaver/weaver/runtime/colors"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
-	dtool "github.com/ServiceWeaver/weaver/runtime/tool"
+	"github.com/sh3lk/mx/runtime/colors"
+	"github.com/sh3lk/mx/runtime/logging"
+	"github.com/sh3lk/mx/runtime/protos"
+	dtool "github.com/sh3lk/mx/runtime/tool"
 	"golang.org/x/exp/maps"
 )
 
 // MetricsCommand returns a "metrics" subcommand that pretty prints the metrics
 // of all active applications registered with the provided registry. tool is
 // the name of the command-line tool the returned subcommand runs as (e.g.,
-// "weaver single").
+// "mx single").
 func MetricsCommand(tool string, registry func(context.Context) (*Registry, error)) *dtool.Command {
 	return &dtool.Command{
 		Name:        "metrics",
@@ -113,8 +113,8 @@ func formatMetrics(metrics []*protos.MetricSnapshot) {
 	// Group metrics by name.
 	grouped := map[string][]*protos.MetricSnapshot{}
 	for _, metric := range metrics {
-		if strings.HasPrefix(metric.Name, "serviceweaver_system") {
-			// Ignore Service Weaver internal metrics.
+		if strings.HasPrefix(metric.Name, "mx_system") {
+			// Ignore MX internal metrics.
 			continue
 		}
 		grouped[metric.Name] = append(grouped[metric.Name], metric)
@@ -123,7 +123,7 @@ func formatMetrics(metrics []*protos.MetricSnapshot) {
 	// Sort metrics by name, sorting internal metrics after user metrics.
 	names := maps.Keys(grouped)
 	internal := func(name string) bool {
-		return strings.HasPrefix(name, "serviceweaver")
+		return strings.HasPrefix(name, "mx")
 	}
 	sort.Slice(names, func(i, j int) bool {
 		ni, nj := names[i], names[j]
@@ -202,9 +202,9 @@ func formatMetrics(metrics []*protos.MetricSnapshot) {
 				switch {
 				case internal(name) && key == "component":
 					entry.S = logging.ShortenComponent(entry.S)
-				case key == "serviceweaver_node":
+				case key == "mx_node":
 					entry.S = logging.Shorten(entry.S)
-				case key == "serviceweaver_version":
+				case key == "mx_version":
 					entry.Color = colors.ColorHash(entry.S)
 					entry.S = logging.Shorten(entry.S)
 					entry.Underline = true

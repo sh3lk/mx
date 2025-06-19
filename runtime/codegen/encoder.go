@@ -333,5 +333,5 @@ func (e *Encoder) Error(err error) {
 // Interface encodes value prefixed with its concrete type.
 func (e *Encoder) Interface(value AutoMarshal) {
 	e.String(typeKey(value))
-	value.WeaverMarshal(e)
+	value.MXMarshal(e)
 }

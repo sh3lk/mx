@@ -19,8 +19,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/internal/tool/certs"
 	"github.com/google/go-cmp/cmp"
+	"github.com/sh3lk/mx/internal/tool/certs"
 )
 
 func TestGenerateCACert(t *testing.T) {

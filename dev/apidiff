@@ -15,7 +15,7 @@
 
 set -e
 
-# Print the difference between two versions of Service Weaver.
+# Print the difference between two versions of MX.
 usage() {
   2>&1 cat <<"EOF"
 Usage: dev/apidiff [--from=_version_] [--to=_version_] [packages...]
@@ -98,7 +98,7 @@ fi
 
 if test ${#packages[@]} -eq 0; then
   # Find interesting packages
-  packages=( $(go list ./... | egrep -v '/internal/|/examples\b|/cmd/|/docgen$|/runtime/bin$|/blog/|/testprogram$' | sed -e s,github.com/ServiceWeaver/weaver,.,) )
+  packages=( $(go list ./... | egrep -v '/internal/|/examples\b|/cmd/|/docgen$|/runtime/bin$|/blog/|/testprogram$' | sed -e s,github.com/sh3lk/mx,.,) )
 fi
 
 # Compare packages.

@@ -25,12 +25,12 @@ import (
 	"sync"
 	"testing"
 
-	core "github.com/ServiceWeaver/weaver"
-	"github.com/ServiceWeaver/weaver/internal/weaver"
-	"github.com/ServiceWeaver/weaver/runtime"
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
 	"github.com/google/uuid"
+	core "github.com/sh3lk/mx"
+	"github.com/sh3lk/mx/internal/mx"
+	"github.com/sh3lk/mx/runtime"
+	"github.com/sh3lk/mx/runtime/codegen"
+	"github.com/sh3lk/mx/runtime/protos"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -54,9 +54,9 @@ import (
 
 // componentInfo includes information about components.
 type componentInfo struct {
-	hasRefs      map[reflect.Type]bool // does a component have weaver.Refs?
-	hasListeners map[reflect.Type]bool // does a component have weaver.Listeners?
-	hasConfig    map[reflect.Type]bool // does a component have a weaver.Config?
+	hasRefs      map[reflect.Type]bool // does a component have mx.Refs?
+	hasListeners map[reflect.Type]bool // does a component have mx.Listeners?
+	hasConfig    map[reflect.Type]bool // does a component have a mx.Config?
 }
 
 // hyperparameters configure an execution.
@@ -78,7 +78,7 @@ type op struct {
 	generators []generator    // the op's generators
 }
 
-// An executor deterministically executes a Service Weaver application. An
+// An executor deterministically executes a MX application. An
 // executor is not safe for concurrent use by multiple goroutines. However, an
 // executor can be used to peform many executions.
 //
@@ -292,12 +292,12 @@ func (e *executor) reset(workload Workload, fakes map[reflect.Type]any, ops []*o
 	if err != nil {
 		return err
 	}
-	weaverInfo := &weaver.WeaverInfo{
+	mxInfo := &mx.MXInfo{
 		DeploymentID: depID.String(),
 	}
 
 	// Fill ref fields inside the workload struct.
-	if err := weaver.FillRefs(workload, func(t reflect.Type) (any, error) {
+	if err := mx.FillRefs(workload, func(t reflect.Type) (any, error) {
 		return e.getIntf(t, "op", 0)
 	}); err != nil {
 		return err
@@ -322,7 +322,7 @@ func (e *executor) reset(workload Workload, fakes map[reflect.Type]any, ops []*o
 
 			// Fill config.
 			if e.info.hasConfig[reg.Iface] {
-				if cfg := weaver.GetConfig(obj); cfg != nil {
+				if cfg := mx.GetConfig(obj); cfg != nil {
 					if err := runtime.ParseConfigSection(reg.Name, "", e.config.Sections, cfg); err != nil {
 						return err
 					}
@@ -332,18 +332,18 @@ func (e *executor) reset(workload Workload, fakes map[reflect.Type]any, ops []*o
 			// Set logger.
 			//
 			// TODO(mwhittaker): Use custom logger.
-			if err := weaver.SetLogger(obj, slog.Default()); err != nil {
+			if err := mx.SetLogger(obj, slog.Default()); err != nil {
 				return err
 			}
 
 			// Set application runtime information.
-			if err := weaver.SetWeaverInfo(obj, weaverInfo); err != nil {
+			if err := mx.SetMXInfo(obj, mxInfo); err != nil {
 				return err
 			}
 
 			// Fill ref fields.
 			if e.info.hasRefs[reg.Iface] {
-				if err := weaver.FillRefs(obj, func(t reflect.Type) (any, error) {
+				if err := mx.FillRefs(obj, func(t reflect.Type) (any, error) {
 					return e.getIntf(t, reg.Name, i)
 				}); err != nil {
 					return err
@@ -352,7 +352,7 @@ func (e *executor) reset(workload Workload, fakes map[reflect.Type]any, ops []*o
 
 			// Fill listener fields.
 			if e.info.hasListeners[reg.Iface] {
-				if err := weaver.FillListeners(obj, func(name string) (net.Listener, string, error) {
+				if err := mx.FillListeners(obj, func(name string) (net.Listener, string, error) {
 					lis, err := net.Listen("tcp", ":0")
 					return lis, "", err
 				}); err != nil {

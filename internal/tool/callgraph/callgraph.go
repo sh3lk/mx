@@ -13,20 +13,20 @@
 // limitations under the License.
 
 // Package callgraph contains code to create visualizations of component
-// call graphs stored inside a Service Weaver binary.
+// call graphs stored inside a MX binary.
 package callgraph
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/ServiceWeaver/weaver/runtime/bin"
-	"github.com/ServiceWeaver/weaver/runtime/graph"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
+	"github.com/sh3lk/mx/runtime/bin"
+	"github.com/sh3lk/mx/runtime/graph"
+	"github.com/sh3lk/mx/runtime/logging"
 )
 
 // Mermaid returns a Mermaid diagram, https://mermaid.js.org/, of the component
-// call graph embedded in the provided Service Weaver binary.
+// call graph embedded in the provided MX binary.
 func Mermaid(binary string) (string, error) {
 	components, g, err := bin.ReadComponentGraph(binary)
 	if err != nil {

@@ -1,6 +1,6 @@
 # Collatz
 
-This directory contains a Service Weaver application that explores the
+This directory contains a MX application that explores the
 [Collatz conjecture][collatz]. Given a positive integer `x`, the Collatz process
 is the process of repeatedly executing the following operation:
 
@@ -14,13 +14,13 @@ sequence of every positive number reaches 1. Nobody knows if the Collatz
 conjecture is true; it is one of the most famous unsolved problems in
 mathematics.
 
-This Service Weaver application implements a service that executes the Collatz process.
+This MX application implements a service that executes the Collatz process.
 You can send the service a positive number, and the server replies with that
 number's hailstone sequence.
 
 ## Components
 
-This Service Weaver application has three components: `main`, `Odd` and `Even`. Given a
+This MX application has three components: `main`, `Odd` and `Even`. Given a
 positive number `x`, main repeatedly calls `Odd` (if `x` is odd) or `Even` (if
 `x` is even) to receive the next number in the hailstone sequence.
 
@@ -28,13 +28,13 @@ positive number `x`, main repeatedly calls `Odd` (if `x` is odd) or `Even` (if
 %%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
 graph TD
     %% Nodes.
-    github.com/ServiceWeaver/weaver/Main(weaver.Main)
-    github.com/ServiceWeaver/weaver/examples/collatz/Even(collatz.Even)
-    github.com/ServiceWeaver/weaver/examples/collatz/Odd(collatz.Odd)
+    github.com/sh3lk/mx/Main(mx.Main)
+    github.com/sh3lk/mx/examples/collatz/Even(collatz.Even)
+    github.com/sh3lk/mx/examples/collatz/Odd(collatz.Odd)
 
     %% Edges.
-    github.com/ServiceWeaver/weaver/Main --> github.com/ServiceWeaver/weaver/examples/collatz/Even
-    github.com/ServiceWeaver/weaver/Main --> github.com/ServiceWeaver/weaver/examples/collatz/Odd
+    github.com/sh3lk/mx/Main --> github.com/sh3lk/mx/examples/collatz/Even
+    github.com/sh3lk/mx/Main --> github.com/sh3lk/mx/examples/collatz/Odd
 ```
 
 This application highlights the benefits of colocation. The performance of the
@@ -51,21 +51,21 @@ $ go run .                  # In one terminal.
 $ curl localhost:9000?x=27  # In a different terminal.
 ```
 
-To run the app across multiple processes, use `weaver multi deploy`. The
-`weaver.toml` config file runs every component in a separate process, and the
+To run the app across multiple processes, use `mx multi deploy`. The
+`mx.toml` config file runs every component in a separate process, and the
 `colocated.toml` config file colocates all three components.
 
 ```console
-$ weaver multi deploy weaver.toml     # not colocated
-$ weaver multi deploy colocated.toml # colocated
+$ mx multi deploy mx.toml     # not colocated
+$ mx multi deploy colocated.toml # colocated
 ```
 
 ## Running on GKE
 
-To run the app on GKE, use `weaver gke deploy`:
+To run the app on GKE, use `mx gke deploy`:
 
 ```console
-$ weaver gke deploy weaver.toml
+$ mx gke deploy mx.toml
 ```
 
 [collatz]: https://en.wikipedia.org/wiki/Collatz_conjecture

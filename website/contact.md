@@ -22,9 +22,9 @@
 * If you're interested in contributing, please read our
 [contribution guide][contrib_guide].
 
-* If you need to get in touch with us, feel free to [e-mail](mailto:serviceweaver@google.com) us.
+* If you need to get in touch with us, feel free to [e-mail](mailto:mx@google.com) us.
 
-[sw_group]: https://groups.google.com/g/serviceweaver
+[sw_group]: https://groups.google.com/g/mx
 [sw_discord]: https://discord.gg/FzbQ3SM8R5
-[issue]: https://github.com/ServiceWeaver/weaver/issues
-[contrib_guide]: https://github.com/ServiceWeaver/weaver/blob/main/CONTRIBUTING.md
+[issue]: https://github.com/sh3lk/mx/issues
+[contrib_guide]: https://github.com/sh3lk/mx/blob/main/CONTRIBUTING.md

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// ERROR: weaver.NonRetriable
+// ERROR: mx.NonRetriable
 package foo
 
 import (
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
-var _ weaver.NotRetriable = 100
+var _ mx.NotRetriable = 100

@@ -18,10 +18,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
-//go:generate ../../cmd/weaver/weaver generate
+//go:generate ../../cmd/mx/mx generate
 
 // Clock component interface.
 type Clock interface {
@@ -31,7 +31,7 @@ type Clock interface {
 
 // Clock component implementation.
 type clock struct {
-	weaver.Implements[Clock]
+	mx.Implements[Clock]
 }
 
 // UnixMicro implements the Clock interface.

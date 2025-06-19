@@ -14,21 +14,21 @@
 
 // EXPECTED
 // Preallocate
-// serviceweaver_enc_slice_X
-// serviceweaver_enc_slice_int
-// serviceweaver_enc_slice_string
-// serviceweaver_dec_slice_X
-// serviceweaver_dec_slice_int
-// serviceweaver_dec_slice_string
-// serviceweaver_enc_slice_map_int_string
-// serviceweaver_enc_slice_slice_X
-// serviceweaver_enc_ptr_string
-// serviceweaver_dec_ptr_string
-// serviceweaver_enc_ptr_X
-// serviceweaver_dec_ptr_X
-// serviceweaver_size_ptr_string_3e89801b(x *string)
-// serviceweaver_size_ptr_X_73ddf179(x *X)
-// serviceweaver_size_X_4cd17e8a(x *X)
+// mx_enc_slice_X
+// mx_enc_slice_int
+// mx_enc_slice_string
+// mx_dec_slice_X
+// mx_dec_slice_int
+// mx_dec_slice_string
+// mx_enc_slice_map_int_string
+// mx_enc_slice_slice_X
+// mx_enc_ptr_string
+// mx_dec_ptr_string
+// mx_enc_ptr_X
+// mx_dec_ptr_X
+// mx_size_ptr_string_3e89801b(x *string)
+// mx_size_ptr_X_73ddf179(x *X)
+// mx_size_X_4cd17e8a(x *X)
 
 // UNEXPECTED
 // c.Args.Encode(a0)
@@ -42,11 +42,11 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type X struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	a int
 }
 
@@ -55,7 +55,7 @@ type foo interface {
 	B(context.Context, *string, *X) error
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (l *impl) A(context.Context, []X, []int, [][]X, []map[int]string) ([]string, error) {
 	return nil, nil

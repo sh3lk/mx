@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/weavertest"
+	"github.com/sh3lk/mx/mxtest"
 )
 
 // db is a fake store for the chat database.
@@ -77,10 +77,10 @@ func (db *db) GetImage(ctx context.Context, _ string, image ImageID) ([]byte, er
 }
 
 func TestServer(t *testing.T) {
-	for _, r := range weavertest.AllRunners() {
+	for _, r := range mxtest.AllRunners() {
 		// Use a fake DB since normal implementation does not work with multiple replicas
 		db := &db{}
-		r.Fakes = []weavertest.FakeComponent{weavertest.Fake[SQLStore](db)}
+		r.Fakes = []mxtest.FakeComponent{mxtest.Fake[SQLStore](db)}
 		r.Test(t, func(t *testing.T, main *server) {
 			server := httptest.NewServer(main)
 			defer server.Close()

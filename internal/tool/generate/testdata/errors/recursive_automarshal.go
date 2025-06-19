@@ -16,14 +16,14 @@
 
 package foo
 
-import "github.com/ServiceWeaver/weaver"
+import "github.com/sh3lk/mx"
 
 type A struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	*B
 }
 
 type B struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	*A
 }

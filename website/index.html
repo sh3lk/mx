@@ -16,18 +16,18 @@
 
 <div class="announcement-banner">
   <p>We regret to announce that, effective <b>December 5, 2024</b>, we will no longer continue active
-    development on the Service Weaver open-source framework. For more details, click
-    <a href="https://github.com/ServiceWeaver/weaver/blob/main/README.md">here.</a>
+    development on the MX open-source framework. For more details, click
+    <a href="https://github.com/sh3lk/mx/blob/main/README.md">here.</a>
   </p>
 </div>
 
-<div id="serviceweaver-jumbotron">
+<div id="mx-jumbotron">
   <h1>
     Write your application as a <strong>modular binary</strong>. Deploy it
     as a set of <em>microservices</em>.
   </h1>
-  <p class="serviceweaver-subtitle">
-    Service Weaver is a programming framework for writing and deploying cloud
+  <p class="mx-subtitle">
+    MX is a programming framework for writing and deploying cloud
     applications.
   </p>
 
@@ -51,7 +51,7 @@ type Adder interface {
 }
 
 type adder struct {
-    weaver.Implements[Adder]
+    mx.Implements[Adder]
 }
 
 func (adder) Add(_ context.Context, x, y int) (int, error) {
@@ -84,7 +84,7 @@ sum, err := adder.Add(ctx, 1, 2)
   <div class="intro-col">
     <h1>Step 3: Deploy Your Components</h1>
     <p>
-    Test your app locally and deploy it to the cloud. Service Weaver lets you think
+    Test your app locally and deploy it to the cloud. MX lets you think
     about <strong>what</strong> your code does without worrying about
     <strong>where</strong> it's running.
     </p>
@@ -94,9 +94,9 @@ sum, err := adder.Add(ctx, 1, 2)
 ```shell
 $ go test .                       # Test locally.
 $ go run .                        # Run locally.
-$ weaver ssh deploy weaver.toml   # Run on multiple machines.
-$ weaver gke deploy weaver.toml   # Run on Google Cloud.
-$ weaver kube deploy weaver.toml  # Run on Kubernetes.
+$ mx ssh deploy mx.toml   # Run on multiple machines.
+$ mx gke deploy mx.toml   # Run on Google Cloud.
+$ mx kube deploy mx.toml  # Run on Kubernetes.
 </markdown>
   </div>
 </div>
@@ -133,7 +133,7 @@ $ weaver kube deploy weaver.toml  # Run on Kubernetes.
 ```go
 // Automatically encoded and decoded.
 type pair struct {
-    weaver.AutoMarshal
+    mx.AutoMarshal
     x, y int32
 }
 </markdown>
@@ -145,12 +145,12 @@ type pair struct {
       <h2><a href="docs.html#config-files">Tiny Config 🎛️</a></h2>
       <p>
       Deploy to the cloud <strong>without tons of boilerplate</strong>
-      configuration. Here's a working config file to deploy a Service Weaver application
+      configuration. Here's a working config file to deploy a MX application
       across two regions in Google Cloud. It's less than ten lines long.
       </p>
 <markdown>
 ```toml
-[serviceweaver]
+[mx]
 binary = "./example"
 
 [gke]
@@ -164,7 +164,7 @@ listeners.example = {is_public = true, hostname = "example.com"},
     <div class="feature-bubble">
       <h2><a href="docs.html#logging">Logging, Metrics, Tracing 🔎</a></h2>
       <p>
-      Service Weaver has libraries for logging, metrics, and tracing. This telemetry is
+      MX has libraries for logging, metrics, and tracing. This telemetry is
       <strong>automatically integrated</strong> into the cloud where you
       deploy.
       </p>
@@ -172,7 +172,7 @@ listeners.example = {is_public = true, hostname = "example.com"},
 ```go
 var count = metrics.NewCounter(
     "example_count",
-    "An example of a Service Weaver counter",
+    "An example of a MX counter",
 )
 
 func main() {

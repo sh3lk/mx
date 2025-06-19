@@ -23,17 +23,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/internal/proto"
-	"github.com/ServiceWeaver/weaver/runtime/envelope"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
-	"github.com/ServiceWeaver/weaver/runtime/metrics"
-	"github.com/ServiceWeaver/weaver/runtime/protomsg"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
-	"github.com/ServiceWeaver/weaver/runtime/retry"
 	"github.com/google/uuid"
+	"github.com/sh3lk/mx/internal/proto"
+	"github.com/sh3lk/mx/runtime/envelope"
+	"github.com/sh3lk/mx/runtime/logging"
+	"github.com/sh3lk/mx/runtime/metrics"
+	"github.com/sh3lk/mx/runtime/protomsg"
+	"github.com/sh3lk/mx/runtime/protos"
+	"github.com/sh3lk/mx/runtime/retry"
 )
 
-// babysitter starts and manages weavelets belonging to a single colocation
+// babysitter starts and manages mxns belonging to a single colocation
 // group for a single application version, on the local machine.
 type babysitter struct {
 	ctx          context.Context
@@ -49,7 +49,7 @@ type babysitter struct {
 var _ envelope.EnvelopeHandler = &babysitter{}
 
 // RunBabysitter creates and runs an envelope.Envelope and a metrics collector for a
-// weavelet deployed with SSH.
+// mxn deployed with SSH.
 func RunBabysitter(ctx context.Context) error {
 	// Retrieve the deployment information.
 	info := &BabysitterInfo{}
@@ -73,8 +73,8 @@ func RunBabysitter(ctx context.Context) error {
 				App:        info.App.Name,
 				Deployment: info.DepId,
 				Component:  "Babysitter",
-				Weavelet:   uuid.NewString(),
-				Attrs:      []string{"serviceweaver/system", "", "weavelet", id},
+				MXN:        uuid.NewString(),
+				Attrs:      []string{"mx/system", "", "mxn", id},
 			},
 			Write: logSaver,
 		}),
@@ -90,7 +90,7 @@ func RunBabysitter(ctx context.Context) error {
 	}
 
 	// Start the envelope.
-	wlet := &protos.WeaveletArgs{
+	wlet := &protos.MXNArgs{
 		App:          info.App.Name,
 		DeploymentId: info.DepId,
 		Id:           id,
@@ -108,7 +108,7 @@ func RunBabysitter(ctx context.Context) error {
 	if !ok {
 		panic("ssh deployer child must be a real process")
 	}
-	if err := b.registerReplica(e.WeaveletAddress(), pid, id); err != nil {
+	if err := b.registerReplica(e.MXNAddress(), pid, id); err != nil {
 		return err
 	}
 	c := metricsCollector{logger: b.logger, envelope: e, info: info}
@@ -179,17 +179,17 @@ func (b *babysitter) ActivateComponent(_ context.Context, req *protos.ActivateCo
 }
 
 // registerReplica registers the information about a colocation group replica
-// (i.e., a weavelet).
-func (b *babysitter) registerReplica(replicaAddr string, pid int, weaveletId string) error {
+// (i.e., a mxn).
+func (b *babysitter) registerReplica(replicaAddr string, pid int, mxnId string) error {
 	if err := protomsg.Call(b.ctx, protomsg.CallArgs{
 		Client:  http.DefaultClient,
 		Addr:    b.info.ManagerAddr,
 		URLPath: registerReplicaURL,
 		Request: &ReplicaToRegister{
-			Group:      b.info.Group,
-			Address:    replicaAddr,
-			Pid:        int64(pid),
-			WeaveletId: weaveletId,
+			Group:   b.info.Group,
+			Address: replicaAddr,
+			Pid:     int64(pid),
+			MXNId:   mxnId,
 		},
 	}); err != nil {
 		return err

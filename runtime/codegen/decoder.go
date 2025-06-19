@@ -273,7 +273,7 @@ func (d *Decoder) Interface() any {
 	if !ok {
 		panic(fmt.Sprintf("received value for non-serializable type %v", t))
 	}
-	am.WeaverUnmarshal(d)
+	am.MXUnmarshal(d)
 
 	result := ptr
 	if t.Kind() != reflect.Pointer {

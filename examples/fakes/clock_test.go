@@ -18,7 +18,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ServiceWeaver/weaver/weavertest"
+	"github.com/sh3lk/mx/mxtest"
 )
 
 // fakeClock is a fake implementation of the Clock component that always
@@ -33,10 +33,10 @@ func (f *fakeClock) UnixMicro(context.Context) (int64, error) {
 }
 
 func TestClock(t *testing.T) {
-	for _, runner := range weavertest.AllRunners() {
+	for _, runner := range mxtest.AllRunners() {
 		// Register a fake Clock implementation with the runner.
 		fake := &fakeClock{100}
-		runner.Fakes = append(runner.Fakes, weavertest.Fake[Clock](fake))
+		runner.Fakes = append(runner.Fakes, mxtest.Fake[Clock](fake))
 
 		// When a fake is registered for a component, all instances of that
 		// component dispatch to the fake.

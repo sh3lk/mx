@@ -14,11 +14,11 @@
 
 package main
 
-import "github.com/ServiceWeaver/weaver/metrics"
+import "github.com/sh3lk/mx/metrics"
 
 type labels struct {
-	Path       string `weaver:"path"`
-	StatusCode int    `weaver:"status_code"`
+	Path       string `mx:"path"`
+	StatusCode int    `mx:"status_code"`
 }
 
 var requests = metrics.NewCounterMap[labels](

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package version contains the version of the weaver module and its
+// Package version contains the version of the mx module and its
 // constituent APIs (e.g., the pipe API, the codegen API).
 package version
 
@@ -29,19 +29,19 @@ const (
 	// Every time we make a change to the deployer API, we assign it a new
 	// version. We could assign the deployer API versions v1, v2, v3, and so
 	// on. However, this makes it hard to understand the relationship between
-	// the deployer API version and the version of the Service Weaver module.
+	// the deployer API version and the version of the MX module.
 	//
-	// Instead, we use Service Weaver module versions as deployer API versions.
-	// For example, if we change the deployer API in v0.12.0 of Service Weaver,
+	// Instead, we use MX module versions as deployer API versions.
+	// For example, if we change the deployer API in v0.12.0 of MX,
 	// then we update the deployer API version to v0.12.0. If we don't change
-	// the deployer API in v0.13.0 of Service Weaver, then we leave the
+	// the deployer API in v0.13.0 of MX, then we leave the
 	// deployer API at v0.12.0.
 	DeployerMajor = 0
 	DeployerMinor = 24
 
 	// The version of the codegen API. As with the deployer API, we assign a
 	// new version every time we change how code is generated, and we use
-	// weaver module versions.
+	// mx module versions.
 	CodegenMajor = 0
 	CodegenMinor = 24
 )

@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package testdeployer includes unit tests for a remote weavelet spawned by a
+// Package testdeployer includes unit tests for a remote mxn spawned by a
 // test deployer. Thest tests are in a separate package from the remote
-// weavelet code to avoid a cyclic dependency.
+// mxn code to avoid a cyclic dependency.
 package testdeployer
 
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
-	"github.com/ServiceWeaver/weaver/metrics"
+	"github.com/sh3lk/mx"
+	"github.com/sh3lk/mx/metrics"
 )
 
-//go:generate ../../cmd/weaver/weaver generate .
+//go:generate ../../cmd/mx/mx generate .
 
 // Define three components---a, b, and c---that are used in unit tests.
 
@@ -45,22 +45,22 @@ type d interface {
 }
 
 type aimpl struct {
-	weaver.Implements[a]
-	lis weaver.Listener //lint:ignore U1000 used in remoteweavelet_test.go
-	b   weaver.Ref[b]
+	mx.Implements[a]
+	lis mx.Listener //lint:ignore U1000 used in remotemxn_test.go
+	b   mx.Ref[b]
 }
 
 type bimpl struct {
-	weaver.Implements[b]
-	c weaver.Ref[c]
+	mx.Implements[b]
+	c mx.Ref[c]
 }
 
 type cimpl struct {
-	weaver.Implements[c]
+	mx.Implements[c]
 }
 
 type dimpl struct {
-	weaver.Implements[d]
+	mx.Implements[d]
 }
 
 func (a *aimpl) A(ctx context.Context, x int) (int, error) {
@@ -82,5 +82,5 @@ func (c *cimpl) C(ctx context.Context, x int) (int, error) {
 }
 
 func (d *dimpl) D(ctx context.Context) (string, error) {
-	return d.Weaver().DeploymentID, nil
+	return d.MX().DeploymentID, nil
 }

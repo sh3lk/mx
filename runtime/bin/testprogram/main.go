@@ -18,39 +18,39 @@ package main
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
-//go:generate ../../../cmd/weaver/weaver generate
+//go:generate ../../../cmd/mx/mx generate
 
 type A interface{}
 type B interface{}
 type C interface{}
 
 type app struct {
-	weaver.Implements[weaver.Main]
-	a      weaver.Ref[A]   //lint:ignore U1000 intentionally declared but not used
-	appLis weaver.Listener //lint:ignore U1000 intentionally declared but not used
+	mx.Implements[mx.Main]
+	a      mx.Ref[A]   //lint:ignore U1000 intentionally declared but not used
+	appLis mx.Listener //lint:ignore U1000 intentionally declared but not used
 }
 
 func (*app) Main(context.Context) error { return nil }
 
 type a struct {
-	weaver.Implements[A]
-	b            weaver.Ref[B]   //lint:ignore U1000 intentionally declared but not used
-	c            weaver.Ref[C]   //lint:ignore U1000 intentionally declared but not used
-	aLis1, aLis2 weaver.Listener //lint:ignore U1000 intentionally declared but not used
-	unused       weaver.Listener `weaver:"aLis3"` //lint:ignore U1000 intentionally declared but not used
+	mx.Implements[A]
+	b            mx.Ref[B]   //lint:ignore U1000 intentionally declared but not used
+	c            mx.Ref[C]   //lint:ignore U1000 intentionally declared but not used
+	aLis1, aLis2 mx.Listener //lint:ignore U1000 intentionally declared but not used
+	unused       mx.Listener `mx:"aLis3"` //lint:ignore U1000 intentionally declared but not used
 }
 
 type b struct {
-	weaver.Listener
-	weaver.Implements[B]
+	mx.Listener
+	mx.Implements[B]
 }
 
 type c struct {
-	weaver.Listener `weaver:"cLis"`
-	weaver.Implements[C]
+	mx.Listener `mx:"cLis"`
+	mx.Implements[C]
 }
 
 func main() {}

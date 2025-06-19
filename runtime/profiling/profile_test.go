@@ -20,8 +20,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ServiceWeaver/weaver/runtime/profiling"
 	"github.com/google/pprof/profile"
+	"github.com/sh3lk/mx/runtime/profiling"
 )
 
 func TestProfileGroups(t *testing.T) {

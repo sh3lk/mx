@@ -20,9 +20,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ServiceWeaver/weaver/runtime"
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
 	"github.com/google/go-cmp/cmp"
+	"github.com/sh3lk/mx/runtime"
+	"github.com/sh3lk/mx/runtime/codegen"
 )
 
 func TestBinaryPath(t *testing.T) {
@@ -44,8 +44,8 @@ func TestBinaryPath(t *testing.T) {
 		{"Abs/Abs", "/bin", "/tmp/foo", "/tmp/foo"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			spec := fmt.Sprintf("[serviceweaver]\nbinary = '%s'\n", c.binary)
-			cfgFile := filepath.Join(c.dir, "weaver.toml")
+			spec := fmt.Sprintf("[mx]\nbinary = '%s'\n", c.binary)
+			cfgFile := filepath.Join(c.dir, "mx.toml")
 			cfg, err := runtime.ParseConfig(cfgFile, spec, codegen.ComponentConfigValidator)
 			if err != nil {
 				t.Fatalf("unexpected error %v", err)
@@ -112,7 +112,7 @@ func TestConfigErrors(t *testing.T) {
 		{
 			name: "same-process-inter-group-conflict",
 			cfg: `
-[serviceweaver]
+[mx]
 colocate = [["a", "main"], ["a", "c"]]
 `,
 			expectedError: "placed multiple times",
@@ -120,7 +120,7 @@ colocate = [["a", "main"], ["a", "c"]]
 		{
 			name: "same-process-intra-group-conflict",
 			cfg: `
-[serviceweaver]
+[mx]
 colocate = [["a", "main", "a"]]
 `,
 			expectedError: "placed multiple times",
@@ -128,10 +128,10 @@ colocate = [["a", "main", "a"]]
 		{
 			name: "conflicting sections",
 			cfg: `
-[serviceweaver]
+[mx]
 name = "foo"
 
-["github.com/ServiceWeaver/weaver"]
+["github.com/sh3lk/mx"]
 binary = "/tmp/foo"
 `,
 			expectedError: "conflicting",
@@ -139,7 +139,7 @@ binary = "/tmp/foo"
 		{
 			name: "unknown key",
 			cfg: `
-[serviceweaver]
+[mx]
 badkey = "foo"
 `,
 			expectedError: "unknown",
@@ -147,14 +147,14 @@ badkey = "foo"
 		{
 			name: "bad rollout",
 			cfg: `
-[serviceweaver]
+[mx]
 rollout = "hello"
 `,
 			expectedError: "invalid duration",
 		},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			_, err := runtime.ParseConfig("weaver.toml", c.cfg, codegen.ComponentConfigValidator)
+			_, err := runtime.ParseConfig("mx.toml", c.cfg, codegen.ComponentConfigValidator)
 			if err == nil {
 				t.Fatalf("unexpected success when expecting %q in\n%s", c.expectedError, c.cfg)
 			}

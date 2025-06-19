@@ -20,20 +20,20 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/ServiceWeaver/weaver/runtime/metrics"
-	imetrics "github.com/ServiceWeaver/weaver/runtime/prometheus"
-	"github.com/ServiceWeaver/weaver/runtime/protomsg"
-	protos "github.com/ServiceWeaver/weaver/runtime/protos"
+	"github.com/sh3lk/mx/runtime/metrics"
+	imetrics "github.com/sh3lk/mx/runtime/prometheus"
+	"github.com/sh3lk/mx/runtime/protomsg"
+	protos "github.com/sh3lk/mx/runtime/protos"
 )
 
 const (
-	statusEndpoint     = "/debug/serviceweaver/status"
-	metricsEndpoint    = "/debug/serviceweaver/metrics"
-	prometheusEndpoint = "/debug/serviceweaver/prometheus"
-	profileEndpoint    = "/debug/serviceweaver/profile"
+	statusEndpoint     = "/debug/mx/status"
+	metricsEndpoint    = "/debug/mx/metrics"
+	prometheusEndpoint = "/debug/mx/prometheus"
+	profileEndpoint    = "/debug/mx/profile"
 )
 
-// A Server returns information about a Service Weaver deployment.
+// A Server returns information about a MX deployment.
 type Server interface {
 	// Status returns the status of the deployment.
 	Status(context.Context) (*Status, error)
@@ -46,7 +46,7 @@ type Server interface {
 }
 
 // RegisterServer registers a Server's methods with the provided mux under the
-// /debug/serviceweaver/ prefix. You can use a Client to interact with a Status server.
+// /debug/mx/ prefix. You can use a Client to interact with a Status server.
 func RegisterServer(mux *http.ServeMux, server Server, logger *slog.Logger) {
 	mux.Handle(statusEndpoint, protomsg.HandlerThunk(logger, server.Status))
 	mux.Handle(metricsEndpoint, protomsg.HandlerThunk(logger, server.Metrics))

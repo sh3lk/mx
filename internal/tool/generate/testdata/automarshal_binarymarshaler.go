@@ -13,8 +13,8 @@
 // limitations under the License.
 
 // EXPECTED
-// func (x *t) WeaverMarshal(enc *codegen.Encoder)
-// func (x *t) WeaverUnmarshal(dec *codegen.Decoder)
+// func (x *t) MXMarshal(enc *codegen.Encoder)
+// func (x *t) MXUnmarshal(dec *codegen.Decoder)
 
 // Verify that AutoMarshal works on a struct with a field that implements
 // MarshalBinary and UnmarshalBinary.
@@ -23,7 +23,7 @@ package foo
 import (
 	"context"
 
-	"github.com/ServiceWeaver/weaver"
+	"github.com/sh3lk/mx"
 )
 
 type chans struct {
@@ -34,7 +34,7 @@ func (chans) MarshalBinary() ([]byte, error) { return nil, nil }
 func (chans) UnmarshalBinary([]byte) error   { return nil }
 
 type t struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	c chans
 }
 
@@ -43,7 +43,7 @@ type foo interface {
 	ByPointer(context.Context, *t) (*t, error)
 }
 
-type impl struct{ weaver.Implements[foo] }
+type impl struct{ mx.Implements[foo] }
 
 func (impl) ByValue(context.Context, t) (t, error)     { return t{}, nil }
 func (impl) ByPointer(context.Context, *t) (*t, error) { return &t{}, nil }

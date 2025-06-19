@@ -13,13 +13,13 @@
 // limitations under the License.
 
 syntax = "proto3";
-option go_package = "github.com/ServiceWeaver/weaver/internal/tool/multi";
+option go_package = "github.com/sh3lk/mx/internal/tool/multi";
 
 package multi;
 import "runtime/protos/config.proto";
 
 // MultiConfig stores the configuration information for one execution of a
-// Service Weaver application using the multiprocess deployer.
+// MX application using the multiprocess deployer.
 message MultiConfig {
   // Application config.
   runtime.AppConfig app = 1;

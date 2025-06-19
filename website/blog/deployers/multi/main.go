@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package main implements a simple multiprocess deployer. See
-// https://serviceweaver.dev/blog/deployers.html for corresponding blog post.
+// https://mx.dev/blog/deployers.html for corresponding blog post.
 package main
 
 import (
@@ -23,12 +23,12 @@ import (
 	"os"
 	"sync"
 
-	"github.com/ServiceWeaver/weaver/runtime"
-	"github.com/ServiceWeaver/weaver/runtime/colors"
-	"github.com/ServiceWeaver/weaver/runtime/envelope"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
 	"github.com/google/uuid"
+	"github.com/sh3lk/mx/runtime"
+	"github.com/sh3lk/mx/runtime/colors"
+	"github.com/sh3lk/mx/runtime/envelope"
+	"github.com/sh3lk/mx/runtime/logging"
+	"github.com/sh3lk/mx/runtime/protos"
 )
 
 // deployer is a simple multiprocess deployer that doesn't implement
@@ -39,12 +39,12 @@ type deployer struct {
 	handlers map[string]*handler // handlers, by component
 }
 
-// A handler handles messages from a weavelet. It implements the
+// A handler handles messages from a mxn. It implements the
 // EnvelopeHandler interface.
 type handler struct {
 	deployer *deployer          // underlying deployer
-	envelope *envelope.Envelope // envelope to the weavelet
-	address  string             // weavelet's address
+	envelope *envelope.Envelope // envelope to the mxn
+	address  string             // mxn's address
 }
 
 // Check that handler implements the envelope.EnvelopeHandler interface.
@@ -53,7 +53,7 @@ var _ envelope.EnvelopeHandler = &handler{}
 // The unique id of the application deployment.
 var deploymentId = uuid.New().String()
 
-// Usage: ./multi <service weaver binary>
+// Usage: ./multi <service mx binary>
 func main() {
 	flag.Parse()
 	d := &deployer{handlers: map[string]*handler{}}
@@ -64,26 +64,26 @@ func main() {
 	select {} // block forever
 }
 
-// spawn spawns a weavelet to host the provided component (if one hasn't
-// already spawned) and returns a handler to the weavelet.
+// spawn spawns a mxn to host the provided component (if one hasn't
+// already spawned) and returns a handler to the mxn.
 func (d *deployer) spawn(component string) (*handler, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	// Check if a weavelet has already been spawned.
+	// Check if a mxn has already been spawned.
 	if h, ok := d.handlers[component]; ok {
-		// The weavelet has already been spawned.
+		// The mxn has already been spawned.
 		return h, nil
 	}
 
-	// Spawn a weavelet in a subprocess to host the component.
-	info := &protos.WeaveletArgs{
+	// Spawn a mxn in a subprocess to host the component.
+	info := &protos.MXNArgs{
 		App:             "app",                     // the application name
 		DeploymentId:    deploymentId,              // the deployment id
-		Id:              uuid.New().String(),       // the weavelet id
+		Id:              uuid.New().String(),       // the mxn id
 		Mtls:            false,                     // don't enable mtls
-		RunMain:         component == runtime.Main, // should the weavelet run main?
-		InternalAddress: "localhost:0",             // internal address of the weavelet
+		RunMain:         component == runtime.Main, // should the mxn run main?
+		InternalAddress: "localhost:0",             // internal address of the mxn
 	}
 	config := &protos.AppConfig{
 		Name:   "app",       // the application name
@@ -96,16 +96,16 @@ func (d *deployer) spawn(component string) (*handler, error) {
 	h := &handler{
 		deployer: d,
 		envelope: envelope,
-		address:  envelope.WeaveletAddress(),
+		address:  envelope.MXNAddress(),
 	}
 
 	go func() {
-		// Inform the weavelet of the component it should host.
+		// Inform the mxn of the component it should host.
 		envelope.UpdateComponents([]string{component})
 	}()
 
 	go func() {
-		// Handle messages from the weavelet.
+		// Handle messages from the mxn.
 		envelope.Serve(h)
 	}()
 
@@ -116,14 +116,14 @@ func (d *deployer) spawn(component string) (*handler, error) {
 
 // Responsibility 1: Components.
 func (h *handler) ActivateComponent(_ context.Context, req *protos.ActivateComponentRequest) (*protos.ActivateComponentReply, error) {
-	// Spawn a weavelet to host the component, if one hasn't already been
+	// Spawn a mxn to host the component, if one hasn't already been
 	// spawned.
 	spawned, err := h.deployer.spawn(req.Component)
 	if err != nil {
 		return nil, err
 	}
 
-	// Tell the weavelet the address of the requested component.
+	// Tell the mxn the address of the requested component.
 	h.envelope.UpdateRoutingInfo(&protos.RoutingInfo{
 		Component: req.Component,
 		Replicas:  []string{spawned.address},
@@ -140,7 +140,7 @@ func (h *handler) GetListenerAddress(_ context.Context, req *protos.GetListenerA
 func (h *handler) ExportListener(_ context.Context, req *protos.ExportListenerRequest) (*protos.ExportListenerReply, error) {
 	// This simplified deployer does not proxy network traffic. Listeners
 	// should be contacted directly.
-	fmt.Printf("Weavelet listening on %s\n", req.Address)
+	fmt.Printf("MXN listening on %s\n", req.Address)
 	return &protos.ExportListenerReply{}, nil
 }
 

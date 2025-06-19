@@ -14,7 +14,7 @@
 
 // EXPECTED
 // var _ codegen.AutoMarshal = (*Pair)(nil)
-// weaver.AutoMarshal
+// mx.AutoMarshal
 // X int
 // Y int
 // }] struct{}
@@ -22,10 +22,10 @@
 
 package foo
 
-import "github.com/ServiceWeaver/weaver"
+import "github.com/sh3lk/mx"
 
 type Pair struct {
-	weaver.AutoMarshal
+	mx.AutoMarshal
 	X int
 	Y int
 }

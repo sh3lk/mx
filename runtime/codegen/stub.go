@@ -20,8 +20,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// A Stub allows a Service Weaver component in one process to invoke methods
-// via RPC on a Service Weaver component in a different process.
+// A Stub allows a MX component in one process to invoke methods
+// via RPC on a MX component in a different process.
 type Stub interface {
 	// Tracer returns a new tracer.
 	//
@@ -37,12 +37,12 @@ type Stub interface {
 	Run(ctx context.Context, method int, args []byte, shardKey uint64) (results []byte, err error)
 }
 
-// A Server allows a Service Weaver component in one process to receive and execute
-// methods via RPC from a Service Weaver component in a different process. It is the
+// A Server allows a MX component in one process to receive and execute
+// methods via RPC from a MX component in a different process. It is the
 // dual of a Stub.
 type Server interface {
 	// GetStubFn returns a handler function for the given method. For example,
-	// if a Service Weaver component defined an Echo method, then GetStubFn("Echo")
+	// if a MX component defined an Echo method, then GetStubFn("Echo")
 	// would return a handler that deserializes the arguments, executes the
 	// method, and serializes the results.
 	//
